@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GMDS Mining Drone Script", "GMDS Mining Drone Script\GMDS Mining Drone Script.csproj", "{5DF4ECA6-3822-424F-A40E-2B98FEF6F334}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DF4ECA6-3822-424F-A40E-2B98FEF6F334}.Debug|x64.ActiveCfg = Debug|x64
+		{5DF4ECA6-3822-424F-A40E-2B98FEF6F334}.Debug|x64.Build.0 = Debug|x64
+		{5DF4ECA6-3822-424F-A40E-2B98FEF6F334}.Release|x64.ActiveCfg = Release|x64
+		{5DF4ECA6-3822-424F-A40E-2B98FEF6F334}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {35550197-48E2-4B0A-B62D-41487647CE75}
+	EndGlobalSection
+EndGlobal
