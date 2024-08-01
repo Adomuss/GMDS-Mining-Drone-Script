@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.313A       
+        // General Mining Drone Script v0.314A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -36,7 +36,7 @@ namespace IngameScript
         }
         //rename these for drone
         int drone_id_num = 1;
-        string dtag = "SWRM_D";
+        string drone_tag = "SWRM_D";
         //ore detection
         bool ORE_sense_enabled = true;
         float ORE_sense_limit = 0.0f;
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.313";
+        string ver = "V0.314";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -313,7 +313,20 @@ namespace IngameScript
         string n = "";
         bool Or_recall_1 = false;
         bool Or_recall_2 = false;
-
+        string s_rc = "Remote Control";
+        string s_ssr = "Sensor";
+        string s_thr = "Thruster";
+        string s_atmo = "Atmospheric";
+        string s_hydro = "Hydrogen";
+        string s_ion = "Ion";
+        string s_timer_block = "Timer Block";
+        string s_antenna = "Antenna";
+        string s_camera = "Camera";
+        string s_connector = "Connector";
+        string s_battery = "Battery";
+        string s_hydrogen_tank = "Hydrogen Tank";
+        string s_drill = "Drill";
+        string s_gyroscope = "Gyroscope";
         public void Save()
         {
             _ini.Set("commands", "c1", recall);
@@ -371,26 +384,26 @@ namespace IngameScript
             if (!setup_complete)
             {
                 sb = new StringBuilder();
-                tx_ch = dtag + " reply";
-                rx_channel_recall = dtag + " " + recall_command;
-                if (dtag == "" || dtag == null)
+                tx_ch = drone_tag + " reply";
+                rx_channel_recall = drone_tag + " " + recall_command;
+                if (drone_tag == "" || drone_tag == null)
                 {
                     Echo("Invalid name for dtag");
                     return;
                 }
-                D_I_N = "[" + dtag + " " + drone_id_num + "]";
-                D_C_N = "[" + dtag + " " + drone_id_num + "]";
-                dk_tsk_n = "[" + dtag + " " + drone_id_num + " " + Dock + "]";
-                undk_tsk_n = "[" + dtag + " " + drone_id_num + " " + Undock + "]";
-                Thr_ON_n = "[" + dtag + " " + drone_id_num + " " + TON + "]";
-                Thr_OFF_N = "[" + dtag + " " + drone_id_num + " " + TOFF + "]";
-                Rst_T_N = "[" + dtag + " " + drone_id_num + " " + Reset + "]";
-                CA_T_N = "[" + dtag + " " + drone_id_num + " " + CA + "]";
-                P_M_T_N = "[" + dtag + " " + drone_id_num + " " + PrecM + "]";
-                H_T_N = "[" + dtag + " " + drone_id_num + " " + HT + "]";
-                D_S_C = "[" + dtag + " " + drone_id_num + " " + Sense + "]";
-                DLT = "[" + dtag + " " + drone_id_num + " " + dmg + "]";
-                P_CH = "[" + dtag + "]" + " " + p_cht;
+                D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
+                D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
+                dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
+                undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
+                Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
+                Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
+                Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
+                CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
+                P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
+                H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
+                D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
+                DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
+                P_CH = "[" + drone_tag + "]" + " " + p_cht;
                 rx_channel_recall_drone = D_I_N + " " + recall_command;
                 rc_all = new List<IMyRemoteControl>();
                 rctag = new List<IMyRemoteControl>();
@@ -401,12 +414,14 @@ namespace IngameScript
                     {
                         if (rc_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_rc + " " + (i+1) + " " + D_I_N;
+                            rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
                         }
                         if (!rc_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = rc_all[i].CustomName;
-                            rc_all[i].CustomName = n + " " + D_I_N;
+                            n = s_rc + " " + (i + 1) + " " + D_I_N;
+                            rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
                         }
 
@@ -423,12 +438,14 @@ namespace IngameScript
                         {
                             if (sensor_all[i].CustomName.Contains(D_I_N))
                             {
+                                n = s_ssr + " " + (i + 1) + " " + D_I_N;
+                                sensor_all[i].CustomName = n;
                                 sensor_tag.Add(sensor_all[i]);
                             }
                             if (!sensor_all[i].CustomName.Contains(D_I_N))
                             {
-                                n = sensor_all[i].CustomName;
-                                sensor_all[i].CustomName = n + " " + D_I_N;
+                                n = s_ssr + " " + (i + 1) + " " + D_I_N;
+                                sensor_all[i].CustomName = n;
                                 sensor_tag.Add(sensor_all[i]);
                             }
                         }
@@ -466,12 +483,14 @@ namespace IngameScript
                     {
                         if (cam_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_camera + " " + (i + 1) + " " + D_I_N;
+                            cam_all[i].CustomName = n;
                             camera_tag.Add(cam_all[i]);
                         }
                         if (!cam_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = cam_all[i].CustomName;
-                            cam_all[i].CustomName = n + " " + D_I_N;
+                            n = s_camera + " " + (i + 1) + " " + D_I_N;
+                            cam_all[i].CustomName = n;
                             camera_tag.Add(cam_all[i]);
                         }
                     }
@@ -485,12 +504,14 @@ namespace IngameScript
                     {
                         if (connector_all[i].CustomName.Contains(D_C_N))
                         {
+                            n = s_connector + " " + (i + 1) + " " + D_I_N;
+                            connector_all[i].CustomName = n;
                             connector_tag.Add(connector_all[i]);
                         }
                         if (!connector_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = connector_all[i].CustomName;
-                            connector_all[i].CustomName = n + " " + D_I_N;
+                            n = s_connector + " " + (i + 1) + " " + D_I_N;
+                            connector_all[i].CustomName = n;
                             connector_tag.Add(connector_all[i]);
                         }
                     }
@@ -528,12 +549,14 @@ namespace IngameScript
                     {
                         if (antenna_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                            antenna_all[i].CustomName = n;
                             antenna_tag.Add(antenna_all[i]);
                         }
                         if (!antenna_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = antenna_all[i].CustomName;
-                            antenna_all[i].CustomName = n + " " + D_I_N;
+                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                            antenna_all[i].CustomName = n;
                             antenna_tag.Add(antenna_all[i]);
                         }
                     }
@@ -584,12 +607,40 @@ namespace IngameScript
                     {
                         if (thrust_all[i].CustomName.Contains(D_I_N))
                         {
+                            string tv1 = "";
+                            if (thrust_all[i].CustomName.Contains("Hydro"))
+                            {
+                                 tv1 = s_hydro;
+                            }
+                            if (thrust_all[i].CustomName.Contains("Atmo"))
+                            {
+                                 tv1 = s_atmo;
+                            }
+                            if (thrust_all[i].CustomName.Contains("Ion"))
+                            {
+                                 tv1 = s_ion;
+                            }
+                            n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
+                            thrust_all[i].CustomName = n;
                             thrust_tag.Add(thrust_all[i]);
                         }
                         if (!thrust_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = thrust_all[i].CustomName;
-                            thrust_all[i].CustomName = n + " " + D_I_N;
+                            string tv1 = "";
+                            if (thrust_all[i].CustomName.Contains("Hydro"))
+                            {
+                                tv1 = s_hydro;
+                            }
+                            if (thrust_all[i].CustomName.Contains("Atmo"))
+                            {
+                                tv1 = s_atmo;
+                            }
+                            if (thrust_all[i].CustomName.Contains("Ion"))
+                            {
+                                tv1 = s_ion;
+                            }
+                            n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
+                            thrust_all[i].CustomName = n;
                             thrust_tag.Add(thrust_all[i]);
                         }
                     }
@@ -669,12 +720,32 @@ namespace IngameScript
                     {
                         if (battery_all[i].CustomName.Contains(D_I_N))
                         {
+                            string tv1 = "";
+                            if (thrust_all[i].CustomName.Contains("Small"))
+                            {
+                                tv1 = "Small";
+                            }
+                            if (thrust_all[i].CustomName.Contains("Medium"))
+                            {
+                                tv1 = "Medium";
+                            }
+                            n = tv1+ " " + s_battery + " " + (i + 1) + " " + D_I_N;
+                            battery_all[i].CustomName = n;
                             battery_tag.Add(battery_all[i]);
                         }
                         if (!battery_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = battery_all[i].CustomName;
-                            battery_all[i].CustomName = n + " " + D_I_N;
+                            string tv1 = "";
+                            if (thrust_all[i].CustomName.Contains("Small"))
+                            {
+                                tv1 = "Small";
+                            }
+                            if (thrust_all[i].CustomName.Contains("Medium"))
+                            {
+                                tv1 = "Medium";
+                            }
+                            n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
+                            battery_all[i].CustomName = n;
                             battery_tag.Add(battery_all[i]);
                         }
                     }
@@ -688,12 +759,14 @@ namespace IngameScript
                     {
                         if (hydrogen_tank_all[i].CustomName.Contains(H_T_N))
                         {
+                            n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
+                            hydrogen_tank_all[i].CustomName = n;
                             hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
                         }
                         if (!hydrogen_tank_all[i].CustomName.Contains(H_T_N))
                         {
-                            n = hydrogen_tank_all[i].CustomName;
-                            hydrogen_tank_all[i].CustomName = n + " " + H_T_N;
+                            n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
+                            hydrogen_tank_all[i].CustomName = n;
                             hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
                         }
                     }
@@ -707,12 +780,14 @@ namespace IngameScript
                     {
                         if (drill_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_drill + " " + (i + 1) + " " + D_I_N;
+                            drill_all[i].CustomName = n;
                             drill_tag.Add(drill_all[i]);
                         }
                         if (!drill_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = drill_all[i].CustomName;
-                            drill_all[i].CustomName = n + " " + D_I_N;
+                            n = s_drill + " " + (i + 1) + " " + D_I_N;
+                            drill_all[i].CustomName = n;
                             drill_tag.Add(drill_all[i]);
                         }
                     }
@@ -726,12 +801,14 @@ namespace IngameScript
                     {
                         if (gyro_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
+                            gyro_all[i].CustomName = n;
                             gyro_tag.Add(gyro_all[i]);
                         }
                         if (!gyro_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = gyro_all[i].CustomName;
-                            gyro_all[i].CustomName = n + " " + D_I_N;
+                            n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
+                            gyro_all[i].CustomName = n;
                             gyro_tag.Add(gyro_all[i]);
                         }
                     }
