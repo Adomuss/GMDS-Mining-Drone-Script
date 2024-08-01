@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.314A       
+        // General Mining Drone Script v0.315A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.314";
+        string ver = "V0.315";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -326,6 +326,10 @@ namespace IngameScript
         string s_hydrogen_tank = "Hydrogen Tank";
         string s_drill = "Drill";
         string s_gyroscope = "Gyroscope";
+        string s_timerblock = "Timer Block";
+        string s_flightmove = "AI Flight Move";
+        string s_aitask = "AI Task Recorder";
+        string s_lightblock = "Indication Light";
         public void Save()
         {
             _ini.Set("commands", "c1", recall);
@@ -570,10 +574,14 @@ namespace IngameScript
                     {
                         if (flight_path_all[i].CustomName.Contains(dk_tsk_n))
                         {
+                            n = s_aitask + " Dock";
+                            flight_path_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
                             flight_path_dock_tag.Add(flight_path_all[i]);
                         }
                         if (flight_path_all[i].CustomName.Contains(undk_tsk_n))
                         {
+                            n = s_aitask + " Undock";
+                            flight_path_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
                             flight_path_undock_tag.Add(flight_path_all[i]);
                         }
                     }
@@ -587,12 +595,14 @@ namespace IngameScript
                     {
                         if (flight_move_all[i].CustomName.Contains(D_I_N))
                         {
+                            n = s_flightmove;
+                            flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
                             flight_move_tag.Add(flight_move_all[i]);
                         }
                         if (!flight_move_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = flight_move_all[i].CustomName;
-                            flight_move_all[i].CustomName = n + " " + D_I_N;
+                            n = s_flightmove;
+                            flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
                             flight_move_tag.Add(flight_move_all[i]);
                         }
                     }
@@ -656,18 +666,26 @@ namespace IngameScript
                     {
                         if (timer_block_all[i].CustomName.Contains(Thr_ON_n))
                         {
+                            n = s_timerblock;
+                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_ON_n;
                             timer_block_tON_tag.Add(timer_block_all[i]);
                         }
                         if (timer_block_all[i].CustomName.Contains(Thr_OFF_N))
                         {
+                            n = s_timerblock;
+                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_OFF_N;
                             timer_block_tOFF_tag.Add(timer_block_all[i]);
                         }
                         if (timer_block_all[i].CustomName.Contains(P_M_T_N))
                         {
+                            n = s_timerblock;
+                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
                             timer_block_precM_tag.Add(timer_block_all[i]);
                         }
                         if (timer_block_all[i].CustomName.Contains(undk_tsk_n))
                         {
+                            n = s_timerblock;
+                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
                             timer_block_undock_tag.Add(timer_block_all[i]);
                         }
                     }
@@ -686,26 +704,38 @@ namespace IngameScript
                     {
                         if (light_all[i].CustomName.Contains(dk_tsk_n))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
                             light_dock_tag.Add(light_all[i]);
                         }
                         if (light_all[i].CustomName.Contains(undk_tsk_n))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
                             light_undock_tag.Add(light_all[i]);
                         }
                         if (light_all[i].CustomName.Contains(CA_T_N))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + CA_T_N;
                             light_collision_avoid_tag.Add(light_all[i]);
                         }
                         if (light_all[i].CustomName.Contains(Rst_T_N))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + Rst_T_N;
                             light_reset_tag.Add(light_all[i]);
                         }
                         if (light_all[i].CustomName.Contains(P_M_T_N))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
                             light_precM_tag.Add(light_all[i]);
                         }
                         if (light_all[i].CustomName.Contains(DLT))
                         {
+                            n = s_lightblock;
+                            light_all[i].CustomName = n + " " + (i + 1) + " " + DLT;
                             light_dmg_tag.Add(light_all[i]);
                         }
                     }
