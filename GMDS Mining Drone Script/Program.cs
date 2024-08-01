@@ -318,8 +318,7 @@ namespace IngameScript
         string s_thr = "Thruster";
         string s_atmo = "Atmospheric";
         string s_hydro = "Hydrogen";
-        string s_ion = "Ion";
-        string s_timer_block = "Timer Block";
+        string s_ion = "Ion";        
         string s_antenna = "Antenna";
         string s_camera = "Camera";
         string s_connector = "Connector";
