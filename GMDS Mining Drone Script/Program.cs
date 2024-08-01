@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.315A       
+        // General Mining Drone Script v0.316A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.315";
+        string ver = "V0.316";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -330,6 +330,7 @@ namespace IngameScript
         string s_flightmove = "AI Flight Move";
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
+        string s_cargo = "Cargo Container";
         public void Save()
         {
             _ini.Set("commands", "c1", recall);
@@ -529,15 +530,57 @@ namespace IngameScript
                     {
                         if (cargo_all[i].CustomName.Contains(D_I_N))
                         {
+                            string tv1 = "";
+                            if (cargo_all[i].CustomName.Contains("Small"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Medium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Large"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_all[i].CustomName = n;
                             cargo_tag.Add(cargo_all[i]);
                         }
                         if (cargo_all[i].CustomName.Contains(D_S_C))
                         {
+                            string tv1 = "";
+                            if (cargo_all[i].CustomName.Contains("Small"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Medium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Large"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
                             cargo_sense.Add(cargo_all[i]);
                         }
                         if (!cargo_all[i].CustomName.Contains(D_I_N) && !cargo_all[i].CustomName.Contains(D_S_C))
                         {
-                            n = cargo_all[i].CustomName;
+                            string tv1 = "";
+                            if (cargo_all[i].CustomName.Contains("Small"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Medium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].CustomName.Contains("Large"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;                           
                             cargo_all[i].CustomName = n + " " + D_I_N;
                             cargo_tag.Add(cargo_all[i]);
                         }
