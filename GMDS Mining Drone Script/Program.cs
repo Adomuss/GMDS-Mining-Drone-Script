@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.316A       
+        // General Mining Drone Script v0.318A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.316";
+        string ver = "V0.318";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -1652,7 +1652,7 @@ namespace IngameScript
             {
                 nav_act = false;
             }
-            if (yawinst && !nav_act || pitchinst && !nav_act || rollinst && !nav_act || reset_light_actual.Enabled)
+            if (yawinst && !nav_act || pitchinst && !nav_act || rollinst && !nav_act || reset_light_actual.Enabled && !is_docking)
             {
                 navinst = true;
                 drone_status = 23;
