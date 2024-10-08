@@ -411,6 +411,33 @@ namespace IngameScript
                 DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
                 P_CH = "[" + drone_tag + "]" + " " + p_cht;
                 rx_channel_recall_drone = D_I_N + " " + recall_command;
+
+                antenna_all = new List<IMyRadioAntenna>();
+                antenna_tag = new List<IMyRadioAntenna>();
+                gts.GetBlocksOfType<IMyRadioAntenna>(antenna_all, b => b.CubeGrid == Me.CubeGrid);
+                if (antenna_all.Count > 0)
+                {
+                    for (int i = 0; i < antenna_all.Count; i++)
+                    {
+                        if (antenna_all[i].CustomName.Contains(D_I_N))
+                        {
+                            string checker = antenna_all[i].CustomName;
+                            drone_custom_data_check(checker);
+                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                            antenna_all[i].CustomName = n;
+                            antenna_tag.Add(antenna_all[i]);
+                        }
+                        if (!antenna_all[i].CustomName.Contains(D_I_N))
+                        {
+                            string checker = antenna_all[i].CustomName;
+                            drone_custom_data_check(checker);
+                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                            antenna_all[i].CustomName = n;
+                            antenna_tag.Add(antenna_all[i]);
+                        }
+                    }
+                }
+                antenna_all.Clear();
                 rc_all = new List<IMyRemoteControl>();
                 rctag = new List<IMyRemoteControl>();
                 gts.GetBlocksOfType<IMyRemoteControl>(rc_all, b => b.CubeGrid == Me.CubeGrid);
@@ -420,16 +447,12 @@ namespace IngameScript
                     {
                         if (rc_all[i].CustomName.Contains(D_I_N))
                         {
-                            string checker = rc_all[i].CustomName;
-                            drone_custom_data_check(checker);
                             n = s_rc + " " + (i+1) + " " + D_I_N;
                             rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
                         }
                         if (!rc_all[i].CustomName.Contains(D_I_N))
                         {
-                            string checker = rc_all[i].CustomName;
-                            drone_custom_data_check(checker);
                             n = s_rc + " " + (i + 1) + " " + D_I_N;
                             rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
@@ -437,6 +460,7 @@ namespace IngameScript
 
                     }
                 }
+                rc_all.Clear();
                 if (Collision_sense_enabled)
                 {
                     sensor_all = new List<IMySensorBlock>();
@@ -460,6 +484,7 @@ namespace IngameScript
                             }
                         }
                     }
+                    sensor_all.Clear();
                     if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
                     {
                         Echo($"Sensor with tag: '{D_I_N}' not found.");
@@ -505,6 +530,7 @@ namespace IngameScript
                         }
                     }
                 }
+                cam_all.Clear();
                 connector_all = new List<IMyShipConnector>();
                 connector_tag = new List<IMyShipConnector>();
                 gts.GetBlocksOfType<IMyShipConnector>(connector_all, b => b.CubeGrid == Me.CubeGrid);
@@ -525,7 +551,7 @@ namespace IngameScript
                             connector_tag.Add(connector_all[i]);
                         }
                     }
-                }
+                }connector_all.Clear();
                 cargo_all = new List<IMyCargoContainer>();
                 cargo_tag = new List<IMyCargoContainer>();
                 cargo_sense = new List<IMyCargoContainer>();
@@ -592,27 +618,7 @@ namespace IngameScript
                         }
                     }
                 }
-                antenna_all = new List<IMyRadioAntenna>();
-                antenna_tag = new List<IMyRadioAntenna>();
-                gts.GetBlocksOfType<IMyRadioAntenna>(antenna_all, b => b.CubeGrid == Me.CubeGrid);
-                if (antenna_all.Count > 0)
-                {
-                    for (int i = 0; i < antenna_all.Count; i++)
-                    {
-                        if (antenna_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
-                            antenna_all[i].CustomName = n;
-                            antenna_tag.Add(antenna_all[i]);
-                        }
-                        if (!antenna_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
-                            antenna_all[i].CustomName = n;
-                            antenna_tag.Add(antenna_all[i]);
-                        }
-                    }
-                }
+                cargo_all.Clear();
                 flight_path_all = new List<IMyPathRecorderBlock>();
                 flight_path_dock_tag = new List<IMyPathRecorderBlock>();
                 flight_path_undock_tag = new List<IMyPathRecorderBlock>();
@@ -635,6 +641,7 @@ namespace IngameScript
                         }
                     }
                 }
+                flight_path_all.Clear();
                 flight_move_all = new List<IMyFlightMovementBlock>();
                 flight_move_tag = new List<IMyFlightMovementBlock>();
                 gts.GetBlocksOfType<IMyFlightMovementBlock>(flight_move_all, b => b.CubeGrid == Me.CubeGrid);
@@ -656,6 +663,7 @@ namespace IngameScript
                         }
                     }
                 }
+                flight_move_all.Clear();
                 thrust_all = new List<IMyThrust>();
                 thrust_tag = new List<IMyThrust>();
                 gts.GetBlocksOfType<IMyThrust>(thrust_all, b => b.CubeGrid == Me.CubeGrid);
@@ -703,6 +711,7 @@ namespace IngameScript
                         }
                     }
                 }
+                thrust_all.Clear();
                 timer_block_all = new List<IMyTimerBlock>();
                 timer_block_tON_tag = new List<IMyTimerBlock>();
                 timer_block_tOFF_tag = new List<IMyTimerBlock>();
@@ -739,6 +748,7 @@ namespace IngameScript
                         }
                     }
                 }
+                timer_block_all.Clear();
                 light_all = new List<IMyLightingBlock>();
                 light_undock_tag = new List<IMyLightingBlock>();
                 light_dock_tag = new List<IMyLightingBlock>();
@@ -789,6 +799,7 @@ namespace IngameScript
                         }
                     }
                 }
+                light_all.Clear();
                 battery_all = new List<IMyBatteryBlock>();
                 battery_tag = new List<IMyBatteryBlock>();
                 gts.GetBlocksOfType<IMyBatteryBlock>(battery_all, b => b.CubeGrid == Me.CubeGrid);
@@ -828,6 +839,7 @@ namespace IngameScript
                         }
                     }
                 }
+                battery_all.Clear();
                 hydrogen_tank_all = new List<IMyGasTank>();
                 hydrogen_tank_tag = new List<IMyGasTank>();
                 gts.GetBlocksOfType<IMyGasTank>(hydrogen_tank_all, b => b.CubeGrid == Me.CubeGrid);
@@ -849,6 +861,7 @@ namespace IngameScript
                         }
                     }
                 }
+                hydrogen_tank_all.Clear();
                 drill_all = new List<IMyShipDrill>();
                 drill_tag = new List<IMyShipDrill>();
                 gts.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
@@ -870,6 +883,7 @@ namespace IngameScript
                         }
                     }
                 }
+                drill_all.Clear();
                 gyro_all = new List<IMyGyro>();
                 gyro_tag = new List<IMyGyro>();
                 gts.GetBlocksOfType<IMyGyro>(gyro_all, b => b.CubeGrid == Me.CubeGrid);
@@ -891,6 +905,7 @@ namespace IngameScript
                         }
                     }
                 }
+                gyro_all.Clear();
                 if (Storage != "" && Storage != null)
                 {
                     LoadStorageData();
@@ -2964,6 +2979,7 @@ namespace IngameScript
                     }
                 }
             }
+            drill_all.Clear();
         }
 
         void reset_ai()
