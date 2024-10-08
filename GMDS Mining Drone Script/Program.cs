@@ -394,7 +394,7 @@ namespace IngameScript
                 rx_channel_recall = drone_tag + " " + recall_command;
                 if (drone_tag == "" || drone_tag == null)
                 {
-                    Echo("Invalid name for dtag");
+                    Echo($"Invalid name for drone_tag {drone_tag}");
                     return;
                 }
                 D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
@@ -411,6 +411,7 @@ namespace IngameScript
                 DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
                 P_CH = "[" + drone_tag + "]" + " " + p_cht;
                 rx_channel_recall_drone = D_I_N + " " + recall_command;
+                Me.CustomName = $"Programmable Block {D_I_N}";
 
                 antenna_all = new List<IMyRadioAntenna>();
                 antenna_tag = new List<IMyRadioAntenna>();
@@ -421,16 +422,26 @@ namespace IngameScript
                     {
                         if (antenna_all[i].CustomName.Contains(D_I_N))
                         {
-                            string checker = antenna_all[i].CustomName;
+                            string checker = antenna_all[i].CustomData;
                             drone_custom_data_check(checker);
+                            if (drone_tag == "" || drone_tag == null)
+                            {
+                                Echo($"Invalid name for drone_tag {drone_tag}");
+                                return;
+                            }
                             n = s_antenna + " " + (i + 1) + " " + D_I_N;
                             antenna_all[i].CustomName = n;
                             antenna_tag.Add(antenna_all[i]);
                         }
                         if (!antenna_all[i].CustomName.Contains(D_I_N))
                         {
-                            string checker = antenna_all[i].CustomName;
+                            string checker = antenna_all[i].CustomData;
                             drone_custom_data_check(checker);
+                            if (drone_tag == "" || drone_tag == null)
+                            {
+                                Echo($"Invalid name for drone_tag {drone_tag}");
+                                return;
+                            }
                             n = s_antenna + " " + (i + 1) + " " + D_I_N;
                             antenna_all[i].CustomName = n;
                             antenna_tag.Add(antenna_all[i]);
@@ -551,7 +562,8 @@ namespace IngameScript
                             connector_tag.Add(connector_all[i]);
                         }
                     }
-                }connector_all.Clear();
+                }
+                connector_all.Clear();
                 cargo_all = new List<IMyCargoContainer>();
                 cargo_tag = new List<IMyCargoContainer>();
                 cargo_sense = new List<IMyCargoContainer>();
@@ -611,7 +623,7 @@ namespace IngameScript
                             if (cargo_all[i].CustomName.Contains("Large"))
                             {
                                 tv1 = "Large ";
-                            }
+                            }                            
                             n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;                           
                             cargo_all[i].CustomName = n + " " + D_I_N;
                             cargo_tag.Add(cargo_all[i]);
@@ -627,13 +639,13 @@ namespace IngameScript
                 {
                     for (int i = 0; i < flight_path_all.Count; i++)
                     {
-                        if (flight_path_all[i].CustomName.Contains(dk_tsk_n))
+                        if (flight_path_all[i].CustomName.Contains(dk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Dock}"))
                         {
                             n = s_aitask + " Dock";
                             flight_path_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
                             flight_path_dock_tag.Add(flight_path_all[i]);
                         }
-                        if (flight_path_all[i].CustomName.Contains(undk_tsk_n))
+                        if (flight_path_all[i].CustomName.Contains(undk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Undock}"))
                         {
                             n = s_aitask + " Undock";
                             flight_path_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
@@ -722,25 +734,25 @@ namespace IngameScript
                 {
                     for (int i = 0; i < timer_block_all.Count; i++)
                     {
-                        if (timer_block_all[i].CustomName.Contains(Thr_ON_n))
+                        if (timer_block_all[i].CustomName.Contains(Thr_ON_n) || timer_block_all[i].CustomName.Contains(TON))
                         {
                             n = s_timerblock;
                             timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_ON_n;
                             timer_block_tON_tag.Add(timer_block_all[i]);
                         }
-                        if (timer_block_all[i].CustomName.Contains(Thr_OFF_N))
+                        if (timer_block_all[i].CustomName.Contains(Thr_OFF_N) || timer_block_all[i].CustomName.Contains(TOFF))
                         {
                             n = s_timerblock;
                             timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_OFF_N;
                             timer_block_tOFF_tag.Add(timer_block_all[i]);
                         }
-                        if (timer_block_all[i].CustomName.Contains(P_M_T_N))
+                        if (timer_block_all[i].CustomName.Contains(P_M_T_N) || timer_block_all[i].CustomName.Contains(PrecM))
                         {
                             n = s_timerblock;
                             timer_block_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
                             timer_block_precM_tag.Add(timer_block_all[i]);
                         }
-                        if (timer_block_all[i].CustomName.Contains(undk_tsk_n))
+                        if (timer_block_all[i].CustomName.Contains(undk_tsk_n) || timer_block_all[i].CustomName.Contains($" {Undock}"))
                         {
                             n = s_timerblock;
                             timer_block_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
@@ -761,37 +773,37 @@ namespace IngameScript
                 {
                     for (int i = 0; i < light_all.Count; i++)
                     {
-                        if (light_all[i].CustomName.Contains(dk_tsk_n))
+                        if (light_all[i].CustomName.Contains(dk_tsk_n)|| light_all[i].CustomName.Contains($" {Dock}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
                             light_dock_tag.Add(light_all[i]);
                         }
-                        if (light_all[i].CustomName.Contains(undk_tsk_n))
+                        if (light_all[i].CustomName.Contains(undk_tsk_n) || light_all[i].CustomName.Contains($" {Undock}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
                             light_undock_tag.Add(light_all[i]);
                         }
-                        if (light_all[i].CustomName.Contains(CA_T_N))
+                        if (light_all[i].CustomName.Contains(CA_T_N) || light_all[i].CustomName.Contains($" {CA}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + CA_T_N;
                             light_collision_avoid_tag.Add(light_all[i]);
                         }
-                        if (light_all[i].CustomName.Contains(Rst_T_N))
+                        if (light_all[i].CustomName.Contains(Rst_T_N) || light_all[i].CustomName.Contains($" {Reset}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + Rst_T_N;
                             light_reset_tag.Add(light_all[i]);
                         }
-                        if (light_all[i].CustomName.Contains(P_M_T_N))
+                        if (light_all[i].CustomName.Contains(P_M_T_N) || light_all[i].CustomName.Contains($" {PrecM}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
                             light_precM_tag.Add(light_all[i]);
                         }
-                        if (light_all[i].CustomName.Contains(DLT))
+                        if (light_all[i].CustomName.Contains(DLT) || light_all[i].CustomName.Contains($" {dmg}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + DLT;
@@ -810,11 +822,11 @@ namespace IngameScript
                         if (battery_all[i].CustomName.Contains(D_I_N))
                         {
                             string tv1 = "";
-                            if (thrust_all[i].CustomName.Contains("Small"))
+                            if (battery_all[i].CustomName.Contains("Small"))
                             {
                                 tv1 = "Small";
                             }
-                            if (thrust_all[i].CustomName.Contains("Medium"))
+                            if (battery_all[i].CustomName.Contains("Medium"))
                             {
                                 tv1 = "Medium";
                             }
@@ -825,11 +837,11 @@ namespace IngameScript
                         if (!battery_all[i].CustomName.Contains(D_I_N))
                         {
                             string tv1 = "";
-                            if (thrust_all[i].CustomName.Contains("Small"))
+                            if (battery_all[i].CustomName.Contains("Small"))
                             {
                                 tv1 = "Small";
                             }
-                            if (thrust_all[i].CustomName.Contains("Medium"))
+                            if (battery_all[i].CustomName.Contains("Medium"))
                             {
                                 tv1 = "Medium";
                             }
@@ -968,7 +980,7 @@ namespace IngameScript
             {
                 if (cargo_sense.Count <= 0 || cargo_sense[0] == null)
                 {
-                    Echo($"Sense container with tag: '{D_S_C}' not found.");
+                    Echo($"Sense container with tag: '{D_S_C}' not found. Add ' {Sense}' tag to container");
                     return;
                 }
             }
@@ -1034,13 +1046,13 @@ namespace IngameScript
             at_act = antenna_tag[0];
             if (flight_path_dock_tag.Count <= 0 || flight_path_dock_tag[0] == null)
             {
-                Echo($"Docking AI task recorder with tag: '{dk_tsk_n}' not found.");
+                Echo($"Docking AI task recorder with tag: '{dk_tsk_n}' not found. Add ' { Dock}' tag");
                 return;
             }
             ai_dck_act = flight_path_dock_tag[0];
             if (flight_path_undock_tag.Count <= 0 || flight_path_undock_tag[0] == null)
             {
-                Echo($"Undocking AI task recorder with tag: '{undk_tsk_n}' not found.");
+                Echo($"Undocking AI task recorder with tag: '{undk_tsk_n}' not found. Add ' {Undock}' tag");
                 return;
             }
             ai_task_undock_actual = flight_path_undock_tag[0];
@@ -1052,62 +1064,62 @@ namespace IngameScript
             ai_move_actual = flight_move_tag[0];
             if (timer_block_tON_tag.Count <= 0 || timer_block_tON_tag[0] == null)
             {
-                Echo($"Thrust ON timer block with tag: '{Thr_ON_n}' not found.");
+                Echo($"Thrust ON timer block with tag: '{Thr_ON_n}' not found. Add ' {TON}' tag");
                 return;
             }
             tb_TON_act = timer_block_tON_tag[0];
             if (timer_block_tOFF_tag.Count <= 0 || timer_block_tOFF_tag[0] == null)
             {
-                Echo($"Thrust OFF timer block with tag: '{Thr_OFF_N}' not found.");
+                Echo($"Thrust OFF timer block with tag: '{Thr_OFF_N}' not found. Add ' {TOFF}' tag");
                 return;
             }
             tb_TOFF_act = timer_block_tOFF_tag[0];
             if (timer_block_precM_tag.Count <= 0 || timer_block_precM_tag[0] == null)
             {
-                Echo($"Precision mode timer block with tag: '{P_M_T_N}' not found.");
+                Echo($"Precision mode timer block with tag: '{P_M_T_N}' not found. Add ' {PrecM}' tag");
                 return;
             }
             if (timer_block_undock_tag.Count <= 0 || timer_block_undock_tag[0] == null)
             {
-                Echo($"Undock mode timer block with tag: '{undk_tsk_n}' not found.");
+                Echo($"Undock mode timer block with tag: '{undk_tsk_n}' not found. Add ' {Undock}' tag");
                 return;
             }
             if (light_dock_tag.Count <= 0 || light_dock_tag[0] == null)
             {
-                Echo($"dock indicator light with tag: '{dk_tsk_n}' not found.");
+                Echo($"dock indicator light with tag: '{dk_tsk_n}' not found. Add ' {Dock}' tag");
                 return;
             }
             dock_light_actual = light_dock_tag[0];
 
             if (light_undock_tag.Count <= 0 || light_undock_tag[0] == null)
             {
-                Echo($"undock indicator light with tag: '{undk_tsk_n}' not found.");
+                Echo($"undock indicator light with tag: '{undk_tsk_n}' not found. Add ' {Undock}' tag");
                 return;
             }
             undock_light_actual = light_undock_tag[0];
             if (light_collision_avoid_tag.Count <= 0 || light_collision_avoid_tag[0] == null)
             {
-                Echo($"collision avoidance required indicator light with tag: '{CA_T_N}' not found.");
+                Echo($"collision avoidance required indicator light with tag: '{CA_T_N}' not found. Add ' {CA}' tag");
                 return;
             }
             collision_avoid_light_actual = light_collision_avoid_tag[0];
             if (light_precM_tag.Count <= 0 || light_precM_tag[0] == null)
             {
-                Echo($"Precision mode required indicator light with tag: '{P_M_T_N}' not found.");
+                Echo($"Precision mode required indicator light with tag: '{P_M_T_N}' not found. Add ' {PrecM}' tag");
                 return;
             }
 
             precM_light_actual = light_precM_tag[0];
             if (light_reset_tag.Count <= 0 || light_reset_tag[0] == null)
             {
-                Echo($"Dock reset indicator light with tag: '{Rst_T_N}' not found.");
+                Echo($"Dock reset indicator light with tag: '{Rst_T_N}' not found. Add ' {Reset}' tag");
                 return;
             }
             reset_light_actual = light_reset_tag[0];
 
             if (light_dmg_tag.Count <= 0 && dmg_report_enabled)
             {
-                Echo($"Damage indicator light with tag: '{DLT}' not found.");
+                Echo($"Damage indicator light with tag: '{DLT}' not found. Add ' {dmg}' tag\"");
                 Echo("");
             }
             if (light_dmg_tag.Count > 0 && dmg_report_enabled && light_dmg_tag[0] != null)
@@ -3200,13 +3212,13 @@ namespace IngameScript
             }
         }
 
-        void drone_custom_data_check(string custominfo) 
+        public void drone_custom_data_check(string custominfo) 
         {
             Echo("Checking for drone config information..");
             String[] temp_id = custominfo.Split(':');
+            Echo($"{temp_id.Length}");
 
-
-            if (temp_id != null)
+            if (temp_id.Length > 0)
             {
                 if (temp_id[0] != null)
                 {
@@ -3220,34 +3232,30 @@ namespace IngameScript
                         Echo($"Resorting to default ID#.{drone_id_num}");
                     }
                 }
-                else
-                {
-                    temp_id_num = drone_id_num;
-                    Echo($"Resorting to default ID#. {drone_id_num}");
-                }
-                if (temp_id[1] != null)
-                {
-                    temp_id_name = temp_id[1];
-                    if (temp_id_name == "")
+            }                
+                if (temp_id.Length > 1)
+                {                    
+                    if (temp_id[1] != null)
                     {
-                        temp_id_name = drone_tag;
-                        Echo($"Resorting to default drone tag.{drone_tag}");
+                        temp_id_name = temp_id[1];
+                        if (temp_id_name == "" || temp_id_name == null)
+                        {
+                            temp_id_name = drone_tag;
+                            Echo($"Resorting to default drone tag.{drone_tag}");
+                        }
                     }
                 }
-                else
-                {
-                    temp_id_num = drone_id_num;
-                    temp_id_name = drone_tag;
-                    Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
-                }
-            }
-            if(temp_id == null)
+                
+                        
+            if (temp_id.Length == 0)
             {
                 temp_id_num = drone_id_num;
                 temp_id_name = drone_tag;
+                Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
             }
             drone_tag = temp_id_name;
             drone_id_num = temp_id_num;
+
             Echo($"Drone info: {drone_tag} {drone_id_num}");
             D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
             D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
@@ -3263,6 +3271,7 @@ namespace IngameScript
             DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
             P_CH = "[" + drone_tag + "]" + " " + p_cht;
             rx_channel_recall_drone = D_I_N + " " + recall_command;
+            Me.CustomName = $"Programmable Block {D_I_N}";
 
         }
         //end program
