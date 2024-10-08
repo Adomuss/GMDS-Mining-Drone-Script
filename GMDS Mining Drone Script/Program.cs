@@ -3240,8 +3240,8 @@ namespace IngameScript
                         temp_id_name = temp_id[1];
                         if (temp_id_name == "" || temp_id_name == null)
                         {
-                            temp_id_name = drone_tag;
-                            Echo($"Resorting to default drone tag.{drone_tag}");
+                            temp_id_name = drone_tag;                        
+                        Echo($"Resorting to default drone tag.{drone_tag}");
                         }
                     }
                 }
@@ -3250,13 +3250,13 @@ namespace IngameScript
             if (temp_id.Length == 0)
             {
                 temp_id_num = drone_id_num;
-                temp_id_name = drone_tag;
+                temp_id_name = drone_tag;                
                 Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
             }
             drone_tag = temp_id_name;
             drone_id_num = temp_id_num;
-
-            Echo($"Drone info: {drone_tag} {drone_id_num}");
+            at_act.CustomData = $"{drone_id_num}:{drone_tag}";
+            Echo($"Drone info: {drone_id_num}:{drone_tag}");
             D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
             D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
             dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
