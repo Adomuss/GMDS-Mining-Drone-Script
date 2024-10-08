@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.318A       
+        // General Mining Drone Script v0.319A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.318";
+        string ver = "V0.319";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -331,6 +331,8 @@ namespace IngameScript
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
+        string temp_id_name;
+        int temp_id_num;
         public void Save()
         {
             _ini.Set("commands", "c1", recall);
@@ -418,12 +420,16 @@ namespace IngameScript
                     {
                         if (rc_all[i].CustomName.Contains(D_I_N))
                         {
+                            string checker = rc_all[i].CustomName;
+                            drone_custom_data_check(checker);
                             n = s_rc + " " + (i+1) + " " + D_I_N;
                             rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
                         }
                         if (!rc_all[i].CustomName.Contains(D_I_N))
                         {
+                            string checker = rc_all[i].CustomName;
+                            drone_custom_data_check(checker);
                             n = s_rc + " " + (i + 1) + " " + D_I_N;
                             rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
@@ -3176,6 +3182,72 @@ namespace IngameScript
             {
                 drnst = "Comp cmd data";
             }
+        }
+
+        void drone_custom_data_check(string custominfo) 
+        {
+            Echo("Checking for drone config information..");
+            String[] temp_id = custominfo.Split(':');
+
+
+            if (temp_id != null)
+            {
+                if (temp_id[0] != null)
+                {
+                    if (int.TryParse(temp_id[0], out temp_id_num))
+                    {
+                        int.TryParse(temp_id[0], out temp_id_num);
+                    }
+                    else
+                    {
+                        temp_id_num = drone_id_num;
+                        Echo($"Resorting to default ID#.{drone_id_num}");
+                    }
+                }
+                else
+                {
+                    temp_id_num = drone_id_num;
+                    Echo($"Resorting to default ID#. {drone_id_num}");
+                }
+                if (temp_id[1] != null)
+                {
+                    temp_id_name = temp_id[1];
+                    if (temp_id_name == "")
+                    {
+                        temp_id_name = drone_tag;
+                        Echo($"Resorting to default drone tag.{drone_tag}");
+                    }
+                }
+                else
+                {
+                    temp_id_num = drone_id_num;
+                    temp_id_name = drone_tag;
+                    Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
+                }
+            }
+            if(temp_id == null)
+            {
+                temp_id_num = drone_id_num;
+                temp_id_name = drone_tag;
+            }
+            drone_tag = temp_id_name;
+            drone_id_num = temp_id_num;
+            Echo($"Drone info: {drone_tag} {drone_id_num}");
+            D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
+            D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
+            dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
+            undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
+            Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
+            Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
+            Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
+            CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
+            P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
+            H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
+            D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
+            DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
+            P_CH = "[" + drone_tag + "]" + " " + p_cht;
+            rx_channel_recall_drone = D_I_N + " " + recall_command;
+
         }
         //end program
 
