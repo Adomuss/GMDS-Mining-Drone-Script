@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.319";
+        string ver = "V0.320";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -411,7 +411,7 @@ namespace IngameScript
                 DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
                 P_CH = "[" + drone_tag + "]" + " " + p_cht;
                 rx_channel_recall_drone = D_I_N + " " + recall_command;
-                Me.CustomName = $"Programmable Block {D_I_N}";
+                Me.CustomName = $" GMDS Programmable Block {D_I_N}";
 
                 antenna_all = new List<IMyRadioAntenna>();
                 antenna_tag = new List<IMyRadioAntenna>();
@@ -3273,7 +3273,7 @@ namespace IngameScript
             DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
             P_CH = "[" + drone_tag + "]" + " " + p_cht;
             rx_channel_recall_drone = D_I_N + " " + recall_command;
-            Me.CustomName = $"Programmable Block {D_I_N}";
+            Me.CustomName = $"GMDS Programmable Block {D_I_N}";
         }
         //end program
 
