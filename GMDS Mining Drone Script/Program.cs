@@ -423,7 +423,7 @@ namespace IngameScript
                         if (antenna_all[i].CustomName.Contains(D_I_N))
                         {
                             string checker = antenna_all[i].CustomData;
-                            drone_custom_data_check(checker);
+                            drone_custom_data_check(checker, i);
                             if (drone_tag == "" || drone_tag == null)
                             {
                                 Echo($"Invalid name for drone_tag {drone_tag}");
@@ -436,7 +436,7 @@ namespace IngameScript
                         if (!antenna_all[i].CustomName.Contains(D_I_N))
                         {
                             string checker = antenna_all[i].CustomData;
-                            drone_custom_data_check(checker);
+                            drone_custom_data_check(checker, i);
                             if (drone_tag == "" || drone_tag == null)
                             {
                                 Echo($"Invalid name for drone_tag {drone_tag}");
@@ -3212,7 +3212,7 @@ namespace IngameScript
             }
         }
 
-        public void drone_custom_data_check(string custominfo) 
+        public void drone_custom_data_check(string custominfo, int index) 
         {
             Echo("Checking for drone config information..");
             String[] temp_id = custominfo.Split(':');
@@ -3244,8 +3244,7 @@ namespace IngameScript
                         Echo($"Resorting to default drone tag.{drone_tag}");
                         }
                     }
-                }
-                
+                }                
                         
             if (temp_id.Length == 0)
             {
@@ -3255,7 +3254,10 @@ namespace IngameScript
             }
             drone_tag = temp_id_name;
             drone_id_num = temp_id_num;
-            at_act.CustomData = $"{drone_id_num}:{drone_tag}";
+            if (antenna_all[index] != null)
+            {
+                antenna_all[index].CustomData = $"{drone_id_num}:{drone_tag}";
+            }
             Echo($"Drone info: {drone_id_num}:{drone_tag}");
             D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
             D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
@@ -3272,7 +3274,6 @@ namespace IngameScript
             P_CH = "[" + drone_tag + "]" + " " + p_cht;
             rx_channel_recall_drone = D_I_N + " " + recall_command;
             Me.CustomName = $"Programmable Block {D_I_N}";
-
         }
         //end program
 
