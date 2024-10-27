@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.319A       
+        // General Mining Drone Script v0.322A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.320";
+        string ver = "V0.322";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -980,7 +980,7 @@ namespace IngameScript
             {
                 if (cargo_sense.Count <= 0 || cargo_sense[0] == null)
                 {
-                    Echo($"Sense container with tag: '{D_S_C}' not found. Add ' {Sense}' tag to container");
+                    Echo($"Sense container with tag: '{D_S_C}' not found. Add '{D_S_C}' tag to container");
                     return;
                 }
             }
@@ -3214,6 +3214,8 @@ namespace IngameScript
 
         public void drone_custom_data_check(string custominfo, int index) 
         {
+            bool load_id;
+            bool load_tag;
             Echo("Checking for drone config information..");
             String[] temp_id = custominfo.Split(':');
             Echo($"{temp_id.Length}");
@@ -3225,6 +3227,11 @@ namespace IngameScript
                     if (int.TryParse(temp_id[0], out temp_id_num))
                     {
                         int.TryParse(temp_id[0], out temp_id_num);
+                        load_id = true;
+                        if (load_id)
+                        {
+                            drone_id_num = temp_id_num;
+                        }
                     }
                     else
                     {
@@ -3238,7 +3245,12 @@ namespace IngameScript
                     if (temp_id[1] != null)
                     {
                         temp_id_name = temp_id[1];
-                        if (temp_id_name == "" || temp_id_name == null)
+                        load_tag = true;
+                    if (load_tag)
+                    {
+                        drone_tag = temp_id_name;
+                    }
+                    if (temp_id_name == "" || temp_id_name == null)
                         {
                             temp_id_name = drone_tag;                        
                         Echo($"Resorting to default drone tag.{drone_tag}");
@@ -3252,8 +3264,7 @@ namespace IngameScript
                 temp_id_name = drone_tag;                
                 Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
             }
-            drone_tag = temp_id_name;
-            drone_id_num = temp_id_num;
+
             if (antenna_all[index] != null)
             {
                 antenna_all[index].CustomData = $"{drone_id_num}:{drone_tag}";
