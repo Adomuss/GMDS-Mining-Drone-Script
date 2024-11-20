@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.322A       
+        // General Mining Drone Script v0.323A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.322";
+        string ver = "V0.323";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -918,6 +918,7 @@ namespace IngameScript
                     }
                 }
                 gyro_all.Clear();
+                waypoints = new List<MyWaypointInfo>();
                 if (Storage != "" && Storage != null)
                 {
                     LoadStorageData();
@@ -931,8 +932,8 @@ namespace IngameScript
             IMyBroadcastListener listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
             IMyBroadcastListener listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
             IMyBroadcastListener listn_png = IGC.RegisterBroadcastListener(P_CH);
-
-            waypoints = new List<MyWaypointInfo>();
+            waypoints.Clear();
+            
             if (drill_tag.Count <= 0)
             {
                 Echo($"Drills with tag: '{D_I_N}' not found.");
@@ -989,11 +990,14 @@ namespace IngameScript
             total_percent_cargo_used = 0;
             for (int i = 0; i < cargo_tag.Count; i++)
             {
-                float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
-                float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
-                ttl_volu = ttl_volu + inventory_vol;
-                ttl_volm = ttl_volm + max_inventory_vol;
-                total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
+                if (cargo_tag[i] != null)
+                {
+                    float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
+                    float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
+                    ttl_volu = ttl_volu + inventory_vol;
+                    ttl_volm = ttl_volm + max_inventory_vol;
+                    total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
+                }
             }
             if (total_percent_cargo_used == 100.0f)
             {
@@ -1022,11 +1026,14 @@ namespace IngameScript
                 ttl_pctus = 0;
                 for (int i = 0; i < cargo_sense.Count; i++)
                 {
-                    float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
-                    float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
-                    ttl_volus = ttl_volus + inventory_vol_s;
-                    ttl_volms = ttl_volms + max_inventory_vol_s;
-                    ttl_pctus = (ttl_volus / ttl_volms) * 100;
+                    if (cargo_sense[i] != null)
+                    {
+                        float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
+                        float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
+                        ttl_volus = ttl_volus + inventory_vol_s;
+                        ttl_volms = ttl_volms + max_inventory_vol_s;
+                        ttl_pctus = (ttl_volus / ttl_volms) * 100;
+                    }
                 }
 
                 if (ttl_pctus > ORE_sense_limit)
@@ -1163,14 +1170,17 @@ namespace IngameScript
             float percent_battery_power = 0.0f;
             for (int i = 0; i < battery_tag.Count; i++)
             {
-                crntbatteryblock = battery_tag[i];
-                ttl_PWRs = crntbatteryblock.CurrentStoredPower;
-                ttl_sPWR = ttl_sPWR + ttl_PWRs;
-                ttl_PWRm = crntbatteryblock.MaxStoredPower;
-                ttl_mPWR = ttl_mPWR + ttl_PWRm;
-                ttl_cPWR = crntbatteryblock.CurrentOutput;
-                ttl_PWRc = ttl_PWRc + ttl_cPWR;
-                percent_battery_power = (ttl_sPWR / ttl_mPWR) * 100;
+                if (battery_tag[i] != null)
+                {
+                    crntbatteryblock = battery_tag[i];
+                    ttl_PWRs = crntbatteryblock.CurrentStoredPower;
+                    ttl_sPWR = ttl_sPWR + ttl_PWRs;
+                    ttl_PWRm = crntbatteryblock.MaxStoredPower;
+                    ttl_mPWR = ttl_mPWR + ttl_PWRm;
+                    ttl_cPWR = crntbatteryblock.CurrentOutput;
+                    ttl_PWRc = ttl_PWRc + ttl_cPWR;
+                    percent_battery_power = (ttl_sPWR / ttl_mPWR) * 100;
+                }
             }
             if (percent_battery_power == bat_CHGhi)
             {
@@ -1196,7 +1206,13 @@ namespace IngameScript
             {
                 for (int i = 0; i < battery_tag.Count; i++)
                 {
-                    battery_tag[i].ChargeMode = ChargeMode.Auto;
+                    if (battery_tag[i] != null)
+                    {
+                        if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                        {
+                            battery_tag[i].ChargeMode = ChargeMode.Auto;
+                        }
+                    }
                 }
             }
 
@@ -1212,12 +1228,15 @@ namespace IngameScript
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                 {
-                    crnthyrdogentank = hydrogen_tank_tag[i];
-                    ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
-                    ttl_sGAS = ttl_sGAS + ttl_GASs;
-                    ttl_mGAS = 100.0f;
-                    ttl_GASm = ttl_GASm + ttl_mGAS;
-                    pcnt_gas_tank = (ttl_sGAS / ttl_GASm) * 100.0f;
+                    if (hydrogen_tank_tag[i] != null)
+                    {
+                        crnthyrdogentank = hydrogen_tank_tag[i];
+                        ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
+                        ttl_sGAS = ttl_sGAS + ttl_GASs;
+                        ttl_mGAS = 100.0f;
+                        ttl_GASm = ttl_GASm + ttl_mGAS;
+                        pcnt_gas_tank = (ttl_sGAS / ttl_GASm) * 100.0f;
+                    }
                 }
             }
             if (pcnt_gas_tank == gas_CHGhi)
@@ -1246,7 +1265,13 @@ namespace IngameScript
                 {
                     for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                     {
-                        hydrogen_tank_tag[i].Stockpile = false;
+                        if (hydrogen_tank_tag[i] != null)
+                        {
+                            if (hydrogen_tank_tag[i].Stockpile)
+                            {
+                                hydrogen_tank_tag[i].Stockpile = false;
+                            }
+                        }
                     }
                 }
             }
@@ -1435,14 +1460,26 @@ namespace IngameScript
             {
                 for (int i = 0; i < battery_tag.Count; i++)
                 {
-                    battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                    if (battery_tag[i] != null)
+                    {
+                        if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                        {
+                            battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                        }
+                    }
                 }
             }
             if (!connector_actual.IsConnected && auto_charge_mode && !recharge_request_battery || undock_state && auto_charge_mode && !recharge_request_battery)
             {
                 for (int i = 0; i < battery_tag.Count; i++)
                 {
-                    battery_tag[i].ChargeMode = ChargeMode.Auto;
+                    if (battery_tag[i] != null)
+                    {
+                        if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                        {
+                            battery_tag[i].ChargeMode = ChargeMode.Auto;
+                        }
+                    }
                 }
             }
             if (undock_state && !recharge_request && cargo_is_empty && !cargo_full_achieved && !target_depth_achived && connector_actual.IsConnected && undocking_stage == 0 && !tb_TON_act.IsCountingDown)
@@ -1536,8 +1573,14 @@ namespace IngameScript
             }
             if (nsr && undocking_stage > 0 && undocking_stage < 3 && !connector_actual.IsConnected)
             {
-                reset_light_actual.Enabled = true;
-                undock_light_actual.Enabled = true;
+                if (!reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = true;
+                }
+                if (!undock_light_actual.Enabled)
+                {
+                    undock_light_actual.Enabled = true;
+                }
                 undocking_stage = 3;
             }
 
@@ -1750,7 +1793,10 @@ namespace IngameScript
                     rc_actual.SetAutoPilotEnabled(!navinst);
                     drone_status = 1;
                     reset_ai();
-                    reset_light_actual.Enabled = false;
+                    if (reset_light_actual.Enabled)
+                    {
+                        reset_light_actual.Enabled = false;
+                    }
 
                 }
                 if (command_request == 2)
@@ -1760,7 +1806,10 @@ namespace IngameScript
                     rc_actual.SetAutoPilotEnabled(!navinst);
                     drone_status = 2;
                     reset_ai();
-                    reset_light_actual.Enabled = false;
+                    if (reset_light_actual.Enabled)
+                    {
+                        reset_light_actual.Enabled = false;
+                    }
                 }
                 if (command_request == 3)
                 {
@@ -1777,7 +1826,10 @@ namespace IngameScript
                     drone_status = 4;
                     if (Collision_sense_enabled)
                     {
-                        sensor_actual.Enabled = true;
+                        if (!sensor_actual.Enabled)
+                        {
+                            sensor_actual.Enabled = true;
+                        }
                     }
                 }
                 drone_output_status = "Nav";
@@ -1797,7 +1849,10 @@ namespace IngameScript
                 main_nav_sequence = 1;
                 add_nav_Waypoint_mn = false;
                 reset_ai();
-                reset_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
             }
             double spd = rc_actual.GetShipSpeed();
             if (spd <= gsl && ns_count < nr_lim && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 4 || spd <= gsl && ns_count < nr_lim && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 1)
@@ -1810,7 +1865,10 @@ namespace IngameScript
                 main_nav_sequence = 1;
                 add_nav_Waypoint_mn = false;
                 reset_ai();
-                reset_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
                 r_delay = false;
                 ns_count = 0;
             }
@@ -1826,9 +1884,12 @@ namespace IngameScript
                     rc_actual.SetCollisionAvoidance(true);
                     rc_actual.SetDockingMode(false);
                     rc_actual.SetAutoPilotEnabled(!navinst);
-                    drone_status = 1;
-                    reset_light_actual.Enabled = false;
+                    drone_status = 1;                    
                     reset_ai();
+                    if (reset_light_actual.Enabled)
+                    {
+                        reset_light_actual.Enabled = false;
+                    }
                 }
                 if (command_request == 2)
                 {
@@ -1837,7 +1898,10 @@ namespace IngameScript
                     rc_actual.SetAutoPilotEnabled(!navinst);
                     drone_status = 2;
                     reset_ai();
-                    reset_light_actual.Enabled = false;
+                    if (reset_light_actual.Enabled)
+                    {
+                        reset_light_actual.Enabled = false;
+                    }
                 }
                 if (command_request == 3)
                 {
@@ -1854,7 +1918,10 @@ namespace IngameScript
                     drone_status = 4;
                     if (Collision_sense_enabled)
                     {
-                        sensor_actual.Enabled = true;
+                        if (!sensor_actual.Enabled)
+                        {
+                            sensor_actual.Enabled = true;
+                        }
                     }
 
                 }
@@ -1938,7 +2005,10 @@ namespace IngameScript
                     reset_ai();
                 }
                 docking_stage = 1;
-                collision_avoid_light_actual.Enabled = true;
+                if (!collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = true;
+                }
                 if (Collision_sense_enabled)
                 {
                     sensor_actual.Enabled = true;
@@ -2002,7 +2072,10 @@ namespace IngameScript
                 drone_status = 7;
                 drone_output_status = "Initiating mining";
                 reset_ai();
-                reset_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
             }
             if (mining_stage == 1 && !target_depth_achived && mine_state && distance_id && !is_autopiloting && is_undocked) // scan coordinate position to ground
             {
@@ -2188,7 +2261,10 @@ namespace IngameScript
                 exit_waypoint_set = true;
                 exit_sequence_complete = false;
                 reset_ai();
-                reset_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
                 rc_actual.SpeedLimit = exit_spd;
                 if (trgt_vld)
                 {
@@ -2350,7 +2426,10 @@ namespace IngameScript
                 collision_avoid_light_actual.Enabled = true;
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = true;
+                    if (!sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = true;
+                    }
                 }
                 if (!undock_light_actual.Enabled)
                 {
@@ -2380,11 +2459,20 @@ namespace IngameScript
                 drone_output_status = "Returning to dock";
                 main_nav_sequence = 0;
                 docking_stage = 1;
-                collision_avoid_light_actual.Enabled = true;
-                precM_light_actual.Enabled = false;
+                if (!collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = true;
+                }
+                if (precM_light_actual.Enabled)
+                {
+                    precM_light_actual.Enabled = false;
+                }
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = true;
+                    if (!sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = true;
+                    }
                 }
                 if (!undock_light_actual.Enabled)
                 {
@@ -2398,7 +2486,10 @@ namespace IngameScript
             if (reset_light_actual.Enabled && docking_stage > 0)
             {
                 reset_ai();
-                reset_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
                 docking_stage = 1;
                 drone_output_status = "Reset Docking Sequence";
                 if (!undock_light_actual.Enabled)
@@ -2414,11 +2505,23 @@ namespace IngameScript
             {
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = false;
+                        if (sensor_actual.Enabled)
+                        {
+                            sensor_actual.Enabled = false;
+                        }            
                 }
-                collision_avoid_light_actual.Enabled = false;
-                ai_move_actual.PrecisionMode = true;
-                ai_move_actual.CollisionAvoidance = false;
+                if (collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = false;
+                }
+                if (!ai_move_actual.PrecisionMode)
+                {
+                    ai_move_actual.PrecisionMode = true;
+                }
+                if (ai_move_actual.CollisionAvoidance)
+                {
+                    ai_move_actual.CollisionAvoidance = false;
+                }
             }
             if (docking_stage > 0 && !precM_light_actual.Enabled)
             {
@@ -2426,32 +2529,52 @@ namespace IngameScript
             }
             if (docking_stage > 0 && collision_avoid_light_actual.Enabled)
             {
-                ai_move_actual.CollisionAvoidance = true;
+                if (!ai_move_actual.CollisionAvoidance)
+                {
+                    ai_move_actual.CollisionAvoidance = true;
+                }
             }
 
             if (docking_stage == 1)
             {
-
-                connector_actual.Enabled = true;
+                if (!connector_actual.Enabled)
+                {
+                    connector_actual.Enabled = true;
+                }
                 StDrlOnOff(false, cnvyrsON);
                 string locked = connector_actual.Status.ToString();
                 if (!locked.Equals(cc) && docking_stage == 1)
                 {
                     if (!skip_prec_mode)
                     {
-                        ai_move_actual.PrecisionMode = true;
+                            if (!ai_move_actual.PrecisionMode)
+                            {
+                                ai_move_actual.PrecisionMode = true;
+                            }
                     }
-                    ai_move_actual.CollisionAvoidance = true;
+                        if (!ai_move_actual.CollisionAvoidance)
+                        {
+                            ai_move_actual.CollisionAvoidance = true;
+                        }
                     if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
                     {
                         ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                         ai_dck_act.GetActionWithName(ab1).Apply(ai_dck_act);
                         ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
-                        collision_avoid_light_actual.Enabled = true;
-                        undock_light_actual.Enabled = false;
+                        if (!collision_avoid_light_actual.Enabled)
+                        {
+                            collision_avoid_light_actual.Enabled = true;
+                        }
+                        if (undock_light_actual.Enabled)
+                        {
+                            undock_light_actual.Enabled = false;
+                        }
                         if (Collision_sense_enabled)
                         {
-                            sensor_actual.Enabled = true;
+                                if (!sensor_actual.Enabled)
+                                {
+                                    sensor_actual.Enabled = true;
+                                }
                         }
                     }
                     docking_stage = 2;
@@ -2482,7 +2605,10 @@ namespace IngameScript
                 }
                 if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2 || nsr)
                 {
-                    reset_light_actual.Enabled = true;
+                        if (!reset_light_actual.Enabled)
+                        {
+                            reset_light_actual.Enabled = true;
+                        }
                 }
 
 
@@ -2497,29 +2623,60 @@ namespace IngameScript
                 }
                 tb_TOFF_act.Trigger();
                 reset_ai();
-                dock_light_actual.Enabled = true;
-                undock_light_actual.Enabled = false;
-                precM_light_actual.Enabled = false;
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
+                if (!dock_light_actual.Enabled)
+                {
+                    dock_light_actual.Enabled = true;
+                }
+                if (undock_light_actual.Enabled)
+                {
+                    undock_light_actual.Enabled = false;
+                }
+                if (precM_light_actual.Enabled)
+                {
+                    precM_light_actual.Enabled = false;
+                }
                 if (recharge_request_battery)
                 {
                     for (int i = 0; i < battery_tag.Count; i++)
                     {
-                        battery_tag[i].ChargeMode = ChargeMode.Recharge;
-                        drone_output_status = "Recharging";
+                        if (battery_tag[i] != null)
+                        {
+                            if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                            {
+                                battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                            }
+                        }
+                            drone_output_status = "Recharging";                        
                     }
                 }
                 if (!recharge_request_battery)
                 {
                     for (int i = 0; i < battery_tag.Count; i++)
                     {
-                        battery_tag[i].ChargeMode = ChargeMode.Auto;
+                        if (battery_tag[i] != null)
+                        {
+                            if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                            {
+                                battery_tag[i].ChargeMode = ChargeMode.Auto;
+                            }
+                        }
                     }
                 }
                 if (recharge_request_tank && !ignore_Htank)
                 {
                     for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                     {
-                        hydrogen_tank_tag[i].Stockpile = true;
+                        if (hydrogen_tank_tag[i] != null)
+                        {
+                            if (!hydrogen_tank_tag[i].Stockpile)
+                            {
+                                hydrogen_tank_tag[i].Stockpile = true;
+                            }
+                        }
                         drone_output_status = "Refilling";
                     }
                 }
@@ -2527,7 +2684,13 @@ namespace IngameScript
                 {
                     for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                     {
-                        hydrogen_tank_tag[i].Stockpile = false;
+                        if (hydrogen_tank_tag[i] != null)
+                        {
+                            if (hydrogen_tank_tag[i].Stockpile)
+                            {
+                                hydrogen_tank_tag[i].Stockpile = false;
+                            }
+                        }
                     }
                 }
                 if (!recharge_request)
@@ -2538,20 +2701,36 @@ namespace IngameScript
             if (docking_stage >= 1 && docking_stage <= 2 && stop_state && is_docking && !is_docked)
             {
                 reset_ai();
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
                 docking_stage = 0;
             }
             if (connector_actual.IsConnected && ignore_Htank || connector_actual.IsConnected && !ignore_Htank)
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                 {
-                    hydrogen_tank_tag[i].Stockpile = true;
+                    if (hydrogen_tank_tag[i] != null)
+                    {
+                        if (!hydrogen_tank_tag[i].Stockpile)
+                        {
+                            hydrogen_tank_tag[i].Stockpile = true;
+                        }
+                    }
                 }
             }
             if (!connector_actual.IsConnected && ignore_Htank)
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                 {
-                    hydrogen_tank_tag[i].Stockpile = false;
+                    if (hydrogen_tank_tag[i] != null)
+                    {
+                        if (hydrogen_tank_tag[i].Stockpile)
+                        {
+                            hydrogen_tank_tag[i].Stockpile = false;
+                        }
+                    }
                 }
             }
             if (connector_actual.IsConnected && cargo_full_achieved || connector_actual.IsConnected && !cargo_is_empty)
@@ -2559,30 +2738,58 @@ namespace IngameScript
                 drone_output_status = "Docked Unloading";
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = false;
+                    if (sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = false;
+                    }
                 }
-                collision_avoid_light_actual.Enabled = false;
-                reset_light_actual.Enabled = false;
+                if (collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = false;
+                }
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
             }
             if (connector_actual.IsConnected && recharge_request)
             {
                 drone_output_status = "Docked Recharging";
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = false;
+                    if (sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = false;
+                    }
                 }
-                collision_avoid_light_actual.Enabled = false;
-                reset_light_actual.Enabled = false;
+                if (collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = false;
+                }
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
+            
             }
             if (connector_actual.IsConnected && !undock_state && !cargo_full_achieved && cargo_is_empty && !recharge_request)
             {
                 drone_output_status = "Docked Idle";
                 if (Collision_sense_enabled)
                 {
-                    sensor_actual.Enabled = false;
+                    if (sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = false;
+                    }
                 }
-                collision_avoid_light_actual.Enabled = false;
-                reset_light_actual.Enabled = false;
+                if (collision_avoid_light_actual.Enabled)
+                {
+                    collision_avoid_light_actual.Enabled = false;
+                }
+                if (reset_light_actual.Enabled)
+                {
+                    reset_light_actual.Enabled = false;
+                }
             }
             if (!connector_actual.IsConnected)
             {
@@ -2960,11 +3167,17 @@ namespace IngameScript
                         }
                         if (UConv)
                         {
-                            drl_act.UseConveyorSystem = true;
+                            if (!drl_act.UseConveyorSystem)
+                            {
+                                drl_act.UseConveyorSystem = true;
+                            }
                         }
                         else
                         {
-                            drl_act.UseConveyorSystem = false;
+                            if (drl_act.UseConveyorSystem)
+                            {
+                                drl_act.UseConveyorSystem = false;
+                            }
                         }
                     }
                 }
@@ -2972,8 +3185,8 @@ namespace IngameScript
         }
         void getnewdrills()
         {
-            drill_all = new List<IMyShipDrill>();
-            drill_tag = new List<IMyShipDrill>();
+            drill_all.Clear();
+            drill_tag.Clear();
             GridTerminalSystem.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
             if (drill_all.Count > 0)
             {
@@ -2999,8 +3212,14 @@ namespace IngameScript
             ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);
             ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
             ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-            collision_avoid_light_actual.Enabled = false;
-            precM_light_actual.Enabled = false;
+            if (collision_avoid_light_actual.Enabled)
+            {
+                collision_avoid_light_actual.Enabled = false;
+            }
+            if (precM_light_actual.Enabled)
+            {
+                precM_light_actual.Enabled = false;
+            }
             if (Collision_sense_enabled)
             {
                 sensor_actual.Enabled = false;
