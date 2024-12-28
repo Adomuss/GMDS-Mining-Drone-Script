@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.323A       
+        // General Mining Drone Script v0.324A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -86,7 +86,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.323";
+        string ver = "V0.324";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -1546,6 +1546,11 @@ namespace IngameScript
             if (dock_state && !connector_actual.IsConnected && docking_stage == 0)
             {
                 drone_output_status = "Docking init";
+                string locked = connector_actual.Status.ToString();
+                if(!undock_light_actual.Enabled && !connector_actual.IsConnected && !locked.Equals(cc))
+                {
+                    undock_light_actual.Enabled = true;
+                }
                 if (!is_docking || !is_undocking)
                 {
                     reset_ai();
@@ -2543,8 +2548,16 @@ namespace IngameScript
                 }
                 StDrlOnOff(false, cnvyrsON);
                 string locked = connector_actual.Status.ToString();
-                if (!locked.Equals(cc) && docking_stage == 1)
+                if (!undock_light_actual.Enabled)
                 {
+                    if (!connector_actual.IsConnected && !locked.Equals(cc))
+                    {
+                        undock_light_actual.Enabled = true;
+                    }                        
+                }
+                if (!locked.Equals(cc) && docking_stage == 1)
+                {                   
+
                     if (!skip_prec_mode)
                     {
                             if (!ai_move_actual.PrecisionMode)
