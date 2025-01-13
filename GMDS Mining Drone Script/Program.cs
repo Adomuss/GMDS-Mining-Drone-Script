@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.324A       
+        // General Mining Drone Script v0.327A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -71,6 +71,7 @@ namespace IngameScript
         double nav_prec = 0.6;
         double nav_prec2 = 1.2;
         double mine_prec = 0.6;
+
         //statics
         bool udock_conf = true;
         bool skip_prec_mode = true;
@@ -86,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.324";
+        string ver = "V0.327";
         //drone transmission settings
         int t_lim = 5;
         int nr_lim = 5;
@@ -3207,12 +3208,14 @@ namespace IngameScript
                 {
                     if (drill_all[i].CustomName.Contains(D_I_N))
                     {
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
                         drill_tag.Add(drill_all[i]);
                     }
                     if (!drill_all[i].CustomName.Contains(D_I_N))
                     {
-                        n = drill_all[i].CustomName;
-                        drill_all[i].CustomName = n + " " + D_I_N;
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
                         drill_tag.Add(drill_all[i]);
                     }
                 }
