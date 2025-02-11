@@ -90,8 +90,9 @@ namespace IngameScript
         string ver = "V0.327";
         //drone transmission settings
         int t_lim = 5;
-        int nr_lim = 5;
-        int nr_lim2 = 120;
+        int no_speed_navigation_delay_limit = 5;
+        int no_speed_undock_delay_limit = 120;
+        double game_tick_length = 16.666;
         string D_I_N = "";
         string D_C_N = "";
         string dk_tsk_n = "";
@@ -181,7 +182,7 @@ namespace IngameScript
         bool is_undocked = false;
         bool reset_mining = false;
         bool clr_cords = false;
-        int cstm_dat_rd = 0;
+        int custom_data_read = 0;
         bool dat_invalid = false;
         bool dat_valid = false;
         bool tunnel_sequence_finished = false;
@@ -191,10 +192,10 @@ namespace IngameScript
         bool recharge_request_tank = false;
         bool recharge_request_battery = false;
         int t_count = 0;
-        int ns_count = 0;
-        int ns_c2 = 0;
-        bool nsr = false;
-        bool t_delay = false;
+        int no_speed_count_navigation_reset_delay_count = 0;
+        int no_speed_undock_delay_count = 0;
+        bool no_speed_ready_undock = false;
+        bool transmit_delay = false;
         bool recall = false;
         bool dt_prsnt4 = false;
         bool dt_prsnt5 = false;
@@ -243,7 +244,7 @@ namespace IngameScript
         Vector3D direction;
         Vector3D directionc;
         Vector3D gravity;
-        bool r_delay = false;
+        bool navigation_reset_delay = false;
         bool distance_id = false;
         bool exit_waypoint_set = false;
         bool exit_sequence_complete = false;
@@ -334,6 +335,11 @@ namespace IngameScript
         string s_cargo = "Cargo Container";
         string temp_id_name;
         int temp_id_num;
+        double response_time = 0.0;
+        double undock_delay_time = 0.0;
+        double navigation_reset_delay_time = 0.0;
+
+        #region save_state_management
         public void Save()
         {
             _ini.Set("commands", "c1", recall);
@@ -385,9 +391,13 @@ namespace IngameScript
             _ini.Set("coordinates", "co14", gpsindx.ToString());
             Storage = _ini.ToString();
         }
-        void Main(string argument)
+        #endregion
+        public void Main(string argument)
         {
+            double _Runtime = Runtime.LastRunTimeMs;
+            int _Instruction = Runtime.CurrentInstructionCount;
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
+            #region setup_code
             if (!setup_complete)
             {
                 sb = new StringBuilder();
@@ -928,11 +938,15 @@ namespace IngameScript
                 setup_complete = true;
                 Echo("Setup complete!");
             }
+            #endregion
+            #region setup_broadcast_channels
             rx_ch = D_I_N;
             IMyBroadcastListener listn = IGC.RegisterBroadcastListener(rx_ch);
             IMyBroadcastListener listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
             IMyBroadcastListener listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
             IMyBroadcastListener listn_png = IGC.RegisterBroadcastListener(P_CH);
+            #endregion
+
             waypoints.Clear();
             
             if (drill_tag.Count <= 0)
@@ -1368,16 +1382,16 @@ namespace IngameScript
             else dat_invalid = false;
             if (dat_valid)
             {
-                if (cstm_dat_rd == 1)
+                if (custom_data_read == 1)
                 {
                     cmd_rqold = command_request;
-                    cstm_dat_rd = 0;
+                    custom_data_read = 0;
                     drone_status = 25;
                 }
-                if (cstm_dat_rd == 0)
+                if (custom_data_read == 0)
                 {
                     GetCustomData();
-                    cstm_dat_rd = 1;
+                    custom_data_read = 1;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -1391,16 +1405,16 @@ namespace IngameScript
             }
             if (dat_invalid)
             {
-                if (cstm_dat_rd == 1)
+                if (custom_data_read == 1)
                 {
                     cmd_rqold = command_request;
-                    cstm_dat_rd = 0;
+                    custom_data_read = 0;
                     drone_status = 25;
                 }
-                if (cstm_dat_rd == 0)
+                if (custom_data_read == 0)
                 {
                     GetCustomData();
-                    cstm_dat_rd = 1;
+                    custom_data_read = 1;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -1575,9 +1589,10 @@ namespace IngameScript
             if (undocking_stage > 0 && undocking_stage < 3)
             {
                 is_undocking = true;
-                ns_c2++;
+                no_speed_undock_delay_count++;
+                undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
             }
-            if (nsr && undocking_stage > 0 && undocking_stage < 3 && !connector_actual.IsConnected)
+            if (no_speed_ready_undock && undocking_stage > 0 && undocking_stage < 3 && !connector_actual.IsConnected)
             {
                 if (!reset_light_actual.Enabled)
                 {
@@ -1670,7 +1685,7 @@ namespace IngameScript
                 mode_set = true;
             }
             else mode_set = false;
-            if (dat_invalid && target_depth_achived && !request_exit && was_mining && cstm_dat_rd == 1 && is_undocked)
+            if (dat_invalid && target_depth_achived && !request_exit && was_mining && custom_data_read == 1 && is_undocked)
             {
                 request_exit = true;
             }
@@ -1741,13 +1756,13 @@ namespace IngameScript
             }
             else navinst = false;
             Vector3D rc_xyz = rc_actual.GetPosition();
-            if (cstm_dat_rd == 1 && cmd_read_ack == 0)
+            if (custom_data_read == 1 && cmd_read_ack == 0)
             {
                 cmd_read_ack = 1;
                 clr_cords = false;
             }
 
-            if (!clr_cords && cstm_dat_rd == 1)
+            if (!clr_cords && custom_data_read == 1)
             {
                 clr_cords = true;
                 add_nav_Waypoint_mn = false;
@@ -1755,7 +1770,7 @@ namespace IngameScript
                 rc_actual.ClearWaypoints();
                 rc_actual.SetAutoPilotEnabled(false);
             }
-            if (clr_cords && cstm_dat_rd == 1)
+            if (clr_cords && custom_data_read == 1)
             {
                 if (nav_state && cmd_chng && is_undocked)
                 {
@@ -1768,7 +1783,7 @@ namespace IngameScript
                     distance_id = false;
                 }
             }
-            if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && cstm_dat_rd == 1 && nav_state && !connector_actual.IsConnected && is_undocked)
+            if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && custom_data_read == 1 && nav_state && !connector_actual.IsConnected && is_undocked)
             {
                 rc_actual.ClearWaypoints();
                 add_nav_Waypoint_mn = true;
@@ -1861,11 +1876,13 @@ namespace IngameScript
                 }
             }
             double spd = rc_actual.GetShipSpeed();
-            if (spd <= gsl && ns_count < nr_lim && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 4 || spd <= gsl && ns_count < nr_lim && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 1)
+            if (spd <= gsl && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 4 || spd <= gsl && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 1)
             {
-                ns_count++;
+                no_speed_count_navigation_reset_delay_count++;
+                navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+
             }
-            if (main_nav_sequence == 3 && reset_light_actual.Enabled && command_request == 1 || main_nav_sequence == 3 && reset_light_actual.Enabled && command_request == 4 || r_delay)
+            if (main_nav_sequence == 3 && reset_light_actual.Enabled && command_request == 1 || main_nav_sequence == 3 && reset_light_actual.Enabled && command_request == 4 || navigation_reset_delay)
             {
                 rc_actual.ClearWaypoints();
                 main_nav_sequence = 1;
@@ -1875,8 +1892,9 @@ namespace IngameScript
                 {
                     reset_light_actual.Enabled = false;
                 }
-                r_delay = false;
-                ns_count = 0;
+                navigation_reset_delay = false;
+                no_speed_count_navigation_reset_delay_count = 0;
+                navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
             }
 
             double rc_cw_x = main_gps_coords.X;
@@ -2030,7 +2048,7 @@ namespace IngameScript
                 drone_output_status = "RTB";
             }
             // *** Mining sequence ***
-            if (!distance_id && mine_state && cstm_dat_rd == 1 && mining_stage == 0 && !is_autopiloting && is_undocked)
+            if (!distance_id && mine_state && custom_data_read == 1 && mining_stage == 0 && !is_autopiloting && is_undocked)
             {
                 mine_coords_adjusted = false;
                 tgt_drill_start.X = main_gps_coords.X;
@@ -2205,7 +2223,7 @@ namespace IngameScript
                 drone_status = 13;
                 drone_output_status = "Terminating mining";
             }
-            if (force_request_dock && mining_stage >= 1 && mining_stage <= 4 && !mining_nav_complete && dat_valid && cstm_dat_rd == 1 && was_mining && distance_id && !request_exit && !is_autopiloting && is_undocked)
+            if (force_request_dock && mining_stage >= 1 && mining_stage <= 4 && !mining_nav_complete && dat_valid && custom_data_read == 1 && was_mining && distance_id && !request_exit && !is_autopiloting && is_undocked)
             {
 
                 mining_stage = 6;
@@ -2489,6 +2507,8 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
             }
+
+            #region docking_management
             if (reset_light_actual.Enabled && docking_stage > 0)
             {
                 reset_ai();
@@ -2604,9 +2624,10 @@ namespace IngameScript
             {
                 gspeed = rc_actual.GetShipSpeed();
                 string locked = connector_actual.Status.ToString();
-                if (!locked.Equals(cc) && !precM_light_actual.Enabled && sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && ns_c2 < nr_lim2 || !locked.Equals(cc) && precM_light_actual.Enabled && !sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && ns_c2 < nr_lim2 || !locked.Equals(cc) && precM_light_actual.Enabled && !sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && ns_c2 < nr_lim2 || !locked.Equals(cc) && !precM_light_actual.Enabled && sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && ns_c2 < nr_lim2)
+                if (!locked.Equals(cc) && !precM_light_actual.Enabled && sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && no_speed_undock_delay_count < no_speed_undock_delay_limit || !locked.Equals(cc) && precM_light_actual.Enabled && !sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && no_speed_undock_delay_count < no_speed_undock_delay_limit || !locked.Equals(cc) && precM_light_actual.Enabled && !sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && no_speed_undock_delay_count < no_speed_undock_delay_limit || !locked.Equals(cc) && !precM_light_actual.Enabled && sensor_actual.Enabled && !reset_light_actual.Enabled && gspeed < gsl && no_speed_undock_delay_count < no_speed_undock_delay_limit)
                 {
-                    ns_c2++;
+                    no_speed_undock_delay_count++;
+                    undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 }
                 StDrlOnOff(false, cnvyrsON);
                 if (locked.Equals(cc) && docking_stage == 2)
@@ -2617,7 +2638,7 @@ namespace IngameScript
                     drone_output_status = "Docked";
                     undocking_stage = 0;
                 }
-                if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2 || nsr)
+                if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2 || no_speed_ready_undock)
                 {
                         if (!reset_light_actual.Enabled)
                         {
@@ -2629,7 +2650,7 @@ namespace IngameScript
             }
             if (docking_stage == 3 && is_docked)
             {
-                ns_c2 = 0;
+                no_speed_undock_delay_count = 0;
                 StDrlOnOff(false, cnvyrsON);
                 if (!tb_TOFF_act.Enabled)
                 {
@@ -2721,6 +2742,9 @@ namespace IngameScript
                 }
                 docking_stage = 0;
             }
+            #endregion
+
+            #region connector_ancillary_management
             if (connector_actual.IsConnected && ignore_Htank || connector_actual.IsConnected && !ignore_Htank)
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
@@ -2824,6 +2848,9 @@ namespace IngameScript
                     undock_light_actual.Enabled = false;
                 }
             }
+            #endregion
+
+            #region drone_status_comms_message_builder
             sb.Clear();
             sb.Append(D_I_N);
             sb.Append(":");
@@ -2861,9 +2888,13 @@ namespace IngameScript
             sb.Append(":");
             sb.Append(gpsindx);
             dat_out = sb.ToString();
-            if (t_delay && pinged)
+            #endregion
+
+
+            if (transmit_delay && pinged)
             {
-                t_delay = false;
+                response_time = Math.Round(((double)t_count * (double)10 * game_tick_length) / (double)1000,1);
+                transmit_delay = false;
                 t_count = 0;
             }
 
@@ -2873,17 +2904,21 @@ namespace IngameScript
                 pinged = false;
                 dat_in3 = "";
             }
-            if (r_delay)
+
+            if (navigation_reset_delay)
             {
-                r_delay = false;
-                ns_count = 0;
+                navigation_reset_delay = false;
+                navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                no_speed_count_navigation_reset_delay_count = 0;
             }
-            if (nsr)
+            if (no_speed_ready_undock)
             {
-                nsr = false;
-                ns_c2 = 0;
+                undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                no_speed_ready_undock = false;
+                no_speed_undock_delay_count = 0;
             }
             GetDroneStatus(drone_status);
+            Echo($"Load: {Math.Round((_Runtime / game_tick_length) * (double)100.0, 3)}% ({Math.Round(_Runtime, 3)}ms) I#: {_Instruction}");
             Echo("Drone ID: " + D_I_N + " # " + drone_damage_status);
             Echo("Status Ints: " + drnst);
             Echo("Drone Status: " + drone_output_status);
@@ -2903,19 +2938,23 @@ namespace IngameScript
             Echo("Connected: " + connector_actual.IsConnected);
             Echo("Depth Achieved: " + target_depth_achived);
             Echo("Stopped: " + stop_state);
-            Echo($"{t_count} {t_delay} {ns_count} {r_delay} {ns_c2} {nsr} {Math.Round(spd, 2)} {Math.Round(gspeed, 2)} {pinged}");
+            Echo($"Last response: {response_time}s {pinged}");
+            Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
+            Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
+            Echo($"Speed: {Math.Round(spd, 2)} {Math.Round(gspeed, 2)}");
+            //Echo($"{t_count} {t_delay} {ns_count} {r_delay} {ns_c2} {nsr} {Math.Round(spd, 2)} {Math.Round(gspeed, 2)} {pinged}");
             t_count++;
             if (t_count >= t_lim)
             {
-                t_delay = true;
+                transmit_delay = true;
             }
-            if (ns_count >= nr_lim)
+            if (no_speed_count_navigation_reset_delay_count >= no_speed_navigation_delay_limit)
             {
-                r_delay = true;
+                navigation_reset_delay = true;
             }
-            if (ns_c2 >= nr_lim2)
+            if (no_speed_undock_delay_count >= no_speed_undock_delay_limit)
             {
-                nsr = true;
+                no_speed_ready_undock = true;
             }
 
         }
@@ -3150,6 +3189,7 @@ namespace IngameScript
             }
         }
 
+        #region drill_management
         void StDrlOnOff(bool DrilOnOf, bool UConv)
         {
 
@@ -3222,6 +3262,7 @@ namespace IngameScript
             }
             drill_all.Clear();
         }
+        #endregion
 
         void reset_ai()
         {
