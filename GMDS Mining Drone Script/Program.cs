@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.328A       
+        // General Mining Drone Script v0.329A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -87,11 +87,11 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.328";
+        string ver = "V0.329";
         //drone transmission settings
         int transmit_time_limit = 9;
         int readcount_time_limit = 9;
-        
+
         //other variables
         int no_speed_navigation_delay_limit = 5;
         int no_speed_undock_delay_limit = 120;
@@ -323,7 +323,7 @@ namespace IngameScript
         string s_thr = "Thruster";
         string s_atmo = "Atmospheric";
         string s_hydro = "Hydrogen";
-        string s_ion = "Ion";        
+        string s_ion = "Ion";
         string s_antenna = "Antenna";
         string s_camera = "Camera";
         string s_connector = "Connector";
@@ -406,6 +406,7 @@ namespace IngameScript
             #region setup_code
             if (!setup_complete)
             {
+
                 sb = new StringBuilder();
                 tx_ch = drone_tag + " reply";
                 rx_channel_recall = drone_tag + " " + recall_command;
@@ -475,7 +476,7 @@ namespace IngameScript
                     {
                         if (rc_all[i].CustomName.Contains(D_I_N))
                         {
-                            n = s_rc + " " + (i+1) + " " + D_I_N;
+                            n = s_rc + " " + (i + 1) + " " + D_I_N;
                             rc_all[i].CustomName = n;
                             rctag.Add(rc_all[i]);
                         }
@@ -640,8 +641,8 @@ namespace IngameScript
                             if (cargo_all[i].CustomName.Contains("Large"))
                             {
                                 tv1 = "Large ";
-                            }                            
-                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;                           
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
                             cargo_all[i].CustomName = n + " " + D_I_N;
                             cargo_tag.Add(cargo_all[i]);
                         }
@@ -705,15 +706,15 @@ namespace IngameScript
                             string tv1 = "";
                             if (thrust_all[i].CustomName.Contains("Hydro"))
                             {
-                                 tv1 = s_hydro;
+                                tv1 = s_hydro;
                             }
                             if (thrust_all[i].CustomName.Contains("Atmo"))
                             {
-                                 tv1 = s_atmo;
+                                tv1 = s_atmo;
                             }
                             if (thrust_all[i].CustomName.Contains("Ion"))
                             {
-                                 tv1 = s_ion;
+                                tv1 = s_ion;
                             }
                             n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
                             thrust_all[i].CustomName = n;
@@ -790,7 +791,7 @@ namespace IngameScript
                 {
                     for (int i = 0; i < light_all.Count; i++)
                     {
-                        if (light_all[i].CustomName.Contains(dk_tsk_n)|| light_all[i].CustomName.Contains($" {Dock}"))
+                        if (light_all[i].CustomName.Contains(dk_tsk_n) || light_all[i].CustomName.Contains($" {Dock}"))
                         {
                             n = s_lightblock;
                             light_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
@@ -847,7 +848,7 @@ namespace IngameScript
                             {
                                 tv1 = "Medium";
                             }
-                            n = tv1+ " " + s_battery + " " + (i + 1) + " " + D_I_N;
+                            n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
                             battery_all[i].CustomName = n;
                             battery_tag.Add(battery_all[i]);
                         }
@@ -945,6 +946,7 @@ namespace IngameScript
                 Echo("Setup complete!");
             }
             #endregion
+
             #region setup_broadcast_channels
             rx_ch = D_I_N;
             IMyBroadcastListener listn = IGC.RegisterBroadcastListener(rx_ch);
@@ -1445,7 +1447,7 @@ namespace IngameScript
                     drone_status = 24;
                 }
             }
-            
+
 
             if (dat_invalid)
             {
@@ -1619,7 +1621,7 @@ namespace IngameScript
             {
                 drone_output_status = "Docking init";
                 string locked = connector_actual.Status.ToString();
-                if(!undock_light_actual.Enabled && !connector_actual.IsConnected && !locked.Equals(cc))
+                if (!undock_light_actual.Enabled && !connector_actual.IsConnected && !locked.Equals(cc))
                 {
                     undock_light_actual.Enabled = true;
                 }
@@ -1826,7 +1828,7 @@ namespace IngameScript
             }
             else
             {
-                navinst = false;                
+                navinst = false;
             }
 
             #endregion
@@ -1986,7 +1988,7 @@ namespace IngameScript
                     rc_actual.SetCollisionAvoidance(true);
                     rc_actual.SetDockingMode(false);
                     rc_actual.SetAutoPilotEnabled(!navinst);
-                    drone_status = 1;                    
+                    drone_status = 1;
                     reset_ai();
                     if (reset_light_actual.Enabled)
                     {
@@ -2615,10 +2617,10 @@ namespace IngameScript
             {
                 if (Collision_sense_enabled)
                 {
-                        if (sensor_actual.Enabled)
-                        {
-                            sensor_actual.Enabled = false;
-                        }            
+                    if (sensor_actual.Enabled)
+                    {
+                        sensor_actual.Enabled = false;
+                    }
                 }
                 if (collision_avoid_light_actual.Enabled)
                 {
@@ -2658,22 +2660,22 @@ namespace IngameScript
                     if (!connector_actual.IsConnected && !locked.Equals(cc))
                     {
                         undock_light_actual.Enabled = true;
-                    }                        
+                    }
                 }
                 if (!locked.Equals(cc) && docking_stage == 1)
-                {                   
+                {
 
                     if (!skip_prec_mode)
                     {
-                            if (!ai_move_actual.PrecisionMode)
-                            {
-                                ai_move_actual.PrecisionMode = true;
-                            }
-                    }
-                        if (!ai_move_actual.CollisionAvoidance)
+                        if (!ai_move_actual.PrecisionMode)
                         {
-                            ai_move_actual.CollisionAvoidance = true;
+                            ai_move_actual.PrecisionMode = true;
                         }
+                    }
+                    if (!ai_move_actual.CollisionAvoidance)
+                    {
+                        ai_move_actual.CollisionAvoidance = true;
+                    }
                     if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
                     {
                         ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
@@ -2689,10 +2691,10 @@ namespace IngameScript
                         }
                         if (Collision_sense_enabled)
                         {
-                                if (!sensor_actual.Enabled)
-                                {
-                                    sensor_actual.Enabled = true;
-                                }
+                            if (!sensor_actual.Enabled)
+                            {
+                                sensor_actual.Enabled = true;
+                            }
                         }
                     }
                     docking_stage = 2;
@@ -2724,10 +2726,10 @@ namespace IngameScript
                 }
                 if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2 || no_speed_ready_undock)
                 {
-                        if (!reset_light_actual.Enabled)
-                        {
-                            reset_light_actual.Enabled = true;
-                        }
+                    if (!reset_light_actual.Enabled)
+                    {
+                        reset_light_actual.Enabled = true;
+                    }
                 }
 
 
@@ -2769,7 +2771,7 @@ namespace IngameScript
                                 battery_tag[i].ChargeMode = ChargeMode.Recharge;
                             }
                         }
-                            drone_output_status = "Recharging";                        
+                        drone_output_status = "Recharging";
                     }
                 }
                 if (!recharge_request_battery)
@@ -2892,7 +2894,7 @@ namespace IngameScript
                 {
                     reset_light_actual.Enabled = false;
                 }
-            
+
             }
             if (connector_actual.IsConnected && !undock_state && !cargo_full_achieved && cargo_is_empty && !recharge_request)
             {
@@ -2939,7 +2941,7 @@ namespace IngameScript
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
-                response_time = Math.Round(((double)t_count * (double)10 * game_tick_length) / (double)1000,1);
+                response_time = Math.Round(((double)t_count * (double)10 * game_tick_length) / (double)1000, 1);
                 transmit_delay = false;
                 t_count = 0;
             }
@@ -3120,7 +3122,7 @@ namespace IngameScript
         void GetCustomData()
         {
             String[] gps_cd = Me.CustomData.Split(':');
-            if(gps_cd.Length < 5)
+            if (gps_cd.Length < 5)
             {
                 Me.CustomData = fail_data;
             }
@@ -3495,9 +3497,9 @@ namespace IngameScript
                 str = _ini.Get("coordinates", "co14").ToString();
                 gpsindx = str;
             }
-        
+
         }
-                
+
         void GetDroneStatus(int drnstus)
         {
             #region void_drone_status_output
@@ -3601,7 +3603,7 @@ namespace IngameScript
         }
 
 
-        public void drone_custom_data_check(string custominfo, int index) 
+        public void drone_custom_data_check(string custominfo, int index)
         {
             bool load_id;
             bool load_tag;
@@ -3628,29 +3630,29 @@ namespace IngameScript
                         Echo($"Resorting to default ID#.{drone_id_num}");
                     }
                 }
-            }                
-                if (temp_id.Length > 1)
-                {                    
-                    if (temp_id[1] != null)
-                    {
-                        temp_id_name = temp_id[1];
-                        load_tag = true;
+            }
+            if (temp_id.Length > 1)
+            {
+                if (temp_id[1] != null)
+                {
+                    temp_id_name = temp_id[1];
+                    load_tag = true;
                     if (load_tag)
                     {
                         drone_tag = temp_id_name;
                     }
                     if (temp_id_name == "" || temp_id_name == null)
-                        {
-                            temp_id_name = drone_tag;                        
+                    {
+                        temp_id_name = drone_tag;
                         Echo($"Resorting to default drone tag.{drone_tag}");
-                        }
                     }
-                }                
-                        
+                }
+            }
+
             if (temp_id.Length == 0)
             {
                 temp_id_num = drone_id_num;
-                temp_id_name = drone_tag;                
+                temp_id_name = drone_tag;
                 Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
             }
 
@@ -3672,6 +3674,7 @@ namespace IngameScript
             D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
             DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
             P_CH = "[" + drone_tag + "]" + " " + p_cht;
+            tx_ch = drone_tag + " reply";           
             rx_channel_recall_drone = D_I_N + " " + recall_command;
             Me.CustomName = $"GMDS Programmable Block {D_I_N}";
         }
