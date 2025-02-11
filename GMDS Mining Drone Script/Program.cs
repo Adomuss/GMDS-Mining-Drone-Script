@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.329A       
+        // General Mining Drone Script v0.330A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -87,10 +87,9 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.329";
+        string ver = "V0.330";
         //drone transmission settings
-        int transmit_time_limit = 9;
-        int readcount_time_limit = 9;
+        int transmit_time_limit = 5;        
 
         //other variables
         int no_speed_navigation_delay_limit = 5;
@@ -341,8 +340,6 @@ namespace IngameScript
         double response_time = 0.0;
         double undock_delay_time = 0.0;
         double navigation_reset_delay_time = 0.0;
-        bool read_wait = false;
-        int readcount = 0;
         string fail_data = "---:-1:0:0:0:0:0:0:0:";
 
         #region save_state_management
@@ -1412,10 +1409,6 @@ namespace IngameScript
             else dat_invalid = false;
             #endregion
 
-            if (read_wait)
-            {
-                readcount++;
-            }
 
 
 
@@ -1424,18 +1417,16 @@ namespace IngameScript
 
             if (dat_valid)
             {
-                if (custom_data_read == 1 && !read_wait)
+                if (custom_data_read == 1)
                 {
                     cmd_rqold = command_request;
                     custom_data_read = 0;
                     drone_status = 25;
-                    //read_wait = true;
                 }
-                if (custom_data_read == 0 && !read_wait)
+                if (custom_data_read == 0 )
                 {
                     GetCustomData();
                     custom_data_read = 1;
-                    read_wait = true;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -1451,19 +1442,17 @@ namespace IngameScript
 
             if (dat_invalid)
             {
-                if (custom_data_read == 1 && !read_wait)
+                if (custom_data_read == 1)
                 {
                     cmd_rqold = command_request;
                     custom_data_read = 0;
                     drone_status = 25;
-                    //read_wait = true;
                 }
 
-                if (custom_data_read == 0 && !read_wait)
+                if (custom_data_read == 0)
                 {
                     GetCustomData();
                     custom_data_read = 1;
-                    read_wait = true;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -3013,11 +3002,6 @@ namespace IngameScript
 
             GetDroneStatus(drone_status);
 
-            if (readcount > readcount_time_limit)
-            {
-                read_wait = false;
-                readcount = 0;
-            }
 
             #region drone_status_local_report
 
@@ -3043,7 +3027,7 @@ namespace IngameScript
             Echo("Depth Achieved: " + target_depth_achived);
             Echo("Stopped: " + stop_state);
             Echo($"Last response: {response_time}s waiting: {transmit_delay}");
-            Echo($"Last cmd: {Math.Round(((double)readcount * (double)10 * game_tick_length) / (double)1000, 1)}s waiting: {read_wait}");
+            //Echo($"Last cmd: {Math.Round(((double)readcount * (double)10 * game_tick_length) / (double)1000, 1)}s waiting: {read_wait}");
             Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
             Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             Echo($"Speed: {Math.Round(spd, 2)} {Math.Round(gspeed, 2)}");
