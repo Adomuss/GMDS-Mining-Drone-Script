@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.327A       
+        // General Mining Drone Script v0.328A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -87,9 +87,12 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.327";
+        string ver = "V0.328";
         //drone transmission settings
-        int t_lim = 5;
+        int transmit_time_limit = 9;
+        int readcount_time_limit = 9;
+        
+        //other variables
         int no_speed_navigation_delay_limit = 5;
         int no_speed_undock_delay_limit = 120;
         double game_tick_length = 16.666;
@@ -338,6 +341,9 @@ namespace IngameScript
         double response_time = 0.0;
         double undock_delay_time = 0.0;
         double navigation_reset_delay_time = 0.0;
+        bool read_wait = false;
+        int readcount = 0;
+        string fail_data = "---:-1:0:0:0:0:0:0:0:";
 
         #region save_state_management
         public void Save()
@@ -948,7 +954,8 @@ namespace IngameScript
             #endregion
 
             waypoints.Clear();
-            
+
+            #region presence_check
             if (drill_tag.Count <= 0)
             {
                 Echo($"Drills with tag: '{D_I_N}' not found.");
@@ -1000,66 +1007,6 @@ namespace IngameScript
                     return;
                 }
             }
-            ttl_volu = 0;
-            ttl_volm = 0;
-            total_percent_cargo_used = 0;
-            for (int i = 0; i < cargo_tag.Count; i++)
-            {
-                if (cargo_tag[i] != null)
-                {
-                    float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
-                    float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
-                    ttl_volu = ttl_volu + inventory_vol;
-                    ttl_volm = ttl_volm + max_inventory_vol;
-                    total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
-                }
-            }
-            if (total_percent_cargo_used == 100.0f)
-            {
-                is_full = true;
-            }
-            if (total_percent_cargo_used < 100.0f)
-            {
-                is_full = false;
-            }
-            if (total_percent_cargo_used == 0.0f)
-            {
-                cargo_is_empty = true;
-            }
-            if (total_percent_cargo_used > 0.0f)
-            {
-                cargo_is_empty = false;
-            }
-            if (cargo_is_empty && cargo_full_achieved)
-            {
-                cargo_full_achieved = false;
-            }
-            if (ORE_sense_enabled)
-            {
-                ttl_volus = 0;
-                ttl_volms = 0;
-                ttl_pctus = 0;
-                for (int i = 0; i < cargo_sense.Count; i++)
-                {
-                    if (cargo_sense[i] != null)
-                    {
-                        float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
-                        float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
-                        ttl_volus = ttl_volus + inventory_vol_s;
-                        ttl_volms = ttl_volms + max_inventory_vol_s;
-                        ttl_pctus = (ttl_volus / ttl_volms) * 100;
-                    }
-                }
-
-                if (ttl_pctus > ORE_sense_limit)
-                {
-                    sens_convOPN = true;
-                }
-                else
-                {
-                    sens_convOPN = false;
-                }
-            }
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
             {
                 Echo($"Antenna with tag: '{D_I_N}' not found.");
@@ -1068,7 +1015,7 @@ namespace IngameScript
             at_act = antenna_tag[0];
             if (flight_path_dock_tag.Count <= 0 || flight_path_dock_tag[0] == null)
             {
-                Echo($"Docking AI task recorder with tag: '{dk_tsk_n}' not found. Add ' { Dock}' tag");
+                Echo($"Docking AI task recorder with tag: '{dk_tsk_n}' not found. Add ' {Dock}' tag");
                 return;
             }
             ai_dck_act = flight_path_dock_tag[0];
@@ -1154,6 +1101,72 @@ namespace IngameScript
                 Echo($"Batteries with tag: '{D_I_N}' not found.");
                 return;
             }
+            #endregion
+
+            #region cargo_check
+            ttl_volu = 0;
+            ttl_volm = 0;
+            total_percent_cargo_used = 0;
+            for (int i = 0; i < cargo_tag.Count; i++)
+            {
+                if (cargo_tag[i] != null)
+                {
+                    float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
+                    float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
+                    ttl_volu = ttl_volu + inventory_vol;
+                    ttl_volm = ttl_volm + max_inventory_vol;
+                    total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
+                }
+            }
+            if (total_percent_cargo_used == 100.0f)
+            {
+                is_full = true;
+            }
+            if (total_percent_cargo_used < 100.0f)
+            {
+                is_full = false;
+            }
+            if (total_percent_cargo_used == 0.0f)
+            {
+                cargo_is_empty = true;
+            }
+            if (total_percent_cargo_used > 0.0f)
+            {
+                cargo_is_empty = false;
+            }
+            if (cargo_is_empty && cargo_full_achieved)
+            {
+                cargo_full_achieved = false;
+            }
+            if (ORE_sense_enabled)
+            {
+                ttl_volus = 0;
+                ttl_volms = 0;
+                ttl_pctus = 0;
+                for (int i = 0; i < cargo_sense.Count; i++)
+                {
+                    if (cargo_sense[i] != null)
+                    {
+                        float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
+                        float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
+                        ttl_volus = ttl_volus + inventory_vol_s;
+                        ttl_volms = ttl_volms + max_inventory_vol_s;
+                        ttl_pctus = (ttl_volus / ttl_volms) * 100;
+                    }
+                }
+
+                if (ttl_pctus > ORE_sense_limit)
+                {
+                    sens_convOPN = true;
+                }
+                else
+                {
+                    sens_convOPN = false;
+                }
+            }
+            #endregion
+
+            #region damage_check
             if (!dmg_report_enabled)
             {
                 drone_damage_status = "OK";
@@ -1176,6 +1189,9 @@ namespace IngameScript
                     }
                 }
             }
+            #endregion
+
+            #region power_check
             ttl_PWRs = 0;
             ttl_sPWR = 0;
             ttl_PWRm = 0;
@@ -1230,7 +1246,9 @@ namespace IngameScript
                     }
                 }
             }
+            #endregion
 
+            #region fuel_check
             if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
             {
             }
@@ -1290,6 +1308,9 @@ namespace IngameScript
                     }
                 }
             }
+            #endregion
+
+            #region recharge_request_check
             if (recharge_request_battery || recharge_request_tank)
             {
                 recharge_request = true;
@@ -1298,6 +1319,7 @@ namespace IngameScript
             {
                 recharge_request = false;
             }
+            #endregion
 
             // ** Logic Start **
             Echo($"GMDS {ver} Running...");
@@ -1369,29 +1391,49 @@ namespace IngameScript
                     pinged = false;
                 }
             }
-            if (Me.CustomData != null && Me.CustomData != "")
+
+            #region custom_data_command_presence_check
+            if (Me.CustomData != null && Me.CustomData != "" && Me.CustomData != fail_data)
             {
                 dat_valid = true;
             }
             else dat_valid = false;
 
-            if (Me.CustomData == null || Me.CustomData == "")
+            if (Me.CustomData == null || Me.CustomData == "" || Me.CustomData == fail_data)
             {
                 dat_invalid = true;
+                if (Me.CustomData != fail_data)
+                {
+                    Me.CustomData = fail_data;
+                }
             }
             else dat_invalid = false;
+            #endregion
+
+            if (read_wait)
+            {
+                readcount++;
+            }
+
+
+
+            #region command_read_with_rate_limit
+
+
             if (dat_valid)
             {
-                if (custom_data_read == 1)
+                if (custom_data_read == 1 && !read_wait)
                 {
                     cmd_rqold = command_request;
                     custom_data_read = 0;
                     drone_status = 25;
+                    //read_wait = true;
                 }
-                if (custom_data_read == 0)
+                if (custom_data_read == 0 && !read_wait)
                 {
                     GetCustomData();
                     custom_data_read = 1;
+                    read_wait = true;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -1403,18 +1445,23 @@ namespace IngameScript
                     drone_status = 24;
                 }
             }
+            
+
             if (dat_invalid)
             {
-                if (custom_data_read == 1)
+                if (custom_data_read == 1 && !read_wait)
                 {
                     cmd_rqold = command_request;
                     custom_data_read = 0;
                     drone_status = 25;
+                    //read_wait = true;
                 }
-                if (custom_data_read == 0)
+
+                if (custom_data_read == 0 && !read_wait)
                 {
                     GetCustomData();
                     custom_data_read = 1;
+                    read_wait = true;
                     if (command_request != cmd_rqold)
                     {
                         cmd_chng = true;
@@ -1427,6 +1474,11 @@ namespace IngameScript
                     drone_status = 24;
                 }
             }
+            #endregion
+
+
+
+            #region drone_state_processing
             if (dat_invalid && !was_mining)
             {
                 command_request = 0;
@@ -1471,6 +1523,8 @@ namespace IngameScript
                 tunnel_sequence_finished = false;
                 drone_output_status = "Resetting";
             }
+
+            #region connected_battery_recharge_check
             if (connector_actual.IsConnected && auto_charge_mode && !recharge_request_battery && !undock_state || connector_actual.IsConnected && auto_charge_mode && recharge_request_battery && !undock_state)
             {
                 for (int i = 0; i < battery_tag.Count; i++)
@@ -1497,6 +1551,9 @@ namespace IngameScript
                     }
                 }
             }
+            #endregion
+
+            #region undock_management
             if (undock_state && !recharge_request && cargo_is_empty && !cargo_full_achieved && !target_depth_achived && connector_actual.IsConnected && undocking_stage == 0 && !tb_TON_act.IsCountingDown)
             {
                 if (!is_docking || !is_undocking)
@@ -1609,12 +1666,14 @@ namespace IngameScript
             {
                 is_undocking = false;
             }
+            #endregion
+
+            #region dock_undock_state_check
             if (docking_stage > 0)
             {
                 is_docking = true;
             }
             else is_docking = false;
-
             if (is_undocking || is_docking)
             {
                 is_autopiloting = true;
@@ -1631,6 +1690,9 @@ namespace IngameScript
                 is_undocked = true;
             }
             else is_undocked = false;
+            #endregion
+
+            #region drone_stop_state_management
             if (stop_state)
             {
                 main_nav_sequence = 0;
@@ -1658,6 +1720,9 @@ namespace IngameScript
                 drone_status = 0;
                 cmd_rqt = "0";
             }
+            #endregion
+
+            #region mining_state_management
             if (mining_stage == 0 && stop_state && request_exit)
             {
                 request_exit = false;
@@ -1694,7 +1759,9 @@ namespace IngameScript
                 force_request_dock = true;
             }
             else force_request_dock = false;
+            #endregion
 
+            #region check_for_planetary_gravity_presence
             gravity = rc_actual.GetNaturalGravity();
             if (trgt_vld)
             {
@@ -1704,7 +1771,9 @@ namespace IngameScript
             {
                 crnt_tgt_align = gravity;
             }
+            #endregion
 
+            #region drone_alignment_management
             if (is_docked || docking_stage > 0 || !is_undocked && !is_docked)
             {
                 can_gyroOVR = false;
@@ -1722,25 +1791,26 @@ namespace IngameScript
             double PitchMon = GetNavAngles(crnt_tgt_align).GetDim(1);
             double RollMon = GetNavAngles(crnt_tgt_align).GetDim(2);
 
-            if (YawMon > nav_inst_thr || YawMon < -nav_inst_thr)
+            if (YawMon > nav_inst_thr && !is_docked || YawMon < -nav_inst_thr && !is_docked)
             {
-                drone_status = 9;
+                drone_status = 23;
                 yawinst = true;
             }
             else yawinst = false;
 
-            if (PitchMon > nav_inst_thr || PitchMon < -nav_inst_thr)
+            if (PitchMon > nav_inst_thr && !is_docked || PitchMon < -nav_inst_thr && !is_docked)
             {
                 pitchinst = true;
-                drone_status = 9;
+                drone_status = 23;
             }
             else pitchinst = false;
-            if (RollMon > nav_inst_thr || RollMon < -nav_inst_thr)
+            if (RollMon > nav_inst_thr && !is_docked || RollMon < -nav_inst_thr && !is_docked)
             {
                 rollinst = true;
-                drone_status = 9;
+                drone_status = 23;
             }
             else rollinst = false;
+
             if (main_nav_sequence > 0 && main_nav_sequence < 4 && trgt_vld)
             {
                 nav_act = true;
@@ -1749,12 +1819,18 @@ namespace IngameScript
             {
                 nav_act = false;
             }
-            if (yawinst && !nav_act || pitchinst && !nav_act || rollinst && !nav_act || reset_light_actual.Enabled && !is_docking)
+            if (yawinst && !nav_act && !is_docked || pitchinst && !nav_act && !is_docked || rollinst && !nav_act && !is_docked || reset_light_actual.Enabled && !is_docking && !is_docked)
             {
                 navinst = true;
                 drone_status = 23;
             }
-            else navinst = false;
+            else
+            {
+                navinst = false;                
+            }
+
+            #endregion
+
             Vector3D rc_xyz = rc_actual.GetPosition();
             if (custom_data_read == 1 && cmd_read_ack == 0)
             {
@@ -1770,6 +1846,8 @@ namespace IngameScript
                 rc_actual.ClearWaypoints();
                 rc_actual.SetAutoPilotEnabled(false);
             }
+
+            #region navigation_management
             if (clr_cords && custom_data_read == 1)
             {
                 if (nav_state && cmd_chng && is_undocked)
@@ -2047,6 +2125,9 @@ namespace IngameScript
                 }
                 drone_output_status = "RTB";
             }
+            #endregion
+
+            #region mining_management
             // *** Mining sequence ***
             if (!distance_id && mine_state && custom_data_read == 1 && mining_stage == 0 && !is_autopiloting && is_undocked)
             {
@@ -2507,6 +2588,9 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
             }
+            #endregion
+
+            #endregion
 
             #region docking_management
             if (reset_light_actual.Enabled && docking_stage > 0)
@@ -2744,7 +2828,7 @@ namespace IngameScript
             }
             #endregion
 
-            #region connector_ancillary_management
+            #region connector_state_management
             if (connector_actual.IsConnected && ignore_Htank || connector_actual.IsConnected && !ignore_Htank)
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
@@ -2850,47 +2934,9 @@ namespace IngameScript
             }
             #endregion
 
-            #region drone_status_comms_message_builder
-            sb.Clear();
-            sb.Append(D_I_N);
-            sb.Append(":");
-            sb.Append(drone_damage_status);
-            sb.Append(":");
-            sb.Append(tunnel_sequence_finished);
-            sb.Append(":");
-            sb.Append(drone_output_status);
-            sb.Append(":");
-            sb.Append(is_docked);
-            sb.Append(":");
-            sb.Append(is_undocked);
-            sb.Append(":");
-            sb.Append(is_autopiloting);
-            sb.Append(":");
-            sb.Append(rc_actual.IsAutoPilotEnabled);
-            sb.Append(":");
-            sb.Append(Math.Round(rc_xyz.X, 2));
-            sb.Append(":");
-            sb.Append(Math.Round(rc_xyz.Y, 2));
-            sb.Append(":");
-            sb.Append(Math.Round(rc_xyz.Z, 2));
-            sb.Append(":");
-            sb.Append(drill_sl);
-            sb.Append(":");
-            sb.Append(Math.Round(distance_current, 2));
-            sb.Append(":");
-            sb.Append(Math.Round((drill_sl - no_cnvy_dst), 2));
-            sb.Append(":");
-            sb.Append(Math.Round(percent_battery_power, 2));
-            sb.Append(":");
-            sb.Append(Math.Round(pcnt_gas_tank, 2));
-            sb.Append(":");
-            sb.Append(Math.Round(total_percent_cargo_used, 2));
-            sb.Append(":");
-            sb.Append(gpsindx);
-            dat_out = sb.ToString();
-            #endregion
 
 
+            #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
                 response_time = Math.Round(((double)t_count * (double)10 * game_tick_length) / (double)1000,1);
@@ -2900,24 +2946,80 @@ namespace IngameScript
 
             if (pinged)
             {
+                #region drone_status_comms_message_builder
+                sb.Clear();
+                sb.Append(D_I_N);
+                sb.Append(":");
+                sb.Append(drone_damage_status);
+                sb.Append(":");
+                sb.Append(tunnel_sequence_finished);
+                sb.Append(":");
+                sb.Append(drone_output_status);
+                sb.Append(":");
+                sb.Append(is_docked);
+                sb.Append(":");
+                sb.Append(is_undocked);
+                sb.Append(":");
+                sb.Append(is_autopiloting);
+                sb.Append(":");
+                sb.Append(rc_actual.IsAutoPilotEnabled);
+                sb.Append(":");
+                sb.Append(Math.Round(rc_xyz.X, 2));
+                sb.Append(":");
+                sb.Append(Math.Round(rc_xyz.Y, 2));
+                sb.Append(":");
+                sb.Append(Math.Round(rc_xyz.Z, 2));
+                sb.Append(":");
+                sb.Append(drill_sl);
+                sb.Append(":");
+                sb.Append(Math.Round(distance_current, 2));
+                sb.Append(":");
+                sb.Append(Math.Round((drill_sl - no_cnvy_dst), 2));
+                sb.Append(":");
+                sb.Append(Math.Round(percent_battery_power, 2));
+                sb.Append(":");
+                sb.Append(Math.Round(pcnt_gas_tank, 2));
+                sb.Append(":");
+                sb.Append(Math.Round(total_percent_cargo_used, 2));
+                sb.Append(":");
+                sb.Append(gpsindx);
+                dat_out = sb.ToString();
+                #endregion
                 IGC.SendBroadcastMessage(tx_ch, dat_out);
                 pinged = false;
                 dat_in3 = "";
             }
+            #endregion
 
+            #region nagivation_movement_check
             if (navigation_reset_delay)
             {
                 navigation_reset_delay = false;
                 navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 no_speed_count_navigation_reset_delay_count = 0;
             }
+            #endregion
+
+            #region undock_delay_check
             if (no_speed_ready_undock)
             {
                 undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 no_speed_ready_undock = false;
                 no_speed_undock_delay_count = 0;
             }
+            #endregion
+
             GetDroneStatus(drone_status);
+
+            if (readcount > readcount_time_limit)
+            {
+                read_wait = false;
+                readcount = 0;
+            }
+
+            #region drone_status_local_report
+
+
             Echo($"Load: {Math.Round((_Runtime / game_tick_length) * (double)100.0, 3)}% ({Math.Round(_Runtime, 3)}ms) I#: {_Instruction}");
             Echo("Drone ID: " + D_I_N + " # " + drone_damage_status);
             Echo("Status Ints: " + drnst);
@@ -2938,13 +3040,17 @@ namespace IngameScript
             Echo("Connected: " + connector_actual.IsConnected);
             Echo("Depth Achieved: " + target_depth_achived);
             Echo("Stopped: " + stop_state);
-            Echo($"Last response: {response_time}s {pinged}");
+            Echo($"Last response: {response_time}s waiting: {transmit_delay}");
+            Echo($"Last cmd: {Math.Round(((double)readcount * (double)10 * game_tick_length) / (double)1000, 1)}s waiting: {read_wait}");
             Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
             Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             Echo($"Speed: {Math.Round(spd, 2)} {Math.Round(gspeed, 2)}");
             //Echo($"{t_count} {t_delay} {ns_count} {r_delay} {ns_c2} {nsr} {Math.Round(spd, 2)} {Math.Round(gspeed, 2)} {pinged}");
+            #endregion
+
             t_count++;
-            if (t_count >= t_lim)
+
+            if (t_count >= transmit_time_limit)
             {
                 transmit_delay = true;
             }
@@ -3014,6 +3120,10 @@ namespace IngameScript
         void GetCustomData()
         {
             String[] gps_cd = Me.CustomData.Split(':');
+            if(gps_cd.Length < 5)
+            {
+                Me.CustomData = fail_data;
+            }
             if (gps_cd.Length > 5)
             {
                 gpsindx = gps_cd[1];
@@ -3387,9 +3497,10 @@ namespace IngameScript
             }
         
         }
-            void GetDroneStatus(int drnstus)
+                
+        void GetDroneStatus(int drnstus)
         {
-
+            #region void_drone_status_output
             if (drnstus == 0)
             {
                 drnst = "Idle";
@@ -3486,7 +3597,9 @@ namespace IngameScript
             {
                 drnst = "Comp cmd data";
             }
+            #endregion
         }
+
 
         public void drone_custom_data_check(string custominfo, int index) 
         {
