@@ -87,10 +87,11 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.330";
+        string ver = "V0.331";
         //drone transmission settings
-        int transmit_time_limit = 5;        
+        int transmit_time_limit = 5;
 
+        #region process_variables
         //other variables
         int no_speed_navigation_delay_limit = 5;
         int no_speed_undock_delay_limit = 120;
@@ -341,6 +342,22 @@ namespace IngameScript
         double undock_delay_time = 0.0;
         double navigation_reset_delay_time = 0.0;
         string fail_data = "---:-1:0:0:0:0:0:0:0:";
+        double spd;
+        IMyBroadcastListener listn;
+        IMyBroadcastListener listn_recall;
+        IMyBroadcastListener listn_recall_drone;
+        IMyBroadcastListener listn_png;
+        MyIGCMessage new_msg;
+        MyIGCMessage new_msg_2;
+        MyIGCMessage new_msg_3;
+        MyIGCMessage new_msg_4;
+        Vector3D rc_xyz;
+        float percent_battery_power = 0.0f;
+        double pcnt_gas_tank = 0.0;
+        double _Runtime;
+        int _Instruction;
+
+        #endregion
 
         #region save_state_management
         public void Save()
@@ -397,563 +414,1251 @@ namespace IngameScript
         #endregion
         public void Main(string argument)
         {
-            double _Runtime = Runtime.LastRunTimeMs;
-            int _Instruction = Runtime.CurrentInstructionCount;
-            IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
+            _Runtime = Runtime.LastRunTimeMs;
+            _Instruction = Runtime.CurrentInstructionCount;
+            //IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
+
             #region setup_code
             if (!setup_complete)
             {
-
-                sb = new StringBuilder();
-                tx_ch = drone_tag + " reply";
-                rx_channel_recall = drone_tag + " " + recall_command;
-                if (drone_tag == "" || drone_tag == null)
-                {
-                    Echo($"Invalid name for drone_tag {drone_tag}");
-                    return;
-                }
-                D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
-                D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
-                dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
-                undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
-                Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
-                Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
-                Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
-                CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
-                P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
-                H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
-                D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
-                DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
-                P_CH = "[" + drone_tag + "]" + " " + p_cht;
-                rx_channel_recall_drone = D_I_N + " " + recall_command;
-                Me.CustomName = $" GMDS Programmable Block {D_I_N}";
-
-                antenna_all = new List<IMyRadioAntenna>();
-                antenna_tag = new List<IMyRadioAntenna>();
-                gts.GetBlocksOfType<IMyRadioAntenna>(antenna_all, b => b.CubeGrid == Me.CubeGrid);
-                if (antenna_all.Count > 0)
-                {
-                    for (int i = 0; i < antenna_all.Count; i++)
-                    {
-                        if (antenna_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string checker = antenna_all[i].CustomData;
-                            drone_custom_data_check(checker, i);
-                            if (drone_tag == "" || drone_tag == null)
-                            {
-                                Echo($"Invalid name for drone_tag {drone_tag}");
-                                return;
-                            }
-                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
-                            antenna_all[i].CustomName = n;
-                            antenna_tag.Add(antenna_all[i]);
-                        }
-                        if (!antenna_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string checker = antenna_all[i].CustomData;
-                            drone_custom_data_check(checker, i);
-                            if (drone_tag == "" || drone_tag == null)
-                            {
-                                Echo($"Invalid name for drone_tag {drone_tag}");
-                                return;
-                            }
-                            n = s_antenna + " " + (i + 1) + " " + D_I_N;
-                            antenna_all[i].CustomName = n;
-                            antenna_tag.Add(antenna_all[i]);
-                        }
-                    }
-                }
-                antenna_all.Clear();
-                rc_all = new List<IMyRemoteControl>();
-                rctag = new List<IMyRemoteControl>();
-                gts.GetBlocksOfType<IMyRemoteControl>(rc_all, b => b.CubeGrid == Me.CubeGrid);
-                if (rc_all.Count > 0)
-                {
-                    for (int i = 0; i < rc_all.Count; i++)
-                    {
-                        if (rc_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_rc + " " + (i + 1) + " " + D_I_N;
-                            rc_all[i].CustomName = n;
-                            rctag.Add(rc_all[i]);
-                        }
-                        if (!rc_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_rc + " " + (i + 1) + " " + D_I_N;
-                            rc_all[i].CustomName = n;
-                            rctag.Add(rc_all[i]);
-                        }
-
-                    }
-                }
-                rc_all.Clear();
-                if (Collision_sense_enabled)
-                {
-                    sensor_all = new List<IMySensorBlock>();
-                    sensor_tag = new List<IMySensorBlock>();
-                    gts.GetBlocksOfType<IMySensorBlock>(sensor_all, b => b.CubeGrid == Me.CubeGrid);
-                    if (sensor_all.Count > 0)
-                    {
-                        for (int i = 0; i < sensor_all.Count; i++)
-                        {
-                            if (sensor_all[i].CustomName.Contains(D_I_N))
-                            {
-                                n = s_ssr + " " + (i + 1) + " " + D_I_N;
-                                sensor_all[i].CustomName = n;
-                                sensor_tag.Add(sensor_all[i]);
-                            }
-                            if (!sensor_all[i].CustomName.Contains(D_I_N))
-                            {
-                                n = s_ssr + " " + (i + 1) + " " + D_I_N;
-                                sensor_all[i].CustomName = n;
-                                sensor_tag.Add(sensor_all[i]);
-                            }
-                        }
-                    }
-                    sensor_all.Clear();
-                    if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
-                    {
-                        Echo($"Sensor with tag: '{D_I_N}' not found.");
-                        return;
-                    }
-                    sensor_actual = sensor_tag[0];
-                    sensor_actual.DetectAsteroids = true;
-                    sensor_actual.DetectEnemy = true;
-                    sensor_actual.DetectFriendly = true;
-                    sensor_actual.DetectLargeShips = true;
-                    sensor_actual.DetectSmallShips = true;
-                    sensor_actual.DetectSubgrids = true;
-                    sensor_actual.DetectFloatingObjects = false;
-                    sensor_actual.DetectStations = true;
-                    sensor_actual.DetectPlayers = false;
-                    sensor_actual.DetectNeutral = true;
-                    sensor_actual.DetectOwner = true;
-                    sensor_actual.LeftExtend = s_llm;
-                    sensor_actual.RightExtend = s_rlm;
-                    sensor_actual.BottomExtend = s_btlm;
-                    sensor_actual.TopExtend = s_tlm;
-                    sensor_actual.BackExtend = s_bklm;
-                    sensor_actual.FrontExtend = s_flm;
-                }
-                cam_all = new List<IMyCameraBlock>();
-                camera_tag = new List<IMyCameraBlock>();
-                gts.GetBlocksOfType<IMyCameraBlock>(cam_all, b => b.CubeGrid == Me.CubeGrid);
-                if (cam_all.Count > 0)
-                {
-                    for (int i = 0; i < cam_all.Count; i++)
-                    {
-                        if (cam_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_camera + " " + (i + 1) + " " + D_I_N;
-                            cam_all[i].CustomName = n;
-                            camera_tag.Add(cam_all[i]);
-                        }
-                        if (!cam_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_camera + " " + (i + 1) + " " + D_I_N;
-                            cam_all[i].CustomName = n;
-                            camera_tag.Add(cam_all[i]);
-                        }
-                    }
-                }
-                cam_all.Clear();
-                connector_all = new List<IMyShipConnector>();
-                connector_tag = new List<IMyShipConnector>();
-                gts.GetBlocksOfType<IMyShipConnector>(connector_all, b => b.CubeGrid == Me.CubeGrid);
-                if (connector_all.Count > 0)
-                {
-                    for (int i = 0; i < connector_all.Count; i++)
-                    {
-                        if (connector_all[i].CustomName.Contains(D_C_N))
-                        {
-                            n = s_connector + " " + (i + 1) + " " + D_I_N;
-                            connector_all[i].CustomName = n;
-                            connector_tag.Add(connector_all[i]);
-                        }
-                        if (!connector_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_connector + " " + (i + 1) + " " + D_I_N;
-                            connector_all[i].CustomName = n;
-                            connector_tag.Add(connector_all[i]);
-                        }
-                    }
-                }
-                connector_all.Clear();
-                cargo_all = new List<IMyCargoContainer>();
-                cargo_tag = new List<IMyCargoContainer>();
-                cargo_sense = new List<IMyCargoContainer>();
-                gts.GetBlocksOfType<IMyCargoContainer>(cargo_all, b => b.CubeGrid == Me.CubeGrid);
-                if (cargo_all.Count > 0)
-                {
-                    for (int i = 0; i < cargo_all.Count; i++)
-                    {
-                        if (cargo_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string tv1 = "";
-                            if (cargo_all[i].CustomName.Contains("Small"))
-                            {
-                                tv1 = "Small ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Medium"))
-                            {
-                                tv1 = "Medium ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Large"))
-                            {
-                                tv1 = "Large ";
-                            }
-                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                            cargo_all[i].CustomName = n;
-                            cargo_tag.Add(cargo_all[i]);
-                        }
-                        if (cargo_all[i].CustomName.Contains(D_S_C))
-                        {
-                            string tv1 = "";
-                            if (cargo_all[i].CustomName.Contains("Small"))
-                            {
-                                tv1 = "Small ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Medium"))
-                            {
-                                tv1 = "Medium ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Large"))
-                            {
-                                tv1 = "Large ";
-                            }
-                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                            cargo_sense.Add(cargo_all[i]);
-                        }
-                        if (!cargo_all[i].CustomName.Contains(D_I_N) && !cargo_all[i].CustomName.Contains(D_S_C))
-                        {
-                            string tv1 = "";
-                            if (cargo_all[i].CustomName.Contains("Small"))
-                            {
-                                tv1 = "Small ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Medium"))
-                            {
-                                tv1 = "Medium ";
-                            }
-                            if (cargo_all[i].CustomName.Contains("Large"))
-                            {
-                                tv1 = "Large ";
-                            }
-                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                            cargo_all[i].CustomName = n + " " + D_I_N;
-                            cargo_tag.Add(cargo_all[i]);
-                        }
-                    }
-                }
-                cargo_all.Clear();
-                flight_path_all = new List<IMyPathRecorderBlock>();
-                flight_path_dock_tag = new List<IMyPathRecorderBlock>();
-                flight_path_undock_tag = new List<IMyPathRecorderBlock>();
-                gts.GetBlocksOfType<IMyPathRecorderBlock>(flight_path_all, b => b.CubeGrid == Me.CubeGrid);
-                if (flight_path_all.Count > 0)
-                {
-                    for (int i = 0; i < flight_path_all.Count; i++)
-                    {
-                        if (flight_path_all[i].CustomName.Contains(dk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Dock}"))
-                        {
-                            n = s_aitask + " Dock";
-                            flight_path_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
-                            flight_path_dock_tag.Add(flight_path_all[i]);
-                        }
-                        if (flight_path_all[i].CustomName.Contains(undk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Undock}"))
-                        {
-                            n = s_aitask + " Undock";
-                            flight_path_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
-                            flight_path_undock_tag.Add(flight_path_all[i]);
-                        }
-                    }
-                }
-                flight_path_all.Clear();
-                flight_move_all = new List<IMyFlightMovementBlock>();
-                flight_move_tag = new List<IMyFlightMovementBlock>();
-                gts.GetBlocksOfType<IMyFlightMovementBlock>(flight_move_all, b => b.CubeGrid == Me.CubeGrid);
-                if (flight_move_all.Count > 0)
-                {
-                    for (int i = 0; i < flight_move_all.Count; i++)
-                    {
-                        if (flight_move_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_flightmove;
-                            flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
-                            flight_move_tag.Add(flight_move_all[i]);
-                        }
-                        if (!flight_move_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_flightmove;
-                            flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
-                            flight_move_tag.Add(flight_move_all[i]);
-                        }
-                    }
-                }
-                flight_move_all.Clear();
-                thrust_all = new List<IMyThrust>();
-                thrust_tag = new List<IMyThrust>();
-                gts.GetBlocksOfType<IMyThrust>(thrust_all, b => b.CubeGrid == Me.CubeGrid);
-                if (thrust_all.Count > 0)
-                {
-                    for (int i = 0; i < thrust_all.Count; i++)
-                    {
-                        if (thrust_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string tv1 = "";
-                            if (thrust_all[i].CustomName.Contains("Hydro"))
-                            {
-                                tv1 = s_hydro;
-                            }
-                            if (thrust_all[i].CustomName.Contains("Atmo"))
-                            {
-                                tv1 = s_atmo;
-                            }
-                            if (thrust_all[i].CustomName.Contains("Ion"))
-                            {
-                                tv1 = s_ion;
-                            }
-                            n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
-                            thrust_all[i].CustomName = n;
-                            thrust_tag.Add(thrust_all[i]);
-                        }
-                        if (!thrust_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string tv1 = "";
-                            if (thrust_all[i].CustomName.Contains("Hydro"))
-                            {
-                                tv1 = s_hydro;
-                            }
-                            if (thrust_all[i].CustomName.Contains("Atmo"))
-                            {
-                                tv1 = s_atmo;
-                            }
-                            if (thrust_all[i].CustomName.Contains("Ion"))
-                            {
-                                tv1 = s_ion;
-                            }
-                            n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
-                            thrust_all[i].CustomName = n;
-                            thrust_tag.Add(thrust_all[i]);
-                        }
-                    }
-                }
-                thrust_all.Clear();
-                timer_block_all = new List<IMyTimerBlock>();
-                timer_block_tON_tag = new List<IMyTimerBlock>();
-                timer_block_tOFF_tag = new List<IMyTimerBlock>();
-                timer_block_precM_tag = new List<IMyTimerBlock>();
-                timer_block_undock_tag = new List<IMyTimerBlock>();
-                gts.GetBlocksOfType<IMyTimerBlock>(timer_block_all, b => b.CubeGrid == Me.CubeGrid);
-                if (timer_block_all.Count > 0)
-                {
-                    for (int i = 0; i < timer_block_all.Count; i++)
-                    {
-                        if (timer_block_all[i].CustomName.Contains(Thr_ON_n) || timer_block_all[i].CustomName.Contains(TON))
-                        {
-                            n = s_timerblock;
-                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_ON_n;
-                            timer_block_tON_tag.Add(timer_block_all[i]);
-                        }
-                        if (timer_block_all[i].CustomName.Contains(Thr_OFF_N) || timer_block_all[i].CustomName.Contains(TOFF))
-                        {
-                            n = s_timerblock;
-                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_OFF_N;
-                            timer_block_tOFF_tag.Add(timer_block_all[i]);
-                        }
-                        if (timer_block_all[i].CustomName.Contains(P_M_T_N) || timer_block_all[i].CustomName.Contains(PrecM))
-                        {
-                            n = s_timerblock;
-                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
-                            timer_block_precM_tag.Add(timer_block_all[i]);
-                        }
-                        if (timer_block_all[i].CustomName.Contains(undk_tsk_n) || timer_block_all[i].CustomName.Contains($" {Undock}"))
-                        {
-                            n = s_timerblock;
-                            timer_block_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
-                            timer_block_undock_tag.Add(timer_block_all[i]);
-                        }
-                    }
-                }
-                timer_block_all.Clear();
-                light_all = new List<IMyLightingBlock>();
-                light_undock_tag = new List<IMyLightingBlock>();
-                light_dock_tag = new List<IMyLightingBlock>();
-                light_collision_avoid_tag = new List<IMyLightingBlock>();
-                light_precM_tag = new List<IMyLightingBlock>();
-                light_reset_tag = new List<IMyLightingBlock>();
-                light_dmg_tag = new List<IMyLightingBlock>();
-                gts.GetBlocksOfType<IMyLightingBlock>(light_all, b => b.CubeGrid == Me.CubeGrid);
-                if (light_all.Count > 0)
-                {
-                    for (int i = 0; i < light_all.Count; i++)
-                    {
-                        if (light_all[i].CustomName.Contains(dk_tsk_n) || light_all[i].CustomName.Contains($" {Dock}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
-                            light_dock_tag.Add(light_all[i]);
-                        }
-                        if (light_all[i].CustomName.Contains(undk_tsk_n) || light_all[i].CustomName.Contains($" {Undock}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
-                            light_undock_tag.Add(light_all[i]);
-                        }
-                        if (light_all[i].CustomName.Contains(CA_T_N) || light_all[i].CustomName.Contains($" {CA}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + CA_T_N;
-                            light_collision_avoid_tag.Add(light_all[i]);
-                        }
-                        if (light_all[i].CustomName.Contains(Rst_T_N) || light_all[i].CustomName.Contains($" {Reset}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + Rst_T_N;
-                            light_reset_tag.Add(light_all[i]);
-                        }
-                        if (light_all[i].CustomName.Contains(P_M_T_N) || light_all[i].CustomName.Contains($" {PrecM}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
-                            light_precM_tag.Add(light_all[i]);
-                        }
-                        if (light_all[i].CustomName.Contains(DLT) || light_all[i].CustomName.Contains($" {dmg}"))
-                        {
-                            n = s_lightblock;
-                            light_all[i].CustomName = n + " " + (i + 1) + " " + DLT;
-                            light_dmg_tag.Add(light_all[i]);
-                        }
-                    }
-                }
-                light_all.Clear();
-                battery_all = new List<IMyBatteryBlock>();
-                battery_tag = new List<IMyBatteryBlock>();
-                gts.GetBlocksOfType<IMyBatteryBlock>(battery_all, b => b.CubeGrid == Me.CubeGrid);
-                if (battery_all.Count > 0)
-                {
-                    for (int i = 0; i < battery_all.Count; i++)
-                    {
-                        if (battery_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string tv1 = "";
-                            if (battery_all[i].CustomName.Contains("Small"))
-                            {
-                                tv1 = "Small";
-                            }
-                            if (battery_all[i].CustomName.Contains("Medium"))
-                            {
-                                tv1 = "Medium";
-                            }
-                            n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
-                            battery_all[i].CustomName = n;
-                            battery_tag.Add(battery_all[i]);
-                        }
-                        if (!battery_all[i].CustomName.Contains(D_I_N))
-                        {
-                            string tv1 = "";
-                            if (battery_all[i].CustomName.Contains("Small"))
-                            {
-                                tv1 = "Small";
-                            }
-                            if (battery_all[i].CustomName.Contains("Medium"))
-                            {
-                                tv1 = "Medium";
-                            }
-                            n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
-                            battery_all[i].CustomName = n;
-                            battery_tag.Add(battery_all[i]);
-                        }
-                    }
-                }
-                battery_all.Clear();
-                hydrogen_tank_all = new List<IMyGasTank>();
-                hydrogen_tank_tag = new List<IMyGasTank>();
-                gts.GetBlocksOfType<IMyGasTank>(hydrogen_tank_all, b => b.CubeGrid == Me.CubeGrid);
-                if (hydrogen_tank_all.Count > 0)
-                {
-                    for (int i = 0; i < hydrogen_tank_all.Count; i++)
-                    {
-                        if (hydrogen_tank_all[i].CustomName.Contains(H_T_N))
-                        {
-                            n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
-                            hydrogen_tank_all[i].CustomName = n;
-                            hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
-                        }
-                        if (!hydrogen_tank_all[i].CustomName.Contains(H_T_N))
-                        {
-                            n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
-                            hydrogen_tank_all[i].CustomName = n;
-                            hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
-                        }
-                    }
-                }
-                hydrogen_tank_all.Clear();
-                drill_all = new List<IMyShipDrill>();
-                drill_tag = new List<IMyShipDrill>();
-                gts.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
-                if (drill_all.Count > 0)
-                {
-                    for (int i = 0; i < drill_all.Count; i++)
-                    {
-                        if (drill_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_drill + " " + (i + 1) + " " + D_I_N;
-                            drill_all[i].CustomName = n;
-                            drill_tag.Add(drill_all[i]);
-                        }
-                        if (!drill_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_drill + " " + (i + 1) + " " + D_I_N;
-                            drill_all[i].CustomName = n;
-                            drill_tag.Add(drill_all[i]);
-                        }
-                    }
-                }
-                drill_all.Clear();
-                gyro_all = new List<IMyGyro>();
-                gyro_tag = new List<IMyGyro>();
-                gts.GetBlocksOfType<IMyGyro>(gyro_all, b => b.CubeGrid == Me.CubeGrid);
-                if (gyro_all.Count > 0)
-                {
-                    for (int i = 0; i < gyro_all.Count; i++)
-                    {
-                        if (gyro_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
-                            gyro_all[i].CustomName = n;
-                            gyro_tag.Add(gyro_all[i]);
-                        }
-                        if (!gyro_all[i].CustomName.Contains(D_I_N))
-                        {
-                            n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
-                            gyro_all[i].CustomName = n;
-                            gyro_tag.Add(gyro_all[i]);
-                        }
-                    }
-                }
-                gyro_all.Clear();
-                waypoints = new List<MyWaypointInfo>();
-                if (Storage != "" && Storage != null)
-                {
-                    LoadStorageData();
-                    Storage = "";
-                }
+                setup_function();
                 setup_complete = true;
                 Echo("Setup complete!");
             }
             #endregion
 
-            #region setup_broadcast_channels
-            rx_ch = D_I_N;
-            IMyBroadcastListener listn = IGC.RegisterBroadcastListener(rx_ch);
-            IMyBroadcastListener listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
-            IMyBroadcastListener listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
-            IMyBroadcastListener listn_png = IGC.RegisterBroadcastListener(P_CH);
+            // ** Logic Start **
+            Echo($"GMDS {ver} Running...");
+            
+            #region refresh_waypoints
+            if (waypoints.Count > 0) {
+                waypoints.Clear();
+            }
             #endregion
 
-            waypoints.Clear();
+            item_presence_check();
+            
+            cargo_check();
 
+            damage_check();
+
+            power_check();
+
+            fuel_check();
+
+            recharge_state_check();
+
+            trm_prec = (trm_coeff * drill_sl) + 0.6;
+            
+            //comms
+            check_comms_channels();
+
+            custom_data_command_presence_check();
+
+            command_poll();
+
+            drone_operating_state_mng();
+
+            connected_battery_recharge_check();
+
+            undock_management();
+
+            dock_undock_state_check();
+
+            drone_diver_state_management();
+
+            check_for_planetary_gravity_presence();
+
+            drone_alignment_management();
+
+            rc_navigation_init();
+
+            if (nav_state)
+            {
+                navigation_management();
+            }
+
+            if (mine_state || was_mining)
+            {
+                mining_management();
+            }
+
+            docking_management();
+
+            connector_state_management();
+
+            drone_message_transmission_management();
+
+            nagivation_movement_check();
+
+            undock_delay_check();
+
+            GetDroneStatus(drone_status);
+
+            Drone_Local_Status_Reporting();
+
+            function_delay_management();
+
+
+        }
+        Vector3D GetNavAngles(Vector3D Target)
+        {
+            Vector3D RCcenter = rc_actual.GetPosition();
+            Vector3D RCfow = rc_actual.WorldMatrix.Forward;
+            Vector3D RCup = rc_actual.WorldMatrix.Up;
+            Vector3D RCleft = rc_actual.WorldMatrix.Left;
+            Vector3D RCright = rc_actual.WorldMatrix.Right;
+            if (trgt_vld)
+            {
+                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
+                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
+
+            }
+            if (!trgt_vld)
+            {
+
+                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(rc_actual.GetNaturalGravity()), RCleft))) - (Math.PI / 2);
+                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-rc_actual.GetNaturalGravity()), RCfow))) - (Math.PI / 2);
+                TrgtYaw = TrgtPitch;
+            }
+            return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
+
+        }
+
+        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1)
+        {
+
+            if (gyro_tag.Count > 0)
+            {
+                for (int j = 0; j < gyro_tag.Count; j++)
+                {
+                    if (gyro_tag[j] == null)
+                    {
+                        setup_complete = false;
+                    }
+                    if (gyro_tag[j] != null)
+                    {
+                        gyro_actual = gyro_tag[j];
+                        gyro_monitor = gyro_actual;
+                        if (gyro_actual != null)
+                        {
+                            if ((!gyro_actual.GyroOverride && OverrideOnOff) || (gyro_actual.GyroOverride && !OverrideOnOff))
+                                gyro_actual.ApplyAction("Override");
+                            gyro_actual.SetValue("Power", Power);
+                            gyro_actual.SetValue("Yaw", settings.GetDim(0));
+                            gyro_actual.SetValue("Pitch", settings.GetDim(1));
+                            gyro_actual.SetValue("Roll", settings.GetDim(2));
+                        }
+                    }
+                }
+            }
+        }
+
+        void GetCustomData()
+        {
+            String[] gps_cd = Me.CustomData.Split(':');
+            if (gps_cd.Length < 5)
+            {
+                Me.CustomData = fail_data;
+            }
+            if (gps_cd.Length > 5)
+            {
+                gpsindx = gps_cd[1];
+                main_gps_coords = new Vector3D(Double.Parse(gps_cd[2]), Double.Parse(gps_cd[3]), Double.Parse(gps_cd[4]));
+                cmd_rqt = gps_cd[6].ToString();
+                if (int.TryParse(cmd_rqt, out command_request))
+                {
+                    int.TryParse(cmd_rqt, out command_request);
+                }
+                else
+                {
+                    command_request = 0;
+                }
+                cmd_dist = gps_cd[7].ToString();
+                if (Double.TryParse(cmd_dist, out drill_sl))
+                {
+                    Double.TryParse(cmd_dist, out drill_sl);
+                }
+                else
+                {
+                    drill_sl = 1.0;
+                }
+            }
+
+
+            if (gps_cd.Length < 9)
+            {
+
+                no_cnvy_dst = 0.0;
+                return;
+            }
+
+            if (gps_cd.Length > 9)
+            {
+                if (gps_cd[8] == null || gps_cd[8] == "")
+                {
+                    gps_dat_7 = "";
+                    no_cnvy_dst = 0.0;
+                }
+                else
+                {
+                    gps_dat_7 = gps_cd[8].ToString();
+                    if (double.TryParse(gps_dat_7, out no_cnvy_dst))
+                    {
+                        double.TryParse(gps_dat_7, out no_cnvy_dst);
+                    }
+                    else
+                    {
+                        no_cnvy_dst = 0.0;
+                    }
+                }
+            }
+
+            if (gps_cd.Length > 10)
+            {
+                if (gps_cd[9] == null || gps_cd[9] == "")
+                {
+                    gps_dat_8 = "";
+                }
+                else
+                {
+                    gps_dat_8 = gps_cd[9].ToString();
+                }
+            }
+
+            if (gps_cd.Length > 11)
+            {
+                if (gps_cd[10] == null || gps_cd[10] == "")
+                {
+                    gps_dat_9 = "";
+                }
+                else
+                {
+                    gps_dat_9 = gps_cd[10].ToString();
+                }
+            }
+
+            if (gps_cd.Length > 12)
+            {
+                if (gps_cd[11] == null || gps_cd[11] == "")
+                {
+                    gps_dat_10 = "";
+                    dt_prsnt4 = false;
+                }
+                else
+                {
+                    gps_dat_10 = gps_cd[11].ToString();
+
+                    if (double.TryParse(gps_dat_10, out tgtX))
+                    {
+                        double.TryParse(gps_dat_10, out tgtX);
+                        dt_prsnt4 = true;
+                    }
+                    else
+                    {
+                        tgtX = 0.0;
+                        dt_prsnt4 = false;
+                    }
+                }
+            }
+
+            if (gps_cd.Length > 13)
+            {
+                if (gps_cd[12] == null || gps_cd[12] == "")
+                {
+                    gps_dat_11 = "";
+                    dt_prsnt5 = false;
+                }
+                else
+                {
+                    gps_dat_11 = gps_cd[12].ToString();
+
+                    if (double.TryParse(gps_dat_11, out tgtY))
+                    {
+                        double.TryParse(gps_dat_11, out tgtY);
+                        dt_prsnt5 = true;
+                    }
+                    else
+                    {
+                        tgtY = 0.0;
+                        dt_prsnt5 = false;
+                    }
+                }
+            }
+
+            if (gps_cd.Length > 14)
+            {
+                if (gps_cd[13] == null || gps_cd[13] == "")
+                {
+                    gps_dat_12 = "";
+                    dt_prsnt6 = false;
+                }
+                else
+                {
+                    gps_dat_12 = gps_cd[13].ToString();
+
+                    if (double.TryParse(gps_dat_12, out tgtZ))
+                    {
+                        double.TryParse(gps_dat_12, out tgtZ);
+                        dt_prsnt6 = true;
+                    }
+                    else
+                    {
+                        tgtZ = 0.0;
+                        dt_prsnt6 = false;
+                    }
+                }
+            }
+
+            if (dt_prsnt4 && dt_prsnt5 && dt_prsnt6)
+            {
+                trgt_vld = true;
+                align_tgt_new.X = tgtX;
+                align_tgt_new.Y = tgtY;
+                align_tgt_new.Z = tgtZ;
+            }
+            else
+            {
+                trgt_vld = false;
+            }
+
+            if (gps_cd.Length < 14)
+            {
+                dt_prsnt6 = false;
+            }
+            if (gps_cd.Length < 13)
+            {
+                dt_prsnt5 = false;
+            }
+            if (gps_cd.Length < 12)
+            {
+                dt_prsnt4 = false;
+            }
+        }
+
+        #region drill_management
+        void StDrlOnOff(bool DrilOnOf, bool UConv)
+        {
+
+            if (drill_tag.Count <= 0)
+            {
+                getnewdrills();
+            }
+            if (drill_tag.Count > 0)
+            {
+                for (int i = 0; i < drill_tag.Count; i++)
+                {
+                    if (drill_tag[i] == null)
+                    {
+                        setup_complete = false;
+                    }
+                    if (drill_tag[i] != null)
+                    {
+                        drl_act = drill_tag[i];
+                    }
+                    if (drl_act != null)
+                    {
+                        if (DrilOnOf && !drl_act.Enabled)
+                        {
+                            drl_act.Enabled = true;
+                        }
+                        if (!DrilOnOf && drl_act.Enabled)
+                        {
+                            drl_act.Enabled = false;
+                        }
+                        if (UConv)
+                        {
+                            if (!drl_act.UseConveyorSystem)
+                            {
+                                drl_act.UseConveyorSystem = true;
+                            }
+                        }
+                        else
+                        {
+                            if (drl_act.UseConveyorSystem)
+                            {
+                                drl_act.UseConveyorSystem = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        void getnewdrills()
+        {
+            drill_all.Clear();
+            drill_tag.Clear();
+            GridTerminalSystem.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
+            if (drill_all.Count > 0)
+            {
+                for (int i = 0; i < drill_all.Count; i++)
+                {
+                    if (drill_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
+                        drill_tag.Add(drill_all[i]);
+                    }
+                    if (!drill_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
+                        drill_tag.Add(drill_all[i]);
+                    }
+                }
+            }
+            drill_all.Clear();
+        }
+        #endregion
+
+        void reset_ai()
+        {
+            ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);
+            ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
+            ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+            if (collision_avoid_light_actual.Enabled)
+            {
+                collision_avoid_light_actual.Enabled = false;
+            }
+            if (precM_light_actual.Enabled)
+            {
+                precM_light_actual.Enabled = false;
+            }
+            if (Collision_sense_enabled)
+            {
+                sensor_actual.Enabled = false;
+            }
+
+        }
+        void LoadStorageData()
+        {
+            if (_ini.TryParse(Storage))
+            {
+                var str = "";
+                str = _ini.Get("commands", "c1").ToString();
+                bool.TryParse(str, out recall);
+                str = _ini.Get("commands", "c2").ToString();
+                bool.TryParse(str, out stop_state);
+                str = _ini.Get("commands", "c3").ToString();
+                bool.TryParse(str, out was_mining);
+                str = _ini.Get("commands", "c4").ToString();
+                bool.TryParse(str, out nav_state);
+                str = _ini.Get("commands", "c5").ToString();
+                bool.TryParse(str, out mine_state);
+                str = _ini.Get("commands", "c6").ToString();
+                bool.TryParse(str, out dock_state);
+                str = _ini.Get("commands", "c7").ToString();
+                bool.TryParse(str, out mode_set);
+
+                str = _ini.Get("dockmode", "d1").ToString();
+                int.TryParse(str, out docking_stage);
+                str = _ini.Get("dockmode", "d2").ToString();
+                bool.TryParse(str, out undock_state);
+                str = _ini.Get("dockmode", "d3").ToString();
+                int.TryParse(str, out undocking_start);
+                str = _ini.Get("dockmode", "d4").ToString();
+                int.TryParse(str, out undocking_stage);
+
+                str = _ini.Get("unitstate", "u1").ToString();
+                bool.TryParse(str, out recharge_request);
+                str = _ini.Get("unitstate", "u2").ToString();
+                bool.TryParse(str, out nav_act);
+                str = _ini.Get("unitstate", "u3").ToString();
+                int.TryParse(str, out main_nav_sequence);
+                str = _ini.Get("unitstate", "u4").ToString();
+                bool.TryParse(str, out main_nav_complete);
+                str = _ini.Get("unitstate", "u5").ToString();
+                bool.TryParse(str, out add_nav_Waypoint_mn);
+                str = _ini.Get("unitstate", "u6").ToString();
+                bool.TryParse(str, out distance_id);
+                str = _ini.Get("unitstate", "u7").ToString();
+                int.TryParse(str, out mining_stage);
+                str = _ini.Get("unitstate", "u8").ToString();
+                bool.TryParse(str, out add_mine_waypoint);
+                str = _ini.Get("unitstate", "u9").ToString();
+                bool.TryParse(str, out mine_coords_adjusted);
+                str = _ini.Get("unitstate", "u10").ToString();
+                bool.TryParse(str, out target_depth_achived);
+                str = _ini.Get("unitstate", "u11").ToString();
+                bool.TryParse(str, out reset_mining);
+                str = _ini.Get("unitstate", "u12").ToString();
+                bool.TryParse(str, out mining_nav_complete);
+                str = _ini.Get("unitstate", "u12").ToString();
+                bool.TryParse(str, out force_request_dock);
+                str = _ini.Get("unitstate", "u13").ToString();
+                bool.TryParse(str, out request_exit);
+                str = _ini.Get("unitstate", "u14").ToString();
+                bool.TryParse(str, out exit_sequence_complete);
+                str = _ini.Get("uunitstate16", "u15").ToString();
+                bool.TryParse(str, out exit_waypoint_set);
+                str = _ini.Get("unitstate", "u16").ToString();
+                bool.TryParse(str, out tunnel_sequence_finished);
+                str = _ini.Get("unitstate", "u18").ToString();
+                bool.TryParse(str, out yawinst);
+                str = _ini.Get("unitstate", "u19").ToString();
+                bool.TryParse(str, out pitchinst);
+                str = _ini.Get("unitstate", "u20").ToString();
+                bool.TryParse(str, out rollinst);
+                str = _ini.Get("unitstate", "u21").ToString();
+                bool.TryParse(str, out navinst);
+                str = _ini.Get("unitstate", "u22").ToString();
+                double.TryParse(str, out distance_current);
+                str = _ini.Get("coordinates", "c1").ToString();
+                Vector3D.TryParse(str, out mining_gps_coords);
+                str = _ini.Get("coordinates", "c2").ToString();
+                Vector3D.TryParse(str, out mining_gps_coords_temp);
+                str = _ini.Get("coordinates", "c3").ToString();
+                Vector3D.TryParse(str, out tgt_drill_start);
+                str = _ini.Get("coordinates", "c4").ToString();
+                Vector3D.TryParse(str, out tgt_drill_end);
+                str = _ini.Get("coordinates", "c5").ToString();
+                Vector3D.TryParse(str, out tgt_drill_exit);
+                str = _ini.Get("coordinates", "c6").ToString();
+                Vector3D.TryParse(str, out exit_gps_coords_temp);
+                str = _ini.Get("coordinates", "c7").ToString();
+                Vector3D.TryParse(str, out main_gps_coords);
+                str = _ini.Get("coordinates", "c8").ToString();
+                Vector3D.TryParse(str, out crnt_tgt_align);
+                str = _ini.Get("coordinates", "c9").ToString();
+                Vector3D.TryParse(str, out align_tgt_new);
+                str = _ini.Get("coordinates", "c10").ToString();
+                Vector3D.TryParse(str, out directionb);
+                str = _ini.Get("coordinates", "c11").ToString();
+                Vector3D.TryParse(str, out direction);
+                str = _ini.Get("coordinates", "c12").ToString();
+                Vector3D.TryParse(str, out directionc);
+                str = _ini.Get("coordinates", "c13").ToString();
+                Vector3D.TryParse(str, out gravity);
+                str = _ini.Get("coordinates", "co14").ToString();
+                gpsindx = str;
+            }
+
+        }
+        void GetDroneStatus(int drnstus)
+        {
+            #region void_drone_status_output
+            if (drnstus == 0)
+            {
+                drnst = "Idle";
+            }
+            if (drnstus == 1 || drnstus == 4)
+            {
+                drnst = $"Nav CA {Collision_sense_enabled}";
+            }
+            if (drnstus == 2 || drnstus == 3)
+            {
+                drnst = "Nav P";
+            }
+            if (drnstus == 5)
+            {
+                drnst = "Navi Dest Reach";
+            }
+            if (drnstus == 6)
+            {
+                drnst = "Mine Calc shaft";
+            }
+            if (drnstus == 7)
+            {
+                drnst = "Mine Start";
+            }
+            if (drnstus == 8)
+            {
+                drnst = "Mine Calc WP";
+            }
+            if (drnstus == 9)
+            {
+                drnst = "Mine Add WP";
+            }
+            if (drnstus == 10)
+            {
+                drnst = "Mine to WP";
+            }
+            if (drnstus == 11)
+            {
+                drnst = "Mine En AP";
+            }
+            if (drnstus == 12)
+            {
+                drnst = "Mine WP reach";
+            }
+            if (drnstus == 13)
+            {
+                drnst = "Mine Trunc";
+            }
+            if (drnstus == 14)
+            {
+                drnst = "Mine Fin";
+            }
+            if (drnstus == 15)
+            {
+                drnst = "Mine new WP";
+            }
+            if (drnstus == 16)
+            {
+                drnst = "Mine Fnshd";
+            }
+            if (drnstus == 17)
+            {
+                drnst = "WP mine exit";
+            }
+            if (drnstus == 18)
+            {
+                drnst = "Nav mine exit";
+            }
+            if (drnstus == 19)
+            {
+                drnst = "Mine exit reach";
+            }
+            if (drnstus == 20)
+            {
+                drnst = "Cl WP dock";
+            }
+            if (drnstus == 21)
+            {
+                drnst = "Rtn dock";
+            }
+            if (drnstus == 22)
+            {
+                drnst = "Rtn unload";
+            }
+            if (drnstus == 23)
+            {
+                drnst = "Stablz";
+            }
+            if (drnstus == 24)
+            {
+                drnst = "Read dt";
+            }
+            if (drnstus == 25)
+            {
+                drnst = "Comp cmd data";
+            }
+            #endregion
+        }
+        public void drone_custom_data_check(string custominfo, int index)
+        {
+            bool load_id;
+            bool load_tag;
+            Echo("Checking for drone config information..");
+            String[] temp_id = custominfo.Split(':');
+            Echo($"{temp_id.Length}");
+
+            if (temp_id.Length > 0)
+            {
+                if (temp_id[0] != null)
+                {
+                    if (int.TryParse(temp_id[0], out temp_id_num))
+                    {
+                        int.TryParse(temp_id[0], out temp_id_num);
+                        load_id = true;
+                        if (load_id)
+                        {
+                            drone_id_num = temp_id_num;
+                        }
+                    }
+                    else
+                    {
+                        temp_id_num = drone_id_num;
+                        Echo($"Resorting to default ID#.{drone_id_num}");
+                    }
+                }
+            }
+            if (temp_id.Length > 1)
+            {
+                if (temp_id[1] != null)
+                {
+                    temp_id_name = temp_id[1];
+                    load_tag = true;
+                    if (load_tag)
+                    {
+                        drone_tag = temp_id_name;
+                    }
+                    if (temp_id_name == "" || temp_id_name == null)
+                    {
+                        temp_id_name = drone_tag;
+                        Echo($"Resorting to default drone tag.{drone_tag}");
+                    }
+                }
+            }
+
+            if (temp_id.Length == 0)
+            {
+                temp_id_num = drone_id_num;
+                temp_id_name = drone_tag;
+                Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
+            }
+
+            if (antenna_all[index] != null)
+            {
+                antenna_all[index].CustomData = $"{drone_id_num}:{drone_tag}";
+            }
+            Echo($"Drone info: {drone_id_num}:{drone_tag}");
+            D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
+            D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
+            dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
+            undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
+            Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
+            Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
+            Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
+            CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
+            P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
+            H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
+            D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
+            DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
+            P_CH = "[" + drone_tag + "]" + " " + p_cht;
+            tx_ch = drone_tag + " reply";           
+            rx_channel_recall_drone = D_I_N + " " + recall_command;
+            Me.CustomName = $"GMDS Programmable Block {D_I_N}";
+        }
+        public void setup_function()
+        {
+            IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
+            sb = new StringBuilder();
+            tx_ch = drone_tag + " reply";
+            rx_channel_recall = drone_tag + " " + recall_command;
+            if (drone_tag == "" || drone_tag == null)
+            {
+                Echo($"Invalid name for drone_tag {drone_tag}");
+                return;
+            }
+            D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
+            D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
+            dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
+            undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
+            Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
+            Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
+            Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
+            CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
+            P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
+            H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
+            D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
+            DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
+            P_CH = "[" + drone_tag + "]" + " " + p_cht;
+            rx_channel_recall_drone = D_I_N + " " + recall_command;
+            Me.CustomName = $" GMDS Programmable Block {D_I_N}";
+
+            antenna_all = new List<IMyRadioAntenna>();
+            antenna_tag = new List<IMyRadioAntenna>();
+            gts.GetBlocksOfType<IMyRadioAntenna>(antenna_all, b => b.CubeGrid == Me.CubeGrid);
+            if (antenna_all.Count > 0)
+            {
+                for (int i = 0; i < antenna_all.Count; i++)
+                {
+                    if (antenna_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string checker = antenna_all[i].CustomData;
+                        drone_custom_data_check(checker, i);
+                        if (drone_tag == "" || drone_tag == null)
+                        {
+                            Echo($"Invalid name for drone_tag {drone_tag}");
+                            return;
+                        }
+                        n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                        antenna_all[i].CustomName = n;
+                        antenna_tag.Add(antenna_all[i]);
+                    }
+                    if (!antenna_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string checker = antenna_all[i].CustomData;
+                        drone_custom_data_check(checker, i);
+                        if (drone_tag == "" || drone_tag == null)
+                        {
+                            Echo($"Invalid name for drone_tag {drone_tag}");
+                            return;
+                        }
+                        n = s_antenna + " " + (i + 1) + " " + D_I_N;
+                        antenna_all[i].CustomName = n;
+                        antenna_tag.Add(antenna_all[i]);
+                    }
+                }
+            }
+            antenna_all.Clear();
+            rc_all = new List<IMyRemoteControl>();
+            rctag = new List<IMyRemoteControl>();
+            gts.GetBlocksOfType<IMyRemoteControl>(rc_all, b => b.CubeGrid == Me.CubeGrid);
+            if (rc_all.Count > 0)
+            {
+                for (int i = 0; i < rc_all.Count; i++)
+                {
+                    if (rc_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_rc + " " + (i + 1) + " " + D_I_N;
+                        rc_all[i].CustomName = n;
+                        rctag.Add(rc_all[i]);
+                    }
+                    if (!rc_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_rc + " " + (i + 1) + " " + D_I_N;
+                        rc_all[i].CustomName = n;
+                        rctag.Add(rc_all[i]);
+                    }
+
+                }
+            }
+            rc_all.Clear();
+            if (Collision_sense_enabled)
+            {
+                sensor_all = new List<IMySensorBlock>();
+                sensor_tag = new List<IMySensorBlock>();
+                gts.GetBlocksOfType<IMySensorBlock>(sensor_all, b => b.CubeGrid == Me.CubeGrid);
+                if (sensor_all.Count > 0)
+                {
+                    for (int i = 0; i < sensor_all.Count; i++)
+                    {
+                        if (sensor_all[i].CustomName.Contains(D_I_N))
+                        {
+                            n = s_ssr + " " + (i + 1) + " " + D_I_N;
+                            sensor_all[i].CustomName = n;
+                            sensor_tag.Add(sensor_all[i]);
+                        }
+                        if (!sensor_all[i].CustomName.Contains(D_I_N))
+                        {
+                            n = s_ssr + " " + (i + 1) + " " + D_I_N;
+                            sensor_all[i].CustomName = n;
+                            sensor_tag.Add(sensor_all[i]);
+                        }
+                    }
+                }
+                sensor_all.Clear();
+                if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
+                {
+                    Echo($"Sensor with tag: '{D_I_N}' not found.");
+                    return;
+                }
+                sensor_actual = sensor_tag[0];
+                sensor_actual.DetectAsteroids = true;
+                sensor_actual.DetectEnemy = true;
+                sensor_actual.DetectFriendly = true;
+                sensor_actual.DetectLargeShips = true;
+                sensor_actual.DetectSmallShips = true;
+                sensor_actual.DetectSubgrids = true;
+                sensor_actual.DetectFloatingObjects = false;
+                sensor_actual.DetectStations = true;
+                sensor_actual.DetectPlayers = false;
+                sensor_actual.DetectNeutral = true;
+                sensor_actual.DetectOwner = true;
+                sensor_actual.LeftExtend = s_llm;
+                sensor_actual.RightExtend = s_rlm;
+                sensor_actual.BottomExtend = s_btlm;
+                sensor_actual.TopExtend = s_tlm;
+                sensor_actual.BackExtend = s_bklm;
+                sensor_actual.FrontExtend = s_flm;
+            }
+            cam_all = new List<IMyCameraBlock>();
+            camera_tag = new List<IMyCameraBlock>();
+            gts.GetBlocksOfType<IMyCameraBlock>(cam_all, b => b.CubeGrid == Me.CubeGrid);
+            if (cam_all.Count > 0)
+            {
+                for (int i = 0; i < cam_all.Count; i++)
+                {
+                    if (cam_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_camera + " " + (i + 1) + " " + D_I_N;
+                        cam_all[i].CustomName = n;
+                        camera_tag.Add(cam_all[i]);
+                    }
+                    if (!cam_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_camera + " " + (i + 1) + " " + D_I_N;
+                        cam_all[i].CustomName = n;
+                        camera_tag.Add(cam_all[i]);
+                    }
+                }
+            }
+            cam_all.Clear();
+            connector_all = new List<IMyShipConnector>();
+            connector_tag = new List<IMyShipConnector>();
+            gts.GetBlocksOfType<IMyShipConnector>(connector_all, b => b.CubeGrid == Me.CubeGrid);
+            if (connector_all.Count > 0)
+            {
+                for (int i = 0; i < connector_all.Count; i++)
+                {
+                    if (connector_all[i].CustomName.Contains(D_C_N))
+                    {
+                        n = s_connector + " " + (i + 1) + " " + D_I_N;
+                        connector_all[i].CustomName = n;
+                        connector_tag.Add(connector_all[i]);
+                    }
+                    if (!connector_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_connector + " " + (i + 1) + " " + D_I_N;
+                        connector_all[i].CustomName = n;
+                        connector_tag.Add(connector_all[i]);
+                    }
+                }
+            }
+            connector_all.Clear();
+            cargo_all = new List<IMyCargoContainer>();
+            cargo_tag = new List<IMyCargoContainer>();
+            cargo_sense = new List<IMyCargoContainer>();
+            gts.GetBlocksOfType<IMyCargoContainer>(cargo_all, b => b.CubeGrid == Me.CubeGrid);
+            if (cargo_all.Count > 0)
+            {
+                for (int i = 0; i < cargo_all.Count; i++)
+                {
+                    if (cargo_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string tv1 = "";
+                        if (cargo_all[i].CustomName.Contains("Small"))
+                        {
+                            tv1 = "Small ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Medium"))
+                        {
+                            tv1 = "Medium ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Large"))
+                        {
+                            tv1 = "Large ";
+                        }
+                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                        cargo_all[i].CustomName = n;
+                        cargo_tag.Add(cargo_all[i]);
+                    }
+                    if (cargo_all[i].CustomName.Contains(D_S_C))
+                    {
+                        string tv1 = "";
+                        if (cargo_all[i].CustomName.Contains("Small"))
+                        {
+                            tv1 = "Small ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Medium"))
+                        {
+                            tv1 = "Medium ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Large"))
+                        {
+                            tv1 = "Large ";
+                        }
+                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                        cargo_sense.Add(cargo_all[i]);
+                    }
+                    if (!cargo_all[i].CustomName.Contains(D_I_N) && !cargo_all[i].CustomName.Contains(D_S_C))
+                    {
+                        string tv1 = "";
+                        if (cargo_all[i].CustomName.Contains("Small"))
+                        {
+                            tv1 = "Small ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Medium"))
+                        {
+                            tv1 = "Medium ";
+                        }
+                        if (cargo_all[i].CustomName.Contains("Large"))
+                        {
+                            tv1 = "Large ";
+                        }
+                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                        cargo_all[i].CustomName = n + " " + D_I_N;
+                        cargo_tag.Add(cargo_all[i]);
+                    }
+                }
+            }
+            cargo_all.Clear();
+            flight_path_all = new List<IMyPathRecorderBlock>();
+            flight_path_dock_tag = new List<IMyPathRecorderBlock>();
+            flight_path_undock_tag = new List<IMyPathRecorderBlock>();
+            gts.GetBlocksOfType<IMyPathRecorderBlock>(flight_path_all, b => b.CubeGrid == Me.CubeGrid);
+            if (flight_path_all.Count > 0)
+            {
+                for (int i = 0; i < flight_path_all.Count; i++)
+                {
+                    if (flight_path_all[i].CustomName.Contains(dk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Dock}"))
+                    {
+                        n = s_aitask + " Dock";
+                        flight_path_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
+                        flight_path_dock_tag.Add(flight_path_all[i]);
+                    }
+                    if (flight_path_all[i].CustomName.Contains(undk_tsk_n) || flight_path_all[i].CustomName.Contains($" {Undock}"))
+                    {
+                        n = s_aitask + " Undock";
+                        flight_path_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
+                        flight_path_undock_tag.Add(flight_path_all[i]);
+                    }
+                }
+            }
+            flight_path_all.Clear();
+            flight_move_all = new List<IMyFlightMovementBlock>();
+            flight_move_tag = new List<IMyFlightMovementBlock>();
+            gts.GetBlocksOfType<IMyFlightMovementBlock>(flight_move_all, b => b.CubeGrid == Me.CubeGrid);
+            if (flight_move_all.Count > 0)
+            {
+                for (int i = 0; i < flight_move_all.Count; i++)
+                {
+                    if (flight_move_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_flightmove;
+                        flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
+                        flight_move_tag.Add(flight_move_all[i]);
+                    }
+                    if (!flight_move_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_flightmove;
+                        flight_move_all[i].CustomName = n + " " + (i + 1) + " " + D_I_N;
+                        flight_move_tag.Add(flight_move_all[i]);
+                    }
+                }
+            }
+            flight_move_all.Clear();
+            thrust_all = new List<IMyThrust>();
+            thrust_tag = new List<IMyThrust>();
+            gts.GetBlocksOfType<IMyThrust>(thrust_all, b => b.CubeGrid == Me.CubeGrid);
+            if (thrust_all.Count > 0)
+            {
+                for (int i = 0; i < thrust_all.Count; i++)
+                {
+                    if (thrust_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string tv1 = "";
+                        if (thrust_all[i].CustomName.Contains("Hydro"))
+                        {
+                            tv1 = s_hydro;
+                        }
+                        if (thrust_all[i].CustomName.Contains("Atmo"))
+                        {
+                            tv1 = s_atmo;
+                        }
+                        if (thrust_all[i].CustomName.Contains("Ion"))
+                        {
+                            tv1 = s_ion;
+                        }
+                        n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
+                        thrust_all[i].CustomName = n;
+                        thrust_tag.Add(thrust_all[i]);
+                    }
+                    if (!thrust_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string tv1 = "";
+                        if (thrust_all[i].CustomName.Contains("Hydro"))
+                        {
+                            tv1 = s_hydro;
+                        }
+                        if (thrust_all[i].CustomName.Contains("Atmo"))
+                        {
+                            tv1 = s_atmo;
+                        }
+                        if (thrust_all[i].CustomName.Contains("Ion"))
+                        {
+                            tv1 = s_ion;
+                        }
+                        n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
+                        thrust_all[i].CustomName = n;
+                        thrust_tag.Add(thrust_all[i]);
+                    }
+                }
+            }
+            thrust_all.Clear();
+            timer_block_all = new List<IMyTimerBlock>();
+            timer_block_tON_tag = new List<IMyTimerBlock>();
+            timer_block_tOFF_tag = new List<IMyTimerBlock>();
+            timer_block_precM_tag = new List<IMyTimerBlock>();
+            timer_block_undock_tag = new List<IMyTimerBlock>();
+            gts.GetBlocksOfType<IMyTimerBlock>(timer_block_all, b => b.CubeGrid == Me.CubeGrid);
+            if (timer_block_all.Count > 0)
+            {
+                for (int i = 0; i < timer_block_all.Count; i++)
+                {
+                    if (timer_block_all[i].CustomName.Contains(Thr_ON_n) || timer_block_all[i].CustomName.Contains(TON))
+                    {
+                        n = s_timerblock;
+                        timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_ON_n;
+                        timer_block_tON_tag.Add(timer_block_all[i]);
+                    }
+                    if (timer_block_all[i].CustomName.Contains(Thr_OFF_N) || timer_block_all[i].CustomName.Contains(TOFF))
+                    {
+                        n = s_timerblock;
+                        timer_block_all[i].CustomName = n + " " + (i + 1) + " " + Thr_OFF_N;
+                        timer_block_tOFF_tag.Add(timer_block_all[i]);
+                    }
+                    if (timer_block_all[i].CustomName.Contains(P_M_T_N) || timer_block_all[i].CustomName.Contains(PrecM))
+                    {
+                        n = s_timerblock;
+                        timer_block_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
+                        timer_block_precM_tag.Add(timer_block_all[i]);
+                    }
+                    if (timer_block_all[i].CustomName.Contains(undk_tsk_n) || timer_block_all[i].CustomName.Contains($" {Undock}"))
+                    {
+                        n = s_timerblock;
+                        timer_block_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
+                        timer_block_undock_tag.Add(timer_block_all[i]);
+                    }
+                }
+            }
+            timer_block_all.Clear();
+            light_all = new List<IMyLightingBlock>();
+            light_undock_tag = new List<IMyLightingBlock>();
+            light_dock_tag = new List<IMyLightingBlock>();
+            light_collision_avoid_tag = new List<IMyLightingBlock>();
+            light_precM_tag = new List<IMyLightingBlock>();
+            light_reset_tag = new List<IMyLightingBlock>();
+            light_dmg_tag = new List<IMyLightingBlock>();
+            gts.GetBlocksOfType<IMyLightingBlock>(light_all, b => b.CubeGrid == Me.CubeGrid);
+            if (light_all.Count > 0)
+            {
+                for (int i = 0; i < light_all.Count; i++)
+                {
+                    if (light_all[i].CustomName.Contains(dk_tsk_n) || light_all[i].CustomName.Contains($" {Dock}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + dk_tsk_n;
+                        light_dock_tag.Add(light_all[i]);
+                    }
+                    if (light_all[i].CustomName.Contains(undk_tsk_n) || light_all[i].CustomName.Contains($" {Undock}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + undk_tsk_n;
+                        light_undock_tag.Add(light_all[i]);
+                    }
+                    if (light_all[i].CustomName.Contains(CA_T_N) || light_all[i].CustomName.Contains($" {CA}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + CA_T_N;
+                        light_collision_avoid_tag.Add(light_all[i]);
+                    }
+                    if (light_all[i].CustomName.Contains(Rst_T_N) || light_all[i].CustomName.Contains($" {Reset}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + Rst_T_N;
+                        light_reset_tag.Add(light_all[i]);
+                    }
+                    if (light_all[i].CustomName.Contains(P_M_T_N) || light_all[i].CustomName.Contains($" {PrecM}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + P_M_T_N;
+                        light_precM_tag.Add(light_all[i]);
+                    }
+                    if (light_all[i].CustomName.Contains(DLT) || light_all[i].CustomName.Contains($" {dmg}"))
+                    {
+                        n = s_lightblock;
+                        light_all[i].CustomName = n + " " + (i + 1) + " " + DLT;
+                        light_dmg_tag.Add(light_all[i]);
+                    }
+                }
+            }
+            light_all.Clear();
+            battery_all = new List<IMyBatteryBlock>();
+            battery_tag = new List<IMyBatteryBlock>();
+            gts.GetBlocksOfType<IMyBatteryBlock>(battery_all, b => b.CubeGrid == Me.CubeGrid);
+            if (battery_all.Count > 0)
+            {
+                for (int i = 0; i < battery_all.Count; i++)
+                {
+                    if (battery_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string tv1 = "";
+                        if (battery_all[i].CustomName.Contains("Small"))
+                        {
+                            tv1 = "Small";
+                        }
+                        if (battery_all[i].CustomName.Contains("Medium"))
+                        {
+                            tv1 = "Medium";
+                        }
+                        n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
+                        battery_all[i].CustomName = n;
+                        battery_tag.Add(battery_all[i]);
+                    }
+                    if (!battery_all[i].CustomName.Contains(D_I_N))
+                    {
+                        string tv1 = "";
+                        if (battery_all[i].CustomName.Contains("Small"))
+                        {
+                            tv1 = "Small";
+                        }
+                        if (battery_all[i].CustomName.Contains("Medium"))
+                        {
+                            tv1 = "Medium";
+                        }
+                        n = tv1 + " " + s_battery + " " + (i + 1) + " " + D_I_N;
+                        battery_all[i].CustomName = n;
+                        battery_tag.Add(battery_all[i]);
+                    }
+                }
+            }
+            battery_all.Clear();
+            hydrogen_tank_all = new List<IMyGasTank>();
+            hydrogen_tank_tag = new List<IMyGasTank>();
+            gts.GetBlocksOfType<IMyGasTank>(hydrogen_tank_all, b => b.CubeGrid == Me.CubeGrid);
+            if (hydrogen_tank_all.Count > 0)
+            {
+                for (int i = 0; i < hydrogen_tank_all.Count; i++)
+                {
+                    if (hydrogen_tank_all[i].CustomName.Contains(H_T_N))
+                    {
+                        n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
+                        hydrogen_tank_all[i].CustomName = n;
+                        hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
+                    }
+                    if (!hydrogen_tank_all[i].CustomName.Contains(H_T_N))
+                    {
+                        n = s_hydrogen_tank + " " + (i + 1) + " " + H_T_N;
+                        hydrogen_tank_all[i].CustomName = n;
+                        hydrogen_tank_tag.Add(hydrogen_tank_all[i]);
+                    }
+                }
+            }
+            hydrogen_tank_all.Clear();
+            drill_all = new List<IMyShipDrill>();
+            drill_tag = new List<IMyShipDrill>();
+            gts.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
+            if (drill_all.Count > 0)
+            {
+                for (int i = 0; i < drill_all.Count; i++)
+                {
+                    if (drill_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
+                        drill_tag.Add(drill_all[i]);
+                    }
+                    if (!drill_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_drill + " " + (i + 1) + " " + D_I_N;
+                        drill_all[i].CustomName = n;
+                        drill_tag.Add(drill_all[i]);
+                    }
+                }
+            }
+            drill_all.Clear();
+            gyro_all = new List<IMyGyro>();
+            gyro_tag = new List<IMyGyro>();
+            gts.GetBlocksOfType<IMyGyro>(gyro_all, b => b.CubeGrid == Me.CubeGrid);
+            if (gyro_all.Count > 0)
+            {
+                for (int i = 0; i < gyro_all.Count; i++)
+                {
+                    if (gyro_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
+                        gyro_all[i].CustomName = n;
+                        gyro_tag.Add(gyro_all[i]);
+                    }
+                    if (!gyro_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
+                        gyro_all[i].CustomName = n;
+                        gyro_tag.Add(gyro_all[i]);
+                    }
+                }
+            }
+            gyro_all.Clear();
+            waypoints = new List<MyWaypointInfo>();
+            if (Storage != "" && Storage != null)
+            {
+                LoadStorageData();
+                Storage = "";
+            }
+
+            #region setup_broadcast_channels
+            rx_ch = D_I_N;
+            listn = IGC.RegisterBroadcastListener(rx_ch);
+            listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
+            listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
+            listn_png = IGC.RegisterBroadcastListener(P_CH);
+            #endregion
+        }
+        public void item_presence_check()
+        {
             #region presence_check
             if (drill_tag.Count <= 0)
             {
@@ -1101,7 +1806,9 @@ namespace IngameScript
                 return;
             }
             #endregion
-
+        }
+        public void cargo_check()
+        {
             #region cargo_check
             ttl_volu = 0;
             ttl_volm = 0;
@@ -1164,7 +1871,20 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
+        public void remote_control_position_update() 
+        {
+            rc_xyz = rc_actual.GetPosition();
+        }
+
+        public void GetSpeed()
+        {
+            spd = rc_actual.GetShipSpeed();
+        }
+
+        public void damage_check()
+        {
             #region damage_check
             if (!dmg_report_enabled)
             {
@@ -1189,7 +1909,10 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
+        public void power_check()
+        {
             #region power_check
             ttl_PWRs = 0;
             ttl_sPWR = 0;
@@ -1197,7 +1920,7 @@ namespace IngameScript
             ttl_mPWR = 0;
             ttl_cPWR = 0;
             ttl_PWRc = 0;
-            float percent_battery_power = 0.0f;
+            percent_battery_power = 0.0f;
             for (int i = 0; i < battery_tag.Count; i++)
             {
                 if (battery_tag[i] != null)
@@ -1246,7 +1969,10 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
+        public void fuel_check()
+        {
             #region fuel_check
             if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
             {
@@ -1255,7 +1981,7 @@ namespace IngameScript
             ttl_sGAS = 0;
             ttl_mGAS = 0;
             ttl_GASm = 0;
-            double pcnt_gas_tank = 0.0;
+            pcnt_gas_tank = 0.0;
             if (hydrogen_tank_tag.Count > 0)
             {
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
@@ -1308,7 +2034,10 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
+        public void recharge_state_check()
+        {
             #region recharge_request_check
             if (recharge_request_battery || recharge_request_tank)
             {
@@ -1319,30 +2048,30 @@ namespace IngameScript
                 recharge_request = false;
             }
             #endregion
+        }
 
-            // ** Logic Start **
-            Echo($"GMDS {ver} Running...");
-            trm_prec = (trm_coeff * drill_sl) + 0.6;
-            //comms
+        public void check_comms_channels()
+        {
+            #region check_comms_channels
             if (listn.HasPendingMessage)
             {
-                MyIGCMessage new_msg = listn.AcceptMessage();
+                new_msg = listn.AcceptMessage();
                 dat_in = new_msg.Data.ToString();
             }
             if (listn_recall.HasPendingMessage)
             {
-                MyIGCMessage new_msg_2 = listn_recall.AcceptMessage();
+                new_msg_2 = listn_recall.AcceptMessage();
                 dat_in2 = new_msg_2.Data.ToString();
-            }
-            if (listn_recall_drone.HasPendingMessage)
-            {
-                MyIGCMessage new_msg_4 = listn_recall_drone.AcceptMessage();
-                dat_in4 = new_msg_4.Data.ToString();
             }
             if (listn_png.HasPendingMessage)
             {
-                MyIGCMessage new_msg_3 = listn_png.AcceptMessage();
+                new_msg_3 = listn_png.AcceptMessage();
                 dat_in3 = new_msg_3.Data.ToString();
+            }
+            if (listn_recall_drone.HasPendingMessage)
+            {
+                new_msg_4 = listn_recall_drone.AcceptMessage();
+                dat_in4 = new_msg_4.Data.ToString();
             }
             if (dat_in != null)
             {
@@ -1390,7 +2119,11 @@ namespace IngameScript
                     pinged = false;
                 }
             }
+            #endregion
+        }
 
+        public void custom_data_command_presence_check()
+        {
             #region custom_data_command_presence_check
             if (Me.CustomData != null && Me.CustomData != "" && Me.CustomData != fail_data)
             {
@@ -1408,11 +2141,11 @@ namespace IngameScript
             }
             else dat_invalid = false;
             #endregion
+        }
 
-
-
-
-            #region command_read_with_rate_limit
+        public void command_poll()
+        {
+            #region command_read
 
 
             if (dat_valid)
@@ -1423,7 +2156,7 @@ namespace IngameScript
                     custom_data_read = 0;
                     drone_status = 25;
                 }
-                if (custom_data_read == 0 )
+                if (custom_data_read == 0)
                 {
                     GetCustomData();
                     custom_data_read = 1;
@@ -1466,10 +2199,11 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
-
-
-            #region drone_state_processing
+        public void drone_operating_state_mng()
+        {
+            #region drone_command_state_processing
             if (dat_invalid && !was_mining)
             {
                 command_request = 0;
@@ -1509,12 +2243,18 @@ namespace IngameScript
                 undock_state = true;
             }
             else undock_state = false;
+
+
             if (command_request == 8 && tunnel_sequence_finished || command_request == 0 && connector_actual.IsConnected && tunnel_sequence_finished && !undock_state && !cargo_full_achieved && cargo_is_empty && !recharge_request)
             {
                 tunnel_sequence_finished = false;
                 drone_output_status = "Resetting";
             }
+            #endregion
+        }
 
+        public void connected_battery_recharge_check()
+        {
             #region connected_battery_recharge_check
             if (connector_actual.IsConnected && auto_charge_mode && !recharge_request_battery && !undock_state || connector_actual.IsConnected && auto_charge_mode && recharge_request_battery && !undock_state)
             {
@@ -1543,7 +2283,10 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
+        public void undock_management()
+        {
             #region undock_management
             if (undock_state && !recharge_request && cargo_is_empty && !cargo_full_achieved && !target_depth_achived && connector_actual.IsConnected && undocking_stage == 0 && !tb_TON_act.IsCountingDown)
             {
@@ -1658,7 +2401,10 @@ namespace IngameScript
                 is_undocking = false;
             }
             #endregion
+        }
 
+        public void dock_undock_state_check()
+        {
             #region dock_undock_state_check
             if (docking_stage > 0)
             {
@@ -1682,8 +2428,11 @@ namespace IngameScript
             }
             else is_undocked = false;
             #endregion
+        }
 
-            #region drone_stop_state_management
+        public void drone_diver_state_management()
+        {
+            #region drone_diver_state_management
             if (stop_state)
             {
                 main_nav_sequence = 0;
@@ -1711,13 +2460,12 @@ namespace IngameScript
                 drone_status = 0;
                 cmd_rqt = "0";
             }
-            #endregion
-
-            #region mining_state_management
+            //reset exit request on stop state
             if (mining_stage == 0 && stop_state && request_exit)
             {
                 request_exit = false;
             }
+
             if (mine_state && !was_mining)
             {
                 was_mining = true;
@@ -1741,6 +2489,8 @@ namespace IngameScript
                 mode_set = true;
             }
             else mode_set = false;
+
+
             if (dat_invalid && target_depth_achived && !request_exit && was_mining && custom_data_read == 1 && is_undocked)
             {
                 request_exit = true;
@@ -1751,7 +2501,10 @@ namespace IngameScript
             }
             else force_request_dock = false;
             #endregion
+        }
 
+        public void check_for_planetary_gravity_presence()
+        {
             #region check_for_planetary_gravity_presence
             gravity = rc_actual.GetNaturalGravity();
             if (trgt_vld)
@@ -1763,7 +2516,10 @@ namespace IngameScript
                 crnt_tgt_align = gravity;
             }
             #endregion
+        }
 
+        public void drone_alignment_management()
+        {
             #region drone_alignment_management
             if (is_docked || docking_stage > 0 || !is_undocked && !is_docked)
             {
@@ -1821,37 +2577,12 @@ namespace IngameScript
             }
 
             #endregion
+        }
 
-            Vector3D rc_xyz = rc_actual.GetPosition();
-            if (custom_data_read == 1 && cmd_read_ack == 0)
-            {
-                cmd_read_ack = 1;
-                clr_cords = false;
-            }
-
-            if (!clr_cords && custom_data_read == 1)
-            {
-                clr_cords = true;
-                add_nav_Waypoint_mn = false;
-                add_mine_waypoint = false;
-                rc_actual.ClearWaypoints();
-                rc_actual.SetAutoPilotEnabled(false);
-            }
-
+        public void navigation_management()
+        {
             #region navigation_management
-            if (clr_cords && custom_data_read == 1)
-            {
-                if (nav_state && cmd_chng && is_undocked)
-                {
-                    main_nav_sequence = 1;
-                    drone_output_status = "Nav";
-                }
-                if (mine_state && cmd_chng && is_undocked)
-                {
-                    mining_stage = 0;
-                    distance_id = false;
-                }
-            }
+            remote_control_position_update();
             if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && custom_data_read == 1 && nav_state && !connector_actual.IsConnected && is_undocked)
             {
                 rc_actual.ClearWaypoints();
@@ -1944,7 +2675,9 @@ namespace IngameScript
                     reset_light_actual.Enabled = false;
                 }
             }
-            double spd = rc_actual.GetShipSpeed();
+
+            GetSpeed();
+
             if (spd <= gsl && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 4 || spd <= gsl && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && main_nav_sequence == 3 && !reset_light_actual.Enabled && !navinst && command_request == 1)
             {
                 no_speed_count_navigation_reset_delay_count++;
@@ -2117,9 +2850,13 @@ namespace IngameScript
                 drone_output_status = "RTB";
             }
             #endregion
+        }
 
+        public void mining_management()
+        {
             #region mining_management
             // *** Mining sequence ***
+            remote_control_position_update();
             if (!distance_id && mine_state && custom_data_read == 1 && mining_stage == 0 && !is_autopiloting && is_undocked)
             {
                 mine_coords_adjusted = false;
@@ -2580,9 +3317,10 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
 
-            #endregion
-
+        public void docking_management()
+        {
             #region docking_management
             if (reset_light_actual.Enabled && docking_stage > 0)
             {
@@ -2818,7 +3556,10 @@ namespace IngameScript
                 docking_stage = 0;
             }
             #endregion
+        }
 
+        public void connector_state_management()
+        {
             #region connector_state_management
             if (connector_actual.IsConnected && ignore_Htank || connector_actual.IsConnected && !ignore_Htank)
             {
@@ -2924,9 +3665,36 @@ namespace IngameScript
                 }
             }
             #endregion
+        }
+
+        public void nagivation_movement_check()
+        {
+            #region nagivation_movement_check
+            if (navigation_reset_delay)
+            {
+                navigation_reset_delay = false;
+                navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                no_speed_count_navigation_reset_delay_count = 0;
+            }
+            #endregion
+        }
+
+        public void undock_delay_check()
+        {
+            #region undock_delay_check
+            if (no_speed_ready_undock)
+            {
+                undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                no_speed_ready_undock = false;
+                no_speed_undock_delay_count = 0;
+            }
+            #endregion
+        }
 
 
 
+        public void drone_message_transmission_management()
+        {
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
@@ -2981,28 +3749,43 @@ namespace IngameScript
                 dat_in3 = "";
             }
             #endregion
-
-            #region nagivation_movement_check
-            if (navigation_reset_delay)
+        }
+        public void rc_navigation_init()
+        {
+            #region rc_navigation_init_nav_or_mine
+            if (custom_data_read == 1 && cmd_read_ack == 0)
             {
-                navigation_reset_delay = false;
-                navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
-                no_speed_count_navigation_reset_delay_count = 0;
+                cmd_read_ack = 1;
+                clr_cords = false;
+            }
+
+            if (!clr_cords && custom_data_read == 1)
+            {
+                clr_cords = true;
+                add_nav_Waypoint_mn = false;
+                add_mine_waypoint = false;
+                rc_actual.ClearWaypoints();
+                rc_actual.SetAutoPilotEnabled(false);
+            }
+
+
+            if (clr_cords && custom_data_read == 1)
+            {
+                if (nav_state && cmd_chng && is_undocked)
+                {
+                    main_nav_sequence = 1;
+                    drone_output_status = "Nav";
+                }
+                if (mine_state && cmd_chng && is_undocked)
+                {
+                    mining_stage = 0;
+                    distance_id = false;
+                }
             }
             #endregion
-
-            #region undock_delay_check
-            if (no_speed_ready_undock)
-            {
-                undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
-                no_speed_ready_undock = false;
-                no_speed_undock_delay_count = 0;
-            }
-            #endregion
-
-            GetDroneStatus(drone_status);
-
-
+        }        
+        public void Drone_Local_Status_Reporting()
+        {
             #region drone_status_local_report
 
 
@@ -3033,7 +3816,11 @@ namespace IngameScript
             Echo($"Speed: {Math.Round(spd, 2)} {Math.Round(gspeed, 2)}");
             //Echo($"{t_count} {t_delay} {ns_count} {r_delay} {ns_c2} {nsr} {Math.Round(spd, 2)} {Math.Round(gspeed, 2)} {pinged}");
             #endregion
+        }
 
+        public void function_delay_management()
+        {
+            #region function_delay_management
             t_count++;
 
             if (t_count >= transmit_time_limit)
@@ -3048,619 +3835,7 @@ namespace IngameScript
             {
                 no_speed_ready_undock = true;
             }
-
-        }
-        Vector3D GetNavAngles(Vector3D Target)
-        {
-            Vector3D RCcenter = rc_actual.GetPosition();
-            Vector3D RCfow = rc_actual.WorldMatrix.Forward;
-            Vector3D RCup = rc_actual.WorldMatrix.Up;
-            Vector3D RCleft = rc_actual.WorldMatrix.Left;
-            Vector3D RCright = rc_actual.WorldMatrix.Right;
-            if (trgt_vld)
-            {
-                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
-                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
-
-            }
-            if (!trgt_vld)
-            {
-
-                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(rc_actual.GetNaturalGravity()), RCleft))) - (Math.PI / 2);
-                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-rc_actual.GetNaturalGravity()), RCfow))) - (Math.PI / 2);
-                TrgtYaw = TrgtPitch;
-            }
-            return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
-
-        }
-
-        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1)
-        {
-
-            if (gyro_tag.Count > 0)
-            {
-                for (int j = 0; j < gyro_tag.Count; j++)
-                {
-                    if (gyro_tag[j] == null)
-                    {
-                        setup_complete = false;
-                    }
-                    if (gyro_tag[j] != null)
-                    {
-                        gyro_actual = gyro_tag[j];
-                        gyro_monitor = gyro_actual;
-                        if (gyro_actual != null)
-                        {
-                            if ((!gyro_actual.GyroOverride && OverrideOnOff) || (gyro_actual.GyroOverride && !OverrideOnOff))
-                                gyro_actual.ApplyAction("Override");
-                            gyro_actual.SetValue("Power", Power);
-                            gyro_actual.SetValue("Yaw", settings.GetDim(0));
-                            gyro_actual.SetValue("Pitch", settings.GetDim(1));
-                            gyro_actual.SetValue("Roll", settings.GetDim(2));
-                        }
-                    }
-                }
-            }
-        }
-
-        void GetCustomData()
-        {
-            String[] gps_cd = Me.CustomData.Split(':');
-            if (gps_cd.Length < 5)
-            {
-                Me.CustomData = fail_data;
-            }
-            if (gps_cd.Length > 5)
-            {
-                gpsindx = gps_cd[1];
-                main_gps_coords = new Vector3D(Double.Parse(gps_cd[2]), Double.Parse(gps_cd[3]), Double.Parse(gps_cd[4]));
-                cmd_rqt = gps_cd[6].ToString();
-                if (int.TryParse(cmd_rqt, out command_request))
-                {
-                    int.TryParse(cmd_rqt, out command_request);
-                }
-                else
-                {
-                    command_request = 0;
-                }
-                cmd_dist = gps_cd[7].ToString();
-                if (Double.TryParse(cmd_dist, out drill_sl))
-                {
-                    Double.TryParse(cmd_dist, out drill_sl);
-                }
-                else
-                {
-                    drill_sl = 1.0;
-                }
-            }
-
-
-            if (gps_cd.Length < 9)
-            {
-
-                no_cnvy_dst = 0.0;
-                return;
-            }
-
-            if (gps_cd.Length > 9)
-            {
-                if (gps_cd[8] == null || gps_cd[8] == "")
-                {
-                    gps_dat_7 = "";
-                    no_cnvy_dst = 0.0;
-                }
-                else
-                {
-                    gps_dat_7 = gps_cd[8].ToString();
-                    if (double.TryParse(gps_dat_7, out no_cnvy_dst))
-                    {
-                        double.TryParse(gps_dat_7, out no_cnvy_dst);
-                    }
-                    else
-                    {
-                        no_cnvy_dst = 0.0;
-                    }
-                }
-            }
-
-            if (gps_cd.Length > 10)
-            {
-                if (gps_cd[9] == null || gps_cd[9] == "")
-                {
-                    gps_dat_8 = "";
-                }
-                else
-                {
-                    gps_dat_8 = gps_cd[9].ToString();
-                }
-            }
-
-            if (gps_cd.Length > 11)
-            {
-                if (gps_cd[10] == null || gps_cd[10] == "")
-                {
-                    gps_dat_9 = "";
-                }
-                else
-                {
-                    gps_dat_9 = gps_cd[10].ToString();
-                }
-            }
-
-            if (gps_cd.Length > 12)
-            {
-                if (gps_cd[11] == null || gps_cd[11] == "")
-                {
-                    gps_dat_10 = "";
-                    dt_prsnt4 = false;
-                }
-                else
-                {
-                    gps_dat_10 = gps_cd[11].ToString();
-
-                    if (double.TryParse(gps_dat_10, out tgtX))
-                    {
-                        double.TryParse(gps_dat_10, out tgtX);
-                        dt_prsnt4 = true;
-                    }
-                    else
-                    {
-                        tgtX = 0.0;
-                        dt_prsnt4 = false;
-                    }
-                }
-            }
-
-            if (gps_cd.Length > 13)
-            {
-                if (gps_cd[12] == null || gps_cd[12] == "")
-                {
-                    gps_dat_11 = "";
-                    dt_prsnt5 = false;
-                }
-                else
-                {
-                    gps_dat_11 = gps_cd[12].ToString();
-
-                    if (double.TryParse(gps_dat_11, out tgtY))
-                    {
-                        double.TryParse(gps_dat_11, out tgtY);
-                        dt_prsnt5 = true;
-                    }
-                    else
-                    {
-                        tgtY = 0.0;
-                        dt_prsnt5 = false;
-                    }
-                }
-            }
-
-            if (gps_cd.Length > 14)
-            {
-                if (gps_cd[13] == null || gps_cd[13] == "")
-                {
-                    gps_dat_12 = "";
-                    dt_prsnt6 = false;
-                }
-                else
-                {
-                    gps_dat_12 = gps_cd[13].ToString();
-
-                    if (double.TryParse(gps_dat_12, out tgtZ))
-                    {
-                        double.TryParse(gps_dat_12, out tgtZ);
-                        dt_prsnt6 = true;
-                    }
-                    else
-                    {
-                        tgtZ = 0.0;
-                        dt_prsnt6 = false;
-                    }
-                }
-            }
-
-            if (dt_prsnt4 && dt_prsnt5 && dt_prsnt6)
-            {
-                trgt_vld = true;
-                align_tgt_new.X = tgtX;
-                align_tgt_new.Y = tgtY;
-                align_tgt_new.Z = tgtZ;
-            }
-            else
-            {
-                trgt_vld = false;
-            }
-
-            if (gps_cd.Length < 14)
-            {
-                dt_prsnt6 = false;
-            }
-            if (gps_cd.Length < 13)
-            {
-                dt_prsnt5 = false;
-            }
-            if (gps_cd.Length < 12)
-            {
-                dt_prsnt4 = false;
-            }
-        }
-
-        #region drill_management
-        void StDrlOnOff(bool DrilOnOf, bool UConv)
-        {
-
-            if (drill_tag.Count <= 0)
-            {
-                getnewdrills();
-            }
-            if (drill_tag.Count > 0)
-            {
-                for (int i = 0; i < drill_tag.Count; i++)
-                {
-                    if (drill_tag[i] == null)
-                    {
-                        setup_complete = false;
-                    }
-                    if (drill_tag[i] != null)
-                    {
-                        drl_act = drill_tag[i];
-                    }
-                    if (drl_act != null)
-                    {
-                        if (DrilOnOf && !drl_act.Enabled)
-                        {
-                            drl_act.Enabled = true;
-                        }
-                        if (!DrilOnOf && drl_act.Enabled)
-                        {
-                            drl_act.Enabled = false;
-                        }
-                        if (UConv)
-                        {
-                            if (!drl_act.UseConveyorSystem)
-                            {
-                                drl_act.UseConveyorSystem = true;
-                            }
-                        }
-                        else
-                        {
-                            if (drl_act.UseConveyorSystem)
-                            {
-                                drl_act.UseConveyorSystem = false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        void getnewdrills()
-        {
-            drill_all.Clear();
-            drill_tag.Clear();
-            GridTerminalSystem.GetBlocksOfType<IMyShipDrill>(drill_all, b => b.CubeGrid == Me.CubeGrid);
-            if (drill_all.Count > 0)
-            {
-                for (int i = 0; i < drill_all.Count; i++)
-                {
-                    if (drill_all[i].CustomName.Contains(D_I_N))
-                    {
-                        n = s_drill + " " + (i + 1) + " " + D_I_N;
-                        drill_all[i].CustomName = n;
-                        drill_tag.Add(drill_all[i]);
-                    }
-                    if (!drill_all[i].CustomName.Contains(D_I_N))
-                    {
-                        n = s_drill + " " + (i + 1) + " " + D_I_N;
-                        drill_all[i].CustomName = n;
-                        drill_tag.Add(drill_all[i]);
-                    }
-                }
-            }
-            drill_all.Clear();
-        }
-        #endregion
-
-        void reset_ai()
-        {
-            ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);
-            ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
-            ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-            if (collision_avoid_light_actual.Enabled)
-            {
-                collision_avoid_light_actual.Enabled = false;
-            }
-            if (precM_light_actual.Enabled)
-            {
-                precM_light_actual.Enabled = false;
-            }
-            if (Collision_sense_enabled)
-            {
-                sensor_actual.Enabled = false;
-            }
-
-        }
-        void LoadStorageData()
-        {
-            if (_ini.TryParse(Storage))
-            {
-                var str = "";
-                str = _ini.Get("commands", "c1").ToString();
-                bool.TryParse(str, out recall);
-                str = _ini.Get("commands", "c2").ToString();
-                bool.TryParse(str, out stop_state);
-                str = _ini.Get("commands", "c3").ToString();
-                bool.TryParse(str, out was_mining);
-                str = _ini.Get("commands", "c4").ToString();
-                bool.TryParse(str, out nav_state);
-                str = _ini.Get("commands", "c5").ToString();
-                bool.TryParse(str, out mine_state);
-                str = _ini.Get("commands", "c6").ToString();
-                bool.TryParse(str, out dock_state);
-                str = _ini.Get("commands", "c7").ToString();
-                bool.TryParse(str, out mode_set);
-
-                str = _ini.Get("dockmode", "d1").ToString();
-                int.TryParse(str, out docking_stage);
-                str = _ini.Get("dockmode", "d2").ToString();
-                bool.TryParse(str, out undock_state);
-                str = _ini.Get("dockmode", "d3").ToString();
-                int.TryParse(str, out undocking_start);
-                str = _ini.Get("dockmode", "d4").ToString();
-                int.TryParse(str, out undocking_stage);
-
-                str = _ini.Get("unitstate", "u1").ToString();
-                bool.TryParse(str, out recharge_request);
-                str = _ini.Get("unitstate", "u2").ToString();
-                bool.TryParse(str, out nav_act);
-                str = _ini.Get("unitstate", "u3").ToString();
-                int.TryParse(str, out main_nav_sequence);
-                str = _ini.Get("unitstate", "u4").ToString();
-                bool.TryParse(str, out main_nav_complete);
-                str = _ini.Get("unitstate", "u5").ToString();
-                bool.TryParse(str, out add_nav_Waypoint_mn);
-                str = _ini.Get("unitstate", "u6").ToString();
-                bool.TryParse(str, out distance_id);
-                str = _ini.Get("unitstate", "u7").ToString();
-                int.TryParse(str, out mining_stage);
-                str = _ini.Get("unitstate", "u8").ToString();
-                bool.TryParse(str, out add_mine_waypoint);
-                str = _ini.Get("unitstate", "u9").ToString();
-                bool.TryParse(str, out mine_coords_adjusted);
-                str = _ini.Get("unitstate", "u10").ToString();
-                bool.TryParse(str, out target_depth_achived);
-                str = _ini.Get("unitstate", "u11").ToString();
-                bool.TryParse(str, out reset_mining);
-                str = _ini.Get("unitstate", "u12").ToString();
-                bool.TryParse(str, out mining_nav_complete);
-                str = _ini.Get("unitstate", "u12").ToString();
-                bool.TryParse(str, out force_request_dock);
-                str = _ini.Get("unitstate", "u13").ToString();
-                bool.TryParse(str, out request_exit);
-                str = _ini.Get("unitstate", "u14").ToString();
-                bool.TryParse(str, out exit_sequence_complete);
-                str = _ini.Get("uunitstate16", "u15").ToString();
-                bool.TryParse(str, out exit_waypoint_set);
-                str = _ini.Get("unitstate", "u16").ToString();
-                bool.TryParse(str, out tunnel_sequence_finished);
-                str = _ini.Get("unitstate", "u18").ToString();
-                bool.TryParse(str, out yawinst);
-                str = _ini.Get("unitstate", "u19").ToString();
-                bool.TryParse(str, out pitchinst);
-                str = _ini.Get("unitstate", "u20").ToString();
-                bool.TryParse(str, out rollinst);
-                str = _ini.Get("unitstate", "u21").ToString();
-                bool.TryParse(str, out navinst);
-                str = _ini.Get("unitstate", "u22").ToString();
-                double.TryParse(str, out distance_current);
-                str = _ini.Get("coordinates", "c1").ToString();
-                Vector3D.TryParse(str, out mining_gps_coords);
-                str = _ini.Get("coordinates", "c2").ToString();
-                Vector3D.TryParse(str, out mining_gps_coords_temp);
-                str = _ini.Get("coordinates", "c3").ToString();
-                Vector3D.TryParse(str, out tgt_drill_start);
-                str = _ini.Get("coordinates", "c4").ToString();
-                Vector3D.TryParse(str, out tgt_drill_end);
-                str = _ini.Get("coordinates", "c5").ToString();
-                Vector3D.TryParse(str, out tgt_drill_exit);
-                str = _ini.Get("coordinates", "c6").ToString();
-                Vector3D.TryParse(str, out exit_gps_coords_temp);
-                str = _ini.Get("coordinates", "c7").ToString();
-                Vector3D.TryParse(str, out main_gps_coords);
-                str = _ini.Get("coordinates", "c8").ToString();
-                Vector3D.TryParse(str, out crnt_tgt_align);
-                str = _ini.Get("coordinates", "c9").ToString();
-                Vector3D.TryParse(str, out align_tgt_new);
-                str = _ini.Get("coordinates", "c10").ToString();
-                Vector3D.TryParse(str, out directionb);
-                str = _ini.Get("coordinates", "c11").ToString();
-                Vector3D.TryParse(str, out direction);
-                str = _ini.Get("coordinates", "c12").ToString();
-                Vector3D.TryParse(str, out directionc);
-                str = _ini.Get("coordinates", "c13").ToString();
-                Vector3D.TryParse(str, out gravity);
-                str = _ini.Get("coordinates", "co14").ToString();
-                gpsindx = str;
-            }
-
-        }
-
-        void GetDroneStatus(int drnstus)
-        {
-            #region void_drone_status_output
-            if (drnstus == 0)
-            {
-                drnst = "Idle";
-            }
-            if (drnstus == 1 || drnstus == 4)
-            {
-                drnst = $"Nav CA {Collision_sense_enabled}";
-            }
-            if (drnstus == 2 || drnstus == 3)
-            {
-                drnst = "Nav P";
-            }
-            if (drnstus == 5)
-            {
-                drnst = "Navi Dest Reach";
-            }
-            if (drnstus == 6)
-            {
-                drnst = "Mine Calc shaft";
-            }
-            if (drnstus == 7)
-            {
-                drnst = "Mine Start";
-            }
-            if (drnstus == 8)
-            {
-                drnst = "Mine Calc WP";
-            }
-            if (drnstus == 9)
-            {
-                drnst = "Mine Add WP";
-            }
-            if (drnstus == 10)
-            {
-                drnst = "Mine to WP";
-            }
-            if (drnstus == 11)
-            {
-                drnst = "Mine En AP";
-            }
-            if (drnstus == 12)
-            {
-                drnst = "Mine WP reach";
-            }
-            if (drnstus == 13)
-            {
-                drnst = "Mine Trunc";
-            }
-            if (drnstus == 14)
-            {
-                drnst = "Mine Fin";
-            }
-            if (drnstus == 15)
-            {
-                drnst = "Mine new WP";
-            }
-            if (drnstus == 16)
-            {
-                drnst = "Mine Fnshd";
-            }
-            if (drnstus == 17)
-            {
-                drnst = "WP mine exit";
-            }
-            if (drnstus == 18)
-            {
-                drnst = "Nav mine exit";
-            }
-            if (drnstus == 19)
-            {
-                drnst = "Mine exit reach";
-            }
-            if (drnstus == 20)
-            {
-                drnst = "Cl WP dock";
-            }
-            if (drnstus == 21)
-            {
-                drnst = "Rtn dock";
-            }
-            if (drnstus == 22)
-            {
-                drnst = "Rtn unload";
-            }
-            if (drnstus == 23)
-            {
-                drnst = "Stablz";
-            }
-            if (drnstus == 24)
-            {
-                drnst = "Read dt";
-            }
-            if (drnstus == 25)
-            {
-                drnst = "Comp cmd data";
-            }
             #endregion
-        }
-
-
-        public void drone_custom_data_check(string custominfo, int index)
-        {
-            bool load_id;
-            bool load_tag;
-            Echo("Checking for drone config information..");
-            String[] temp_id = custominfo.Split(':');
-            Echo($"{temp_id.Length}");
-
-            if (temp_id.Length > 0)
-            {
-                if (temp_id[0] != null)
-                {
-                    if (int.TryParse(temp_id[0], out temp_id_num))
-                    {
-                        int.TryParse(temp_id[0], out temp_id_num);
-                        load_id = true;
-                        if (load_id)
-                        {
-                            drone_id_num = temp_id_num;
-                        }
-                    }
-                    else
-                    {
-                        temp_id_num = drone_id_num;
-                        Echo($"Resorting to default ID#.{drone_id_num}");
-                    }
-                }
-            }
-            if (temp_id.Length > 1)
-            {
-                if (temp_id[1] != null)
-                {
-                    temp_id_name = temp_id[1];
-                    load_tag = true;
-                    if (load_tag)
-                    {
-                        drone_tag = temp_id_name;
-                    }
-                    if (temp_id_name == "" || temp_id_name == null)
-                    {
-                        temp_id_name = drone_tag;
-                        Echo($"Resorting to default drone tag.{drone_tag}");
-                    }
-                }
-            }
-
-            if (temp_id.Length == 0)
-            {
-                temp_id_num = drone_id_num;
-                temp_id_name = drone_tag;
-                Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
-            }
-
-            if (antenna_all[index] != null)
-            {
-                antenna_all[index].CustomData = $"{drone_id_num}:{drone_tag}";
-            }
-            Echo($"Drone info: {drone_id_num}:{drone_tag}");
-            D_I_N = "[" + drone_tag + " " + drone_id_num + "]";
-            D_C_N = "[" + drone_tag + " " + drone_id_num + "]";
-            dk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Dock + "]";
-            undk_tsk_n = "[" + drone_tag + " " + drone_id_num + " " + Undock + "]";
-            Thr_ON_n = "[" + drone_tag + " " + drone_id_num + " " + TON + "]";
-            Thr_OFF_N = "[" + drone_tag + " " + drone_id_num + " " + TOFF + "]";
-            Rst_T_N = "[" + drone_tag + " " + drone_id_num + " " + Reset + "]";
-            CA_T_N = "[" + drone_tag + " " + drone_id_num + " " + CA + "]";
-            P_M_T_N = "[" + drone_tag + " " + drone_id_num + " " + PrecM + "]";
-            H_T_N = "[" + drone_tag + " " + drone_id_num + " " + HT + "]";
-            D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
-            DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
-            P_CH = "[" + drone_tag + "]" + " " + p_cht;
-            tx_ch = drone_tag + " reply";           
-            rx_channel_recall_drone = D_I_N + " " + recall_command;
-            Me.CustomName = $"GMDS Programmable Block {D_I_N}";
         }
         //end program
 
