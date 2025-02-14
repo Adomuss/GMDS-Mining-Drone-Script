@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.331";
+        string ver = "V0.333";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -429,15 +429,16 @@ namespace IngameScript
 
             // ** Logic Start **
             Echo($"GMDS {ver} Running...");
-            
+
             #region refresh_waypoints
-            if (waypoints.Count > 0) {
+            if (waypoints.Count > 0)
+            {
                 waypoints.Clear();
             }
             #endregion
 
             item_presence_check();
-            
+
             cargo_check();
 
             damage_check();
@@ -449,7 +450,7 @@ namespace IngameScript
             recharge_state_check();
 
             trm_prec = (trm_coeff * drill_sl) + 0.6;
-            
+
             //comms
             check_comms_channels();
 
@@ -1106,7 +1107,7 @@ namespace IngameScript
             D_S_C = "[" + drone_tag + " " + drone_id_num + " " + Sense + "]";
             DLT = "[" + drone_tag + " " + drone_id_num + " " + dmg + "]";
             P_CH = "[" + drone_tag + "]" + " " + p_cht;
-            tx_ch = drone_tag + " reply";           
+            tx_ch = drone_tag + " reply";
             rx_channel_recall_drone = D_I_N + " " + recall_command;
             Me.CustomName = $"GMDS Programmable Block {D_I_N}";
         }
@@ -1873,7 +1874,7 @@ namespace IngameScript
             #endregion
         }
 
-        public void remote_control_position_update() 
+        public void remote_control_position_update()
         {
             rc_xyz = rc_actual.GetPosition();
         }
@@ -3414,7 +3415,7 @@ namespace IngameScript
                         }
                         if (undock_light_actual.Enabled)
                         {
-                            undock_light_actual.Enabled = false;
+                            //undock_light_actual.Enabled = false;
                         }
                         if (Collision_sense_enabled)
                         {
@@ -3783,7 +3784,7 @@ namespace IngameScript
                 }
             }
             #endregion
-        }        
+        }
         public void Drone_Local_Status_Reporting()
         {
             #region drone_status_local_report
