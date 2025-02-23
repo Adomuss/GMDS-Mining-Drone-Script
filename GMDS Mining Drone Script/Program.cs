@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.330A       
+        // General Mining Drone Script v0.334A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.333";
+        string ver = "V0.334";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -567,29 +567,19 @@ namespace IngameScript
                 gpsindx = gps_cd[1];
                 main_gps_coords = new Vector3D(Double.Parse(gps_cd[2]), Double.Parse(gps_cd[3]), Double.Parse(gps_cd[4]));
                 cmd_rqt = gps_cd[6].ToString();
-                if (int.TryParse(cmd_rqt, out command_request))
-                {
-                    int.TryParse(cmd_rqt, out command_request);
-                }
-                else
+                if (!int.TryParse(cmd_rqt, out command_request))
                 {
                     command_request = 0;
                 }
                 cmd_dist = gps_cd[7].ToString();
-                if (Double.TryParse(cmd_dist, out drill_sl))
-                {
-                    Double.TryParse(cmd_dist, out drill_sl);
-                }
-                else
+                if (!Double.TryParse(cmd_dist, out drill_sl))
                 {
                     drill_sl = 1.0;
                 }
             }
 
-
             if (gps_cd.Length < 9)
             {
-
                 no_cnvy_dst = 0.0;
                 return;
             }
@@ -604,11 +594,7 @@ namespace IngameScript
                 else
                 {
                     gps_dat_7 = gps_cd[8].ToString();
-                    if (double.TryParse(gps_dat_7, out no_cnvy_dst))
-                    {
-                        double.TryParse(gps_dat_7, out no_cnvy_dst);
-                    }
-                    else
+                    if (!double.TryParse(gps_dat_7, out no_cnvy_dst))
                     {
                         no_cnvy_dst = 0.0;
                     }
@@ -650,15 +636,15 @@ namespace IngameScript
                 {
                     gps_dat_10 = gps_cd[11].ToString();
 
-                    if (double.TryParse(gps_dat_10, out tgtX))
-                    {
-                        double.TryParse(gps_dat_10, out tgtX);
-                        dt_prsnt4 = true;
-                    }
-                    else
+                    if (!double.TryParse(gps_dat_10, out tgtX))
                     {
                         tgtX = 0.0;
                         dt_prsnt4 = false;
+                        
+                    }
+                    else
+                    {
+                        dt_prsnt4 = true;
                     }
                 }
             }
@@ -674,15 +660,15 @@ namespace IngameScript
                 {
                     gps_dat_11 = gps_cd[12].ToString();
 
-                    if (double.TryParse(gps_dat_11, out tgtY))
-                    {
-                        double.TryParse(gps_dat_11, out tgtY);
-                        dt_prsnt5 = true;
-                    }
-                    else
+                    if (!double.TryParse(gps_dat_11, out tgtY))
                     {
                         tgtY = 0.0;
                         dt_prsnt5 = false;
+                        
+                    }
+                    else
+                    {
+                        dt_prsnt5 = true;
                     }
                 }
             }
@@ -698,15 +684,15 @@ namespace IngameScript
                 {
                     gps_dat_12 = gps_cd[13].ToString();
 
-                    if (double.TryParse(gps_dat_12, out tgtZ))
-                    {
-                        double.TryParse(gps_dat_12, out tgtZ);
-                        dt_prsnt6 = true;
-                    }
-                    else
+                    if (!double.TryParse(gps_dat_12, out tgtZ))
                     {
                         tgtZ = 0.0;
                         dt_prsnt6 = false;
+                        
+                    }
+                    else
+                    {
+                        dt_prsnt6 = true;
                     }
                 }
             }
@@ -1048,19 +1034,19 @@ namespace IngameScript
             {
                 if (temp_id[0] != null)
                 {
-                    if (int.TryParse(temp_id[0], out temp_id_num))
+                    if (!int.TryParse(temp_id[0], out temp_id_num))
                     {
-                        int.TryParse(temp_id[0], out temp_id_num);
+                        temp_id_num = drone_id_num;
+                        Echo($"Resorting to default ID#.{drone_id_num}");
+
+                    }
+                    else
+                    {
                         load_id = true;
                         if (load_id)
                         {
                             drone_id_num = temp_id_num;
                         }
-                    }
-                    else
-                    {
-                        temp_id_num = drone_id_num;
-                        Echo($"Resorting to default ID#.{drone_id_num}");
                     }
                 }
             }
@@ -3706,46 +3692,27 @@ namespace IngameScript
 
             if (pinged)
             {
-                #region drone_status_comms_message_builder
-                sb.Clear();
-                sb.Append(D_I_N);
-                sb.Append(":");
-                sb.Append(drone_damage_status);
-                sb.Append(":");
-                sb.Append(tunnel_sequence_finished);
-                sb.Append(":");
-                sb.Append(drone_output_status);
-                sb.Append(":");
-                sb.Append(is_docked);
-                sb.Append(":");
-                sb.Append(is_undocked);
-                sb.Append(":");
-                sb.Append(is_autopiloting);
-                sb.Append(":");
-                sb.Append(rc_actual.IsAutoPilotEnabled);
-                sb.Append(":");
-                sb.Append(Math.Round(rc_xyz.X, 2));
-                sb.Append(":");
-                sb.Append(Math.Round(rc_xyz.Y, 2));
-                sb.Append(":");
-                sb.Append(Math.Round(rc_xyz.Z, 2));
-                sb.Append(":");
-                sb.Append(drill_sl);
-                sb.Append(":");
-                sb.Append(Math.Round(distance_current, 2));
-                sb.Append(":");
-                sb.Append(Math.Round((drill_sl - no_cnvy_dst), 2));
-                sb.Append(":");
-                sb.Append(Math.Round(percent_battery_power, 2));
-                sb.Append(":");
-                sb.Append(Math.Round(pcnt_gas_tank, 2));
-                sb.Append(":");
-                sb.Append(Math.Round(total_percent_cargo_used, 2));
-                sb.Append(":");
-                sb.Append(gpsindx);
+                sb.Clear().EnsureCapacity(128); // ~100-120 chars typical
+                sb.Append(D_I_N).Append(':')
+                  .Append(drone_damage_status).Append(':')
+                  .Append(tunnel_sequence_finished).Append(':')
+                  .Append(drone_output_status).Append(':')
+                  .Append(is_docked).Append(':')
+                  .Append(is_undocked).Append(':')
+                  .Append(is_autopiloting).Append(':')
+                  .Append(rc_actual.IsAutoPilotEnabled).Append(':')
+                  .Append(Math.Round(rc_xyz.X, 2)).Append(':')
+                  .Append(Math.Round(rc_xyz.Y, 2)).Append(':')
+                  .Append(Math.Round(rc_xyz.Z, 2)).Append(':')
+                  .Append(drill_sl).Append(':')
+                  .Append(Math.Round(distance_current, 2)).Append(':')
+                  .Append(Math.Round(drill_sl - no_cnvy_dst, 2)).Append(':')
+                  .Append(Math.Round(percent_battery_power, 2)).Append(':')
+                  .Append(Math.Round(pcnt_gas_tank, 2)).Append(':')
+                  .Append(Math.Round(total_percent_cargo_used, 2)).Append(':')
+                  .Append(gpsindx);
                 dat_out = sb.ToString();
-                #endregion
-                IGC.SendBroadcastMessage(tx_ch, dat_out);
+                IGC.SendBroadcastMessage(tx_ch, dat_out, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
                 pinged = false;
                 dat_in3 = "";
             }
