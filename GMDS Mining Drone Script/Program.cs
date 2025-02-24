@@ -426,6 +426,7 @@ namespace IngameScript
                 Echo("Setup complete!");
             }
             #endregion
+            if (!setup_complete) return;
 
             // ** Logic Start **
             Echo($"GMDS {ver} Running...");
@@ -1695,7 +1696,7 @@ namespace IngameScript
                 if (cargo_sense.Count <= 0 || cargo_sense[0] == null)
                 {
                     Echo($"Sense container with tag: '{D_S_C}' not found. Add '{D_S_C}' tag to container");
-                    return;
+                    //return;
                 }
             }
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
@@ -1806,11 +1807,12 @@ namespace IngameScript
                 {
                     float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
                     float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
-                    ttl_volu = ttl_volu + inventory_vol;
-                    ttl_volm = ttl_volm + max_inventory_vol;
+                    ttl_volu += inventory_vol;
+                    ttl_volm += max_inventory_vol;
                     total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
                 }
             }
+            //
             if (total_percent_cargo_used == 100.0f)
             {
                 is_full = true;
@@ -1831,7 +1833,7 @@ namespace IngameScript
             {
                 cargo_full_achieved = false;
             }
-            if (ORE_sense_enabled)
+            if (ORE_sense_enabled && cargo_sense.Count > 0) // Only run if sense container exists
             {
                 ttl_volus = 0;
                 ttl_volms = 0;
@@ -1842,20 +1844,16 @@ namespace IngameScript
                     {
                         float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
                         float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
-                        ttl_volus = ttl_volus + inventory_vol_s;
-                        ttl_volms = ttl_volms + max_inventory_vol_s;
+                        ttl_volus += inventory_vol_s;
+                        ttl_volms += max_inventory_vol_s;
                         ttl_pctus = (ttl_volus / ttl_volms) * 100;
                     }
                 }
-
-                if (ttl_pctus > ORE_sense_limit)
-                {
-                    sens_convOPN = true;
-                }
-                else
-                {
-                    sens_convOPN = false;
-                }
+                sens_convOPN = (ttl_pctus > ORE_sense_limit);
+            }
+            else
+            {
+                sens_convOPN = false; // Default if no sense container
             }
             #endregion
         }
