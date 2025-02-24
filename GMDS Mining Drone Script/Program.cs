@@ -59,7 +59,7 @@ namespace IngameScript
         float bat_CHGhi = 100.0f;
         float bat_CHGlow = 30.0f;
         //drone nav settings
-        float drill_speed = 1.0f;
+        float drill_speed = 0.5f;
         float nav_speed = 5.0f;
         float exit_speed = 1.0f;
         double nav_inst_thr = 0.05;
@@ -145,11 +145,11 @@ namespace IngameScript
         float ttl_volus = 0.0f;
         float ttl_volms = 0.0f;
         float ttl_pctus = 0.0f;
-        float ttl_PWRs;
+        //float ttl_PWRs;
         float ttl_sPWR;
-        float ttl_PWRm;
+        //float ttl_PWRm;
         float ttl_mPWR;
-        float ttl_cPWR;
+        //float ttl_cPWR;
         float ttl_PWRc;
         bool can_gyroOVR = false;
         bool trgt_vld = false;
@@ -2929,32 +2929,7 @@ namespace IngameScript
                     Vector3D targetposition = direction * req_dist;
                     mining_gps_coords_temp.X = Math.Round(rc_xyz.X + targetposition.X, 2);
                     mining_gps_coords_temp.Y = Math.Round(rc_xyz.Y + targetposition.Y, 2);
-                    mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);
-                    // Calculate progress along Z
-                    //remote_control_position_update();
-                    double z_progress = rc_xyz.Z - tgt_drill_start.Z;
-                    double z_total = tgt_drill_end.Z - tgt_drill_start.Z;
-                    double fraction = z_total != 0 ? z_progress / z_total : 0; // Avoid division by zero
-
-                    // Calculate expected X, Y for current Z
-                    double expected_x = tgt_drill_start.X + (tgt_drill_end.X - tgt_drill_start.X) * fraction;
-                    double expected_y = tgt_drill_start.Y + (tgt_drill_end.Y - tgt_drill_start.Y) * fraction;
-
-                    // Calculate XY drift
-                    double xy_drift = Math.Sqrt(
-                        Math.Pow(rc_xyz.X - expected_x, 2) +
-                        Math.Pow(rc_xyz.Y - expected_y, 2)
-                    );
-
-                    // Correct alignment if drifted
-                    if (xy_drift > trm_prec * 2)
-                    {
-                        Echo("XY Drift: " + xy_drift.ToString("F2") + " - Correcting");
-                        // Update waypoint to the expected position to realign the drone
-                        mining_gps_coords_temp.X = expected_x;
-                        mining_gps_coords_temp.Y = expected_y;
-                        // Note: Z remains mining_gps_coords_temp.Z unless you want to adjust it too
-                    }
+                    mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);                    
                     StDrlOnOff(true, cnvyrsON);
                     drone_status = 8;
                     drone_output_status = "Mining";
