@@ -31,7 +31,7 @@ namespace IngameScript
         // 
         #region mdk preserve
         public Program()
-        {
+        {       
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
         }
         //rename these for drone
@@ -356,13 +356,11 @@ namespace IngameScript
         double pcnt_gas_tank = 0.0;
         double _Runtime;
         int _Instruction;
-
         #endregion
 
         #region save_state_management
         public void Save()
         {
-                profileRuns++;
             _ini.Set("commands", "c1", recall);
             _ini.Set("commands", "c2", stop_state);
             _ini.Set("commands", "c3", was_mining);
@@ -417,16 +415,13 @@ namespace IngameScript
         {
             _Runtime = Runtime.LastRunTimeMs;
             _Instruction = Runtime.CurrentInstructionCount;
-            int startInstructions = _Instruction; // Baseline
 
             #region setup_code
             if (!setup_complete)
             {
-                int setupStart = Runtime.CurrentInstructionCount;
                 setup_function();
                 setup_complete = true;
                 Echo("Setup complete!");
-                performance_profiler("setup_function", setupStart, Runtime.CurrentInstructionCount);
             }
             #endregion
             if (!setup_complete) return;
@@ -434,160 +429,49 @@ namespace IngameScript
             Echo($"GMDS {ver} Running...");
 
             #region refresh_waypoints
-            int waypointsStart = Runtime.CurrentInstructionCount;
             if (waypoints.Count > 0)
             {
                 waypoints.Clear();
             }
-            performance_profiler("refresh_waypoints", waypointsStart, Runtime.CurrentInstructionCount);
             #endregion
 
-            int itemStart = Runtime.CurrentInstructionCount;
             item_presence_check();
-            performance_profiler("item_presence_check", itemStart, Runtime.CurrentInstructionCount);
-
-            int cargoStart = Runtime.CurrentInstructionCount;
             cargo_check();
-            performance_profiler("cargo_check", cargoStart, Runtime.CurrentInstructionCount);
-
-            int damageStart = Runtime.CurrentInstructionCount;
             damage_check();
-            performance_profiler("damage_check", damageStart, Runtime.CurrentInstructionCount);
-
-            int powerStart = Runtime.CurrentInstructionCount;
             power_check();
-            performance_profiler("power_check", powerStart, Runtime.CurrentInstructionCount);
-
-            int fuelStart = Runtime.CurrentInstructionCount;
             fuel_check();
-            performance_profiler("fuel_check", fuelStart, Runtime.CurrentInstructionCount);
-
-            int rechargeStart = Runtime.CurrentInstructionCount;
             recharge_state_check();
-            performance_profiler("recharge_state_check", rechargeStart, Runtime.CurrentInstructionCount);
-
-            int trmStart = Runtime.CurrentInstructionCount;
             trm_prec = (trm_coeff * drill_sl) + 0.6;
-            performance_profiler("trm_prec_calc", trmStart, Runtime.CurrentInstructionCount);
-
-            int commsStart = Runtime.CurrentInstructionCount;
             check_comms_channels();
-            performance_profiler("check_comms_channels", commsStart, Runtime.CurrentInstructionCount);
-
-            int customDataStart = Runtime.CurrentInstructionCount;
             custom_data_command_presence_check();
-            performance_profiler("custom_data_command_presence_check", customDataStart, Runtime.CurrentInstructionCount);
-
-            int commandStart = Runtime.CurrentInstructionCount;
             command_poll();
-            performance_profiler("command_poll", commandStart, Runtime.CurrentInstructionCount);
-
-            int opStateStart = Runtime.CurrentInstructionCount;
             drone_operating_state_mng();
-            performance_profiler("drone_operating_state_mng", opStateStart, Runtime.CurrentInstructionCount);
-
-            int batteryRechargeStart = Runtime.CurrentInstructionCount;
             connected_battery_recharge_check();
-            performance_profiler("connected_battery_recharge_check", batteryRechargeStart, Runtime.CurrentInstructionCount);
-
-            int undockStart = Runtime.CurrentInstructionCount;
             undock_management();
-            performance_profiler("undock_management", undockStart, Runtime.CurrentInstructionCount);
-
-            int dockUndockStart = Runtime.CurrentInstructionCount;
             dock_undock_state_check();
-            performance_profiler("dock_undock_state_check", dockUndockStart, Runtime.CurrentInstructionCount);
-
-            int diverStateStart = Runtime.CurrentInstructionCount;
             drone_diver_state_management();
-            performance_profiler("drone_diver_state_management", diverStateStart, Runtime.CurrentInstructionCount);
-
-            int gravityStart = Runtime.CurrentInstructionCount;
             check_for_planetary_gravity_presence();
-            performance_profiler("check_for_planetary_gravity_presence", gravityStart, Runtime.CurrentInstructionCount);
-
-            int alignStart = Runtime.CurrentInstructionCount;
             drone_alignment_management();
-            performance_profiler("drone_alignment_management", alignStart, Runtime.CurrentInstructionCount);
-
-            int navInitStart = Runtime.CurrentInstructionCount;
             rc_navigation_init();
-            performance_profiler("rc_navigation_init", navInitStart, Runtime.CurrentInstructionCount);
 
             if (nav_state)
             {
-                int navStart = Runtime.CurrentInstructionCount;
                 navigation_management();
-                performance_profiler("navigation_management", navStart, Runtime.CurrentInstructionCount);
             }
 
             if (mine_state || was_mining)
             {
-                int mineStart = Runtime.CurrentInstructionCount;
                 mining_management();
-                performance_profiler("mining_management", mineStart, Runtime.CurrentInstructionCount);
             }
 
-            int dockingStart = Runtime.CurrentInstructionCount;
             docking_management();
-            performance_profiler("docking_management", dockingStart, Runtime.CurrentInstructionCount);
-
-            int connectorStart = Runtime.CurrentInstructionCount;
             connector_state_management();
-            performance_profiler("connector_state_management", connectorStart, Runtime.CurrentInstructionCount);
-
-            int transmitStart = Runtime.CurrentInstructionCount;
             drone_message_transmission_management();
-            performance_profiler("drone_message_transmission_management", transmitStart, Runtime.CurrentInstructionCount);
-
-            int navMoveStart = Runtime.CurrentInstructionCount;
             nagivation_movement_check();
-            performance_profiler("nagivation_movement_check", navMoveStart, Runtime.CurrentInstructionCount);
-
-            int undockDelayStart = Runtime.CurrentInstructionCount;
             undock_delay_check();
-            performance_profiler("undock_delay_check", undockDelayStart, Runtime.CurrentInstructionCount);
-
-            int statusStart = Runtime.CurrentInstructionCount;
             GetDroneStatus(drone_status);
-            performance_profiler("GetDroneStatus", statusStart, Runtime.CurrentInstructionCount);
-
-            int reportStart = Runtime.CurrentInstructionCount;
             Drone_Local_Status_Reporting();
-            performance_profiler("Drone_Local_Status_Reporting", reportStart, Runtime.CurrentInstructionCount);
-
-            int delayStart = Runtime.CurrentInstructionCount;
             function_delay_management();
-            performance_profiler("function_delay_management", delayStart, Runtime.CurrentInstructionCount);
-
-            // Total script performance
-            _Instruction = Runtime.CurrentInstructionCount;
-            _Runtime = Runtime.LastRunTimeMs;
-            Echo($"Total Instructions: {_Instruction - startInstructions}, Time: {_Runtime:F2}ms");
-        }
-
-        Dictionary<string, int> instructionCounts = new Dictionary<string, int>();
-        Dictionary<string, double> runTimes = new Dictionary<string, double>();
-        int profileRuns = 0;
-
-        void performance_profiler(string methodName, int startCount, int endCount)
-        {
-            int instructions = endCount - startCount;
-            double time = Runtime.LastRunTimeMs; // Approximate, as SE doesn’t give per-method time
-
-            if (!instructionCounts.ContainsKey(methodName))
-            {
-                instructionCounts[methodName] = 0;
-                runTimes[methodName] = 0;
-            }
-
-            instructionCounts[methodName] = (instructionCounts[methodName] * profileRuns + instructions) / (profileRuns + 1);
-            runTimes[methodName] = (runTimes[methodName] * profileRuns + time) / (profileRuns + 1);
-
-            if (profileRuns % 10 == 0) // Log every 10 runs to avoid spamming
-            {
-                Echo($"{methodName}: {instructions} instr, Avg: {instructionCounts[methodName]}");
-            }
         }
         Vector3D GetNavAngles(Vector3D Target)
         {
