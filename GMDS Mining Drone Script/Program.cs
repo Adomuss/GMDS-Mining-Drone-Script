@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.338A       
+        // General Mining Drone Script v0.339A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.338";
+        string ver = "V0.339";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2575,7 +2575,7 @@ namespace IngameScript
         public void drone_alignment_management()
         {
             #region drone_alignment_management
-            if (is_docked || docking_stage > 0 || !is_undocked && !is_docked)
+            if (is_docked || docking_stage > 0 || !is_undocked && !is_docked || is_undocking || is_docking)
             {
                 can_gyroOVR = false;
             }
@@ -2588,6 +2588,7 @@ namespace IngameScript
                 can_gyroOVR = true;
             }
             SetGyroOverride(can_gyroOVR, GetNavAngles(crnt_tgt_align) * GyrMlt);
+            
             double YawMon = GetNavAngles(crnt_tgt_align).GetDim(0);
             double PitchMon = GetNavAngles(crnt_tgt_align).GetDim(1);
             double RollMon = GetNavAngles(crnt_tgt_align).GetDim(2);
@@ -3517,7 +3518,7 @@ namespace IngameScript
                     {
                         ai_move_actual.CollisionAvoidance = true;
                     }
-                    if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
+                    if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && !ai_dck_act.GetValue<bool>(p1) && ai_move_actual.GetValue<bool>(ab0) && ai_move_actual.CollisionAvoidance && ai_dck_act.GetValue<bool>(ab0))
                     {
                         ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                         ai_dck_act.GetActionWithName(ab1).Apply(ai_dck_act);
@@ -3565,7 +3566,30 @@ namespace IngameScript
                     drone_output_status = "Docked";
                     undocking_stage = 0;
                 }
-                if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2 || no_speed_ready_undock)
+                if (!locked.Equals(cc) && !ai_dck_act.GetValue<bool>(p1) && docking_stage == 2)
+                {
+                    ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+                    ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);                    
+                    if (!collision_avoid_light_actual.Enabled)
+                    {
+                        collision_avoid_light_actual.Enabled = true;
+                    }
+                    if (Collision_sense_enabled)
+                    {
+                        if (!sensor_actual.Enabled)
+                        {
+                            sensor_actual.Enabled = true;
+                        }
+                    }
+                    if (precM_light_actual.Enabled)
+                    {
+                        precM_light_actual.Enabled = false;
+                    }
+                    ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                    ai_dck_act.GetActionWithName(ab1).Apply(ai_dck_act);                    
+                    ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
+                }
+                if(no_speed_ready_undock && !locked.Equals(cc) && ai_dck_act.GetValue<bool>(p1) && docking_stage == 2)
                 {
                     if (!reset_light_actual.Enabled)
                     {
