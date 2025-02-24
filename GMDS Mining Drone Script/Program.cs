@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.334A       
+        // General Mining Drone Script v0.336A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -59,9 +59,9 @@ namespace IngameScript
         float bat_CHGhi = 100.0f;
         float bat_CHGlow = 30.0f;
         //drone nav settings
-        float drill_spd = 10.0f;
-        float nav_spd = 5.0f;
-        float exit_spd = 1.0f;
+        float drill_speed = 1.0f;
+        float nav_speed = 5.0f;
+        float exit_speed = 1.0f;
         double nav_inst_thr = 0.05;
         double gsl = 0.1;
         //drone mining settings
@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.334";
+        string ver = "V0.336";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -114,7 +114,7 @@ namespace IngameScript
         string drone_output_status = "Idle";
         string recall_command = "recall";
         double trm_prec = 0.0;
-        double trm_coeff = 0.04;
+        double trm_coeff = 0.02;
         float GyrMlt = 2;
         string dat_in;
         string dat_in2 = "";
@@ -2575,7 +2575,7 @@ namespace IngameScript
             if (main_nav_sequence == 2 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && is_undocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
                 main_nav_sequence = 3;
-                rc_actual.SpeedLimit = nav_spd;
+                rc_actual.SpeedLimit = nav_speed;
 
                 if (command_request == 1)
                 {
@@ -2674,7 +2674,7 @@ namespace IngameScript
             double rc_cw_z = main_gps_coords.Z;
             if (main_nav_sequence == 3 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && is_undocked && !main_nav_complete && add_nav_Waypoint_mn && !rc_actual.IsAutoPilotEnabled && !navinst)
             {
-                rc_actual.SpeedLimit = nav_spd;
+                rc_actual.SpeedLimit = nav_speed;
                 if (command_request == 1)
                 {
                     rc_actual.SetCollisionAvoidance(true);
@@ -2930,6 +2930,31 @@ namespace IngameScript
                     mining_gps_coords_temp.X = Math.Round(rc_xyz.X + targetposition.X, 2);
                     mining_gps_coords_temp.Y = Math.Round(rc_xyz.Y + targetposition.Y, 2);
                     mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);
+                    // Calculate progress along Z
+                    //remote_control_position_update();
+                    double z_progress = rc_xyz.Z - tgt_drill_start.Z;
+                    double z_total = tgt_drill_end.Z - tgt_drill_start.Z;
+                    double fraction = z_total != 0 ? z_progress / z_total : 0; // Avoid division by zero
+
+                    // Calculate expected X, Y for current Z
+                    double expected_x = tgt_drill_start.X + (tgt_drill_end.X - tgt_drill_start.X) * fraction;
+                    double expected_y = tgt_drill_start.Y + (tgt_drill_end.Y - tgt_drill_start.Y) * fraction;
+
+                    // Calculate XY drift
+                    double xy_drift = Math.Sqrt(
+                        Math.Pow(rc_xyz.X - expected_x, 2) +
+                        Math.Pow(rc_xyz.Y - expected_y, 2)
+                    );
+
+                    // Correct alignment if drifted
+                    if (xy_drift > trm_prec * 2)
+                    {
+                        Echo("XY Drift: " + xy_drift.ToString("F2") + " - Correcting");
+                        // Update waypoint to the expected position to realign the drone
+                        mining_gps_coords_temp.X = expected_x;
+                        mining_gps_coords_temp.Y = expected_y;
+                        // Note: Z remains mining_gps_coords_temp.Z unless you want to adjust it too
+                    }
                     StDrlOnOff(true, cnvyrsON);
                     drone_status = 8;
                     drone_output_status = "Mining";
@@ -2977,7 +3002,7 @@ namespace IngameScript
             if (mining_stage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && distance_id && !is_autopiloting && is_undocked)
             {
                 mining_stage = 4;
-                rc_actual.SpeedLimit = drill_spd;
+                rc_actual.SpeedLimit = drill_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
                 rc_actual.SetAutoPilotEnabled(!navinst);
@@ -3040,7 +3065,7 @@ namespace IngameScript
                 Last_Coords_Term = main_gps_coords;
                 exit_waypoint_set = false;
                 exit_sequence_complete = false;
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 rc_actual.ClearWaypoints();
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
@@ -3054,7 +3079,7 @@ namespace IngameScript
                 Last_Coords_Term = main_gps_coords;
                 exit_waypoint_set = false;
                 exit_sequence_complete = false;
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
@@ -3070,7 +3095,7 @@ namespace IngameScript
                 Last_Coords_Term = main_gps_coords;
                 exit_waypoint_set = false;
                 exit_sequence_complete = false;
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 rc_actual.ClearWaypoints();
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
@@ -3083,7 +3108,7 @@ namespace IngameScript
                 mining_stage = 6;
                 request_exit = true;
                 Last_Coords_Term = main_gps_coords;
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
@@ -3097,7 +3122,7 @@ namespace IngameScript
             {
                 mining_stage = 1;
                 target_depth_achieved = false;
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
@@ -3128,7 +3153,7 @@ namespace IngameScript
                 {
                     reset_light_actual.Enabled = false;
                 }
-                rc_actual.SpeedLimit = exit_spd;
+                rc_actual.SpeedLimit = exit_speed;
                 if (trgt_vld)
                 {
                     directionc = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
