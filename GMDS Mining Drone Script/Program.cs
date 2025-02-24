@@ -25,7 +25,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.336A       
+        // General Mining Drone Script v0.338A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -59,7 +59,7 @@ namespace IngameScript
         float bat_CHGhi = 100.0f;
         float bat_CHGlow = 30.0f;
         //drone nav settings
-        float drill_speed = 0.5f;
+        float drill_speed = 1.0f;
         float nav_speed = 5.0f;
         float exit_speed = 1.0f;
         double nav_inst_thr = 0.05;
@@ -67,10 +67,10 @@ namespace IngameScript
         //drone mining settings
         double drill_sl = 100.0;
         double drill_el = 20.0;
-        double req_dist = 1;
-        double nav_prec = 0.6;
+        double req_dist = 1.0;
+        double nav_prec = 0.5;
         double nav_prec2 = 1.2;
-        double mine_prec = 0.6;
+        double mine_prec = 0.5;
 
         //statics
         bool udock_conf = true;
@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.336";
+        string ver = "V0.338";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3735,6 +3735,7 @@ namespace IngameScript
 
             if (pinged)
             {
+                remote_control_position_update();
                 sb.Clear().EnsureCapacity(128); // ~100-120 chars typical
                 sb.Append(D_I_N).Append(':')
                   .Append(drone_damage_status).Append(':')
@@ -3798,34 +3799,42 @@ namespace IngameScript
         public void Drone_Local_Status_Reporting()
         {
             #region drone_status_local_report
+            // Pre-calculate commonly used values to avoid repeated Math.Round calls
+            double runtimePercent = Math.Round((_Runtime / game_tick_length) * 100.0, 3);
+            double runtimeMs = Math.Round(_Runtime, 3);
+            double cargoPercent = Math.Round(total_percent_cargo_used, 2);
+            double batteryPercent = Math.Round(percent_battery_power, 2);
+            double tankPercent = hydrogen_tank_tag.Count > 0 ? Math.Round(pcnt_gas_tank, 2) : 0;
+            double mineDistance = Math.Round(distance_current, 2);
+            double speed = Math.Round(spd, 2);
+            double groundSpeed = Math.Round(gspeed, 2);
 
-
-            Echo($"Load: {Math.Round((_Runtime / game_tick_length) * (double)100.0, 3)}% ({Math.Round(_Runtime, 3)}ms) I#: {_Instruction}");
-            Echo("Drone ID: " + D_I_N + " # " + drone_damage_status);
-            Echo("Status Ints: " + drnst);
-            Echo("Drone Status: " + drone_output_status);
-            Echo("Distance ID: " + distance_id);
-            Echo("Command seq: " + cmd_rqt);
-            Echo("Cargo: " + Math.Round(total_percent_cargo_used, 2) + "%  Full: " + cargo_full_achieved);
-            Echo("Charge: " + Math.Round(percent_battery_power, 2) + "%  Recharge: " + recharge_request_battery);
+            // Core status report
+            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction}");
+            Echo($"Drone ID: {D_I_N} # {drone_damage_status}");
+            Echo($"Status Ints: {drnst}");
+            Echo($"Drone Status: {drone_output_status}");
+            Echo($"Distance ID: {distance_id}");
+            Echo($"Command seq: {cmd_rqt}");
+            Echo($"Cargo: {cargoPercent}%  Full: {cargo_full_achieved}");
+            Echo($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
             if (hydrogen_tank_tag.Count > 0)
             {
-                Echo("HTank: " + Math.Round(pcnt_gas_tank, 2) + "%  Recharge: " + recharge_request_tank);
+                Echo($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
             }
-            Echo("Mine distance: " + Math.Round(distance_current, 2) + "m" + " Mine Start: " + (drill_sl - no_cnvy_dst) + "m");
-            Echo("Mine: " + mine_state + " - Stage:  " + mining_stage);
-            Echo("Nav: " + nav_state + " - Stage:  " + main_nav_sequence);
-            Echo("Dock: " + is_docked + " - Stage:  " + docking_stage);
-            Echo("Undock: " + is_undocked + " - Stage  " + undocking_stage);
-            Echo("Connected: " + connector_actual.IsConnected);
-            Echo("Depth Achieved: " + target_depth_achieved);
-            Echo("Stopped: " + stop_state);
+            Echo($"Mine distance: {mineDistance}m  Mine Start: {(drill_sl - no_cnvy_dst)}m");
+            Echo($"Mine: {mine_state} - Stage: {mining_stage}");
+            Echo($"Nav: {nav_state} - Stage: {main_nav_sequence}");
+            Echo($"Dock: {is_docked} - Stage: {docking_stage}");
+            Echo($"Undock: {is_undocked} - Stage: {undocking_stage}");
+            Echo($"Connected: {connector_actual.IsConnected}");
+            Echo($"Depth Achieved: {target_depth_achieved}");
+            Echo($"Stopped: {stop_state}");
             Echo($"Last response: {response_time}s waiting: {transmit_delay}");
-            //Echo($"Last cmd: {Math.Round(((double)readcount * (double)10 * game_tick_length) / (double)1000, 1)}s waiting: {read_wait}");
             Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
             Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
-            Echo($"Speed: {Math.Round(spd, 2)} {Math.Round(gspeed, 2)}");
-            //Echo($"{t_count} {t_delay} {ns_count} {r_delay} {ns_c2} {nsr} {Math.Round(spd, 2)} {Math.Round(gspeed, 2)} {pinged}");
+            Echo($"Speed: {speed} {groundSpeed}");
+
             #endregion
         }
 
