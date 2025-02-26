@@ -87,7 +87,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.339";
+        string ver = "V0.340";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3704,26 +3704,38 @@ namespace IngameScript
 
             if (pinged)
             {
-                remote_control_position_update();
-                sb.Clear().EnsureCapacity(128); // ~100-120 chars typical
-                sb.Append(D_I_N).Append(':')
-                  .Append(drone_damage_status).Append(':')
-                  .Append(tunnel_sequence_finished).Append(':')
-                  .Append(drone_output_status).Append(':')
-                  .Append(is_docked).Append(':')
-                  .Append(is_undocked).Append(':')
-                  .Append(is_autopiloting).Append(':')
-                  .Append(rc_actual.IsAutoPilotEnabled).Append(':')
-                  .Append(Math.Round(rc_xyz.X, 2)).Append(':')
-                  .Append(Math.Round(rc_xyz.Y, 2)).Append(':')
-                  .Append(Math.Round(rc_xyz.Z, 2)).Append(':')
-                  .Append(drill_sl).Append(':')
-                  .Append(Math.Round(distance_current, 2)).Append(':')
-                  .Append(Math.Round(drill_sl - no_cnvy_dst, 2)).Append(':')
-                  .Append(Math.Round(percent_battery_power, 2)).Append(':')
-                  .Append(Math.Round(pcnt_gas_tank, 2)).Append(':')
-                  .Append(Math.Round(total_percent_cargo_used, 2)).Append(':')
-                  .Append(gpsindx);
+                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}";
+                sb.Clear().EnsureCapacity(128);
+                sb.AppendFormat(baseFormat, D_I_N, 
+                    drone_damage_status, tunnel_sequence_finished, drone_output_status,
+                    is_docked, is_undocked, is_autopiloting, 
+                    rc_actual.IsAutoPilotEnabled,
+                    Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
+                    drill_sl, Math.Round(distance_current, 2), Math.Round(drill_sl - no_cnvy_dst, 2),
+                    Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
+                    gpsindx, cargo_full_achieved, recharge_request
+                    );
+                /*   sb.Append(D_I_N).Append(':')
+                     .Append(drone_damage_status).Append(':')
+                     .Append(tunnel_sequence_finished).Append(':')
+                     .Append(drone_output_status).Append(':')
+                     .Append(is_docked).Append(':')
+                     .Append(is_undocked).Append(':')
+                     .Append(is_autopiloting).Append(':')
+                     .Append(rc_actual.IsAutoPilotEnabled).Append(':')
+                     .Append(Math.Round(rc_xyz.X, 2)).Append(':')
+                     .Append(Math.Round(rc_xyz.Y, 2)).Append(':')
+                     .Append(Math.Round(rc_xyz.Z, 2)).Append(':')
+                     .Append(drill_sl).Append(':')
+                     .Append(Math.Round(distance_current, 2)).Append(':')
+                     .Append(Math.Round(drill_sl - no_cnvy_dst, 2)).Append(':')
+                     .Append(Math.Round(percent_battery_power, 2)).Append(':')
+                     .Append(Math.Round(pcnt_gas_tank, 2)).Append(':')
+                     .Append(Math.Round(total_percent_cargo_used, 2)).Append(':')
+                     .Append(gpsindx)
+                     .Append(cargo_full_achieved)
+                     .Append(recharge_request);*/
+
                 dat_out = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dat_out, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
                 pinged = false;
