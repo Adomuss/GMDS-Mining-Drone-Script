@@ -3728,7 +3728,7 @@ namespace IngameScript
             if (pinged)
             {
                 const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}";
-                sb.Clear().EnsureCapacity(128);
+                sb.Clear().EnsureCapacity(150);
                 sb.AppendFormat(baseFormat, D_I_N, 
                     drone_damage_status, tunnel_sequence_finished, drone_output_status,
                     is_docked, is_undocked, is_autopiloting, 
