@@ -356,6 +356,9 @@ namespace IngameScript
         float percent_battery_power = 0.0f;
         double pcnt_gas_tank = 0.0;
         double _Runtime;
+        private double totalRuntimeMs = 0.0;
+        private int runCount = 0;
+        private double averageRuntimeMs = 0.0;
         int _Instruction;
         #endregion
 
@@ -415,7 +418,17 @@ namespace IngameScript
         public void Main(string argument)
         {
             _Runtime = Runtime.LastRunTimeMs;
-            _Instruction = Runtime.CurrentInstructionCount;
+            // Update running average
+            totalRuntimeMs += _Runtime;
+            runCount++;
+            if (runCount == 10)
+            {
+                averageRuntimeMs = Math.Round((totalRuntimeMs / runCount),3);
+                runCount = 0;
+                totalRuntimeMs = 0;
+            }
+
+            int _Instruction = Runtime.CurrentInstructionCount;
 
             #region setup_code
             if (!setup_complete)
@@ -696,9 +709,8 @@ namespace IngameScript
                 dt_prsnt4 = false;
             }
         }
-
-        #region drill_management
-        void StDrlOnOff(bool DrilOnOf, bool UConv)
+       
+        void SetDrillState(bool DrilOnOf, bool UConv)
         {
 
             if (drill_tag.Count <= 0)
@@ -770,8 +782,7 @@ namespace IngameScript
             }
             drill_all.Clear();
         }
-        #endregion
-
+       
         void reset_ai()
         {
             ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);
@@ -2919,7 +2930,7 @@ namespace IngameScript
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
                 
-                StDrlOnOff(true, cnvyrsON);
+                SetDrillState(true, cnvyrsON);
                 drone_status = 8;
                 drone_output_status = "Mining";
             }
@@ -3434,7 +3445,7 @@ namespace IngameScript
                 {
                     connector_actual.Enabled = true;
                 }
-                StDrlOnOff(false, cnvyrsON);
+                SetDrillState(false, cnvyrsON);
                 string locked = connector_actual.Status.ToString();
                 if (!undock_light_actual.Enabled)
                 {
@@ -3523,7 +3534,7 @@ namespace IngameScript
                     no_speed_undock_delay_count++;
                     undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 }
-                StDrlOnOff(false, cnvyrsON);
+                SetDrillState(false, cnvyrsON);
 
                 if (locked.Equals(cc) && docking_stage == 2)
                 {
@@ -3551,7 +3562,7 @@ namespace IngameScript
             if (docking_stage == 3 && is_docked)
             {
                 no_speed_undock_delay_count = 0;
-                StDrlOnOff(false, cnvyrsON);
+                SetDrillState(false, cnvyrsON);
                 if (!tb_TOFF_act.Enabled)
                 {
                     tb_TOFF_act.Enabled = true;
@@ -3778,8 +3789,6 @@ namespace IngameScript
             #endregion
         }
 
-
-
         public void drone_message_transmission_management()
         {
             #region drone_transmission_response_management
@@ -3879,7 +3888,7 @@ namespace IngameScript
             double groundSpeed = Math.Round(currentSpeed, 2);
 
             // Core status report
-            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction}");
+            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) Avg:{averageRuntimeMs} I#: {_Instruction}");
             Echo($"Drone ID: {D_I_N} # {drone_damage_status}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {drone_output_status}");
