@@ -88,7 +88,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.341";
+        string ver = "V0.342";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -96,6 +96,7 @@ namespace IngameScript
         //other variables
         int no_speed_navigation_delay_limit = 5;
         int no_speed_undock_delay_limit = 120;
+        int no_speed_dock_delay_limit = 360;
         double game_tick_length = 16.666;
         string D_I_N = "";
         string D_C_N = "";
@@ -198,7 +199,9 @@ namespace IngameScript
         int t_count = 0;
         int no_speed_count_navigation_reset_delay_count = 0;
         int no_speed_undock_delay_count = 0;
+        int no_speed_dock_delay_count = 0;
         bool no_speed_ready_undock = false;
+        bool no_speed_ready_dock = false;
         bool transmit_delay = false;
         bool recall = false;
         bool dt_prsnt4 = false;
@@ -341,6 +344,7 @@ namespace IngameScript
         int temp_id_num;
         double response_time = 0.0;
         double undock_delay_time = 0.0;
+        double dock_delay_time = 0.0;
         double navigation_reset_delay_time = 0.0;
         string fail_data = "---:-1:0:0:0:0:0:0:0:";
         double spd;
@@ -472,6 +476,7 @@ namespace IngameScript
             drone_message_transmission_management();
             nagivation_movement_check();
             undock_delay_check();
+            dock_delay_check();
             GetDroneStatus(drone_status);
             Drone_Local_Status_Reporting();
             function_delay_management();
@@ -3498,29 +3503,29 @@ namespace IngameScript
                     && sensor_actual.Enabled
                     && !reset_light_actual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_undock_delay_count < no_speed_undock_delay_limit
+                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
                     || !locked.Equals(cc)
                     && precM_light_actual.Enabled
                     && !sensor_actual.Enabled
                     && !reset_light_actual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_undock_delay_count < no_speed_undock_delay_limit
+                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
                     || !locked.Equals(cc)
                     && precM_light_actual.Enabled
                     && !sensor_actual.Enabled
                     && !reset_light_actual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_undock_delay_count < no_speed_undock_delay_limit
+                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
                     || !locked.Equals(cc)
                     && !precM_light_actual.Enabled
                     && sensor_actual.Enabled
                     && !reset_light_actual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_undock_delay_count < no_speed_undock_delay_limit
+                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
                                         )
                 {
-                    no_speed_undock_delay_count++;
-                    undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                    no_speed_dock_delay_count++;
+                    dock_delay_time = Math.Round(((double)no_speed_dock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 }
                 StDrlOnOff(false, cnvyrsON);
 
@@ -3535,7 +3540,7 @@ namespace IngameScript
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
 
-                if (!locked.Equals(cc) && docking_stage == 2 && no_speed_ready_undock && (!ai_dck_act.GetValue<bool>(p1) ))
+                if (!locked.Equals(cc) && docking_stage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) ))
                 {
                     if (!reset_light_actual.Enabled)
                     {
@@ -3549,7 +3554,7 @@ namespace IngameScript
 
             if (docking_stage == 3 && is_docked)
             {
-                no_speed_undock_delay_count = 0;
+                no_speed_dock_delay_count = 0;
                 StDrlOnOff(false, cnvyrsON);
                 if (!tb_TOFF_act.Enabled)
                 {
@@ -3776,6 +3781,17 @@ namespace IngameScript
             }
             #endregion
         }
+        public void dock_delay_check()
+        {
+            #region dock_delay_check
+            if (no_speed_ready_dock)
+            {
+                dock_delay_time = Math.Round(((double)no_speed_dock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
+                no_speed_ready_dock = false;
+                no_speed_dock_delay_count = 0;
+            }
+            #endregion
+        }
 
 
 
@@ -3900,6 +3916,7 @@ namespace IngameScript
             Echo($"Stopped: {stop_state}");
             Echo($"Last response: {response_time}s waiting: {transmit_delay}");
             Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
+            Echo($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
             Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             Echo($"Speed: {speed} {groundSpeed}");
 
@@ -3922,6 +3939,10 @@ namespace IngameScript
             if (no_speed_undock_delay_count >= no_speed_undock_delay_limit)
             {
                 no_speed_ready_undock = true;
+            }
+            if (no_speed_dock_delay_count >= no_speed_dock_delay_limit)
+            {
+                no_speed_ready_dock = true;
             }
             #endregion
         }
