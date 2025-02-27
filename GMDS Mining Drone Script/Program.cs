@@ -32,7 +32,7 @@ namespace IngameScript
         // 
         #region mdk preserve
         public Program()
-        {       
+        {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
         }
         //rename these for drone
@@ -423,7 +423,7 @@ namespace IngameScript
             runCount++;
             if (runCount == 10)
             {
-                averageRuntimeMs = Math.Round((totalRuntimeMs / runCount),3);
+                averageRuntimeMs = Math.Round((totalRuntimeMs / runCount), 3);
                 runCount = 0;
                 totalRuntimeMs = 0;
             }
@@ -550,40 +550,40 @@ namespace IngameScript
                 Echo("Invalid Custom Data");
                 Me.CustomData = fail_data;
             }
-            if (gpsCoordinatesCommand.Length > 0) 
+            if (gpsCoordinatesCommand.Length > 0)
             {
                 gpsIndex = gpsCoordinatesCommand[1];
             }
-            if (gpsCoordinatesCommand.Length > 1 && !Double.TryParse(gpsCoordinatesCommand[2], out main_gps_coords.X) || gpsCoordinatesCommand[2]==null)
+            if (gpsCoordinatesCommand.Length > 1 && !Double.TryParse(gpsCoordinatesCommand[2], out main_gps_coords.X))
             {
                 main_gps_coords.X = 0;
             }
-            if (gpsCoordinatesCommand.Length > 2 && !Double.TryParse(gpsCoordinatesCommand[3], out main_gps_coords.Y) || gpsCoordinatesCommand[3] == null)
+            if (gpsCoordinatesCommand.Length > 2 && !Double.TryParse(gpsCoordinatesCommand[3], out main_gps_coords.Y))
             {
                 main_gps_coords.Y = 0;
             }
-            if (gpsCoordinatesCommand.Length > 3 && !Double.TryParse(gpsCoordinatesCommand[4], out main_gps_coords.Z) || gpsCoordinatesCommand[4] == null)
+            if (gpsCoordinatesCommand.Length > 3 && !Double.TryParse(gpsCoordinatesCommand[4], out main_gps_coords.Z))
             {
                 main_gps_coords.Z = 0;
-            }            
-            if (gpsCoordinatesCommand.Length > 4 && !int.TryParse(gpsCoordinatesCommand[5], out command_request) || gpsCoordinatesCommand[5] == null)
+            }
+            if (gpsCoordinatesCommand.Length > 4 && !int.TryParse(gpsCoordinatesCommand[5], out command_request))
             {
                 command_request = 0;
             }
-            if (gpsCoordinatesCommand.Length > 5 && !Double.TryParse(gpsCoordinatesCommand[6], out drill_sl) || gpsCoordinatesCommand[6] == null)
+            if (gpsCoordinatesCommand.Length > 5 && !Double.TryParse(gpsCoordinatesCommand[6], out drill_sl))
             {
                 drill_sl = 1.0;
             }
             //length 6 is unknown for now - TBC
-            if (gpsCoordinatesCommand.Length > 6 && !Double.TryParse(gpsCoordinatesCommand[7], out drill_sl) || gpsCoordinatesCommand[7] == null)
+            if (gpsCoordinatesCommand.Length > 6 && !Double.TryParse(gpsCoordinatesCommand[7], out drill_sl))
             {
                 drill_sl = 1.0;
             }
-            if (gpsCoordinatesCommand.Length > 7 && !Double.TryParse(gpsCoordinatesCommand[8], out no_cnvy_dst) || gpsCoordinatesCommand[8] == null)
+            if (gpsCoordinatesCommand.Length > 7 && !Double.TryParse(gpsCoordinatesCommand[8], out no_cnvy_dst))
             {
                 no_cnvy_dst = 1.0;
             }
-            if (gpsCoordinatesCommand.Length > 8 && gpsCoordinatesCommand[9] != null)
+            if (gpsCoordinatesCommand.Length > 8)
             {
                 gps_dat_8 = gpsCoordinatesCommand[9];
             }
@@ -591,7 +591,7 @@ namespace IngameScript
             {
                 gps_dat_8 = "";
             }
-            if (gpsCoordinatesCommand.Length > 9 && gpsCoordinatesCommand[10] != null)
+            if (gpsCoordinatesCommand.Length > 9)
             {
                 gps_dat_9 = gpsCoordinatesCommand[10];
             }
@@ -599,7 +599,7 @@ namespace IngameScript
             {
                 gps_dat_9 = "";
             }
-            if (gpsCoordinatesCommand.Length > 10 && !Double.TryParse(gpsCoordinatesCommand[11], out align_tgt_new.X) || gpsCoordinatesCommand[11] == null)
+            if (gpsCoordinatesCommand.Length > 10 && !Double.TryParse(gpsCoordinatesCommand[11], out align_tgt_new.X))
             {
                 dt_prsnt4 = false;
             }
@@ -607,9 +607,9 @@ namespace IngameScript
             {
                 dt_prsnt4 = true;
             }
-            
-            
-            if (gpsCoordinatesCommand.Length > 11 && !Double.TryParse(gpsCoordinatesCommand[12], out align_tgt_new.Y) || gpsCoordinatesCommand[12] == null)
+
+
+            if (gpsCoordinatesCommand.Length > 11 && !Double.TryParse(gpsCoordinatesCommand[12], out align_tgt_new.Y))
             {
                 dt_prsnt5 = false;
             }
@@ -617,7 +617,7 @@ namespace IngameScript
             {
                 dt_prsnt5 = true;
             }
-            if (gpsCoordinatesCommand.Length > 12 && !Double.TryParse(gpsCoordinatesCommand[13], out align_tgt_new.Z) || gpsCoordinatesCommand[13] == null)
+            if (gpsCoordinatesCommand.Length > 12 && !Double.TryParse(gpsCoordinatesCommand[13], out align_tgt_new.Z))
             {
                 dt_prsnt6 = false;
             }
@@ -633,9 +633,9 @@ namespace IngameScript
             {
                 trgt_vld = false;
             }
-            
+
         }
-       
+
         void SetDrillState(bool DrilOnOf, bool UConv)
         {
 
@@ -708,7 +708,7 @@ namespace IngameScript
             }
             drill_all.Clear();
         }
-       
+
         void reset_ai()
         {
             ai_dck_act.GetActionWithName(ab0).Apply(ai_dck_act);
@@ -2432,7 +2432,7 @@ namespace IngameScript
                 can_gyroOVR = true;
             }
             SetGyroOverride(can_gyroOVR, GetNavAngles(crnt_tgt_align) * GyrMlt);
-            
+
             double YawMon = GetNavAngles(crnt_tgt_align).GetDim(0);
             double PitchMon = GetNavAngles(crnt_tgt_align).GetDim(1);
             double RollMon = GetNavAngles(crnt_tgt_align).GetDim(2);
@@ -2855,7 +2855,7 @@ namespace IngameScript
                 mining_stage = 2;
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
-                
+
                 SetDrillState(true, cnvyrsON);
                 drone_status = 8;
                 drone_output_status = "Mining";
@@ -2877,7 +2877,7 @@ namespace IngameScript
             if (mining_stage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && mining_initialised && !is_autopiloting && is_undocked)
             {
                 mining_stage = 4;
-                
+
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
                 rc_actual.SetAutoPilotEnabled(!navinst);
@@ -2920,7 +2920,7 @@ namespace IngameScript
                 mining_nav_complete = true;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
-                rc_actual.SetAutoPilotEnabled(false);                
+                rc_actual.SetAutoPilotEnabled(false);
                 drone_status = 12;
                 drone_output_status = "Mining++++";
             }
@@ -3427,7 +3427,7 @@ namespace IngameScript
             if (docking_stage == 2)
             {
                 IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
-                 
+
                 currentSpeed = rc_actual.GetShipSpeed();
                 string locked = connector_actual.Status.ToString();
                 if (!locked.Equals(cc)
@@ -3717,6 +3717,7 @@ namespace IngameScript
 
         public void drone_message_transmission_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
@@ -3727,24 +3728,30 @@ namespace IngameScript
 
             if (pinged)
             {
+                if (rc_actual == null)
+                {
+                    Echo("Error: rc_actual is null");
+                    pinged = false;
+                    return;
+                }
                 const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}";
                 sb.Clear().EnsureCapacity(150);
-                sb.AppendFormat(baseFormat, D_I_N, 
-                    drone_damage_status, tunnel_sequence_finished, drone_output_status,
-                    is_docked, is_undocked, is_autopiloting, 
-                    rc_actual.IsAutoPilotEnabled,
+                sb.AppendFormat(baseFormat, D_I_N ?? "N/A",
+                    drone_damage_status ?? "OK", tunnel_sequence_finished.ToString(), drone_output_status ?? "Idle",
+                    is_docked.ToString(), is_undocked.ToString(), is_autopiloting.ToString(),
+                    rc_actual.IsAutoPilotEnabled.ToString(),
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
                     drill_sl, Math.Round(distance_current, 2), Math.Round(drill_sl - no_cnvy_dst, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
-                    gpsIndex, cargo_full_achieved, recharge_request
-                    );
-
+                    gpsIndex ?? "-1", cargo_full_achieved.ToString(), recharge_request.ToString()
+                );
                 dat_out = sb.ToString();
-                IGC.SendBroadcastMessage(tx_ch, dat_out, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
+                IGC.SendBroadcastMessage(tx_ch, dat_out, TransmissionDistance.TransmissionDistanceMax);
                 pinged = false;
                 dat_in3 = "";
             }
             #endregion
+            Echo($"Transmission: {Runtime.CurrentInstructionCount - startInstructions}");
         }
         public void rc_navigation_init()
         {
