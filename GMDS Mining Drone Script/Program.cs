@@ -551,8 +551,8 @@ namespace IngameScript
              * 0 = GPS Text
              * 1 = GPS Index
              * 2 = Main Target X
-             * 3 = Main Y
-             * 4 = Main Z
+             * 3 = Main Target Y
+             * 4 = Main Target Z
              * 5 = Colour output?
              * 6 = Command Request
              * 7 = Command Distance
@@ -568,12 +568,12 @@ namespace IngameScript
             {
                 gpsindx = gpsCommandData[1];
                 main_gps_coords = new Vector3D(Double.Parse(gpsCommandData[2]), Double.Parse(gpsCommandData[3]), Double.Parse(gpsCommandData[4]));
-                cmd_rqt = gpsCommandData[6].ToString();
+                cmd_rqt = gpsCommandData[6];
                 if (!int.TryParse(cmd_rqt, out commandRequest))
                 {
                     commandRequest = 0;
                 }
-                cmd_dist = gpsCommandData[7].ToString();
+                cmd_dist = gpsCommandData[7];
                 if (!Double.TryParse(cmd_dist, out drillSetLength))
                 {
                     drillSetLength = 1.0;
@@ -595,7 +595,7 @@ namespace IngameScript
                 }
                 else
                 {
-                    gps_dat_7 = gpsCommandData[8].ToString();
+                    gps_dat_7 = gpsCommandData[8];
                     if (!double.TryParse(gps_dat_7, out ignoreDistance))
                     {
                         ignoreDistance = 0.0;
@@ -623,7 +623,7 @@ namespace IngameScript
                 }
                 else
                 {
-                    gps_dat_9 = gpsCommandData[10].ToString();
+                    gps_dat_9 = gpsCommandData[10];
                 }
             }
 
@@ -636,7 +636,7 @@ namespace IngameScript
                 }
                 else
                 {
-                    gps_dat_10 = gpsCommandData[11].ToString();
+                    gps_dat_10 = gpsCommandData[11];
 
                     if (!double.TryParse(gps_dat_10, out tgtX))
                     {
@@ -660,7 +660,7 @@ namespace IngameScript
                 }
                 else
                 {
-                    gps_dat_11 = gpsCommandData[12].ToString();
+                    gps_dat_11 = gpsCommandData[12];
 
                     if (!double.TryParse(gps_dat_11, out tgtY))
                     {
