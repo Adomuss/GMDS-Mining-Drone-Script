@@ -435,7 +435,7 @@ namespace IngameScript
             Echo($"GMDS {ver} Running...");
 
             bool autoDocking = false; // Default or from GMDC command
-            if (!string.IsNullOrEmpty(argument) && argument.Equals(autodockCommand)) { autoDocking = true; }            
+            if (!string.IsNullOrEmpty(argument) && argument.Contains(autodockCommand)) { autoDocking = true; }            
 
             #region refresh_waypoints
             if (waypoints.Count > 0)
