@@ -26,7 +26,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.339A       
+        // General Mining Drone Script v0.341A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -88,7 +88,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.340";
+        string ver = "V0.341";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3517,8 +3517,7 @@ namespace IngameScript
                     && !reset_light_actual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
                     && no_speed_undock_delay_count < no_speed_undock_delay_limit
-                    || !locked.Equals(cc) && docking_stage == 2 && no_speed_ready_undock && (!ai_dck_act.GetValue<bool>(p1) && (myWaypoint.Name == null || myWaypoint.Name == "") || !ai_dck_act.GetValue<bool>(p1))
-                    )
+                                        )
                 {
                     no_speed_undock_delay_count++;
                     undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
@@ -3536,7 +3535,7 @@ namespace IngameScript
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
 
-                if (!locked.Equals(cc) && docking_stage == 2 && no_speed_ready_undock && (!ai_dck_act.GetValue<bool>(p1) && (myWaypoint.Name == null || myWaypoint.Name == "") || !ai_dck_act.GetValue<bool>(p1)))
+                if (!locked.Equals(cc) && docking_stage == 2 && no_speed_ready_undock && (!ai_dck_act.GetValue<bool>(p1) ))
                 {
                     if (!reset_light_actual.Enabled)
                     {
