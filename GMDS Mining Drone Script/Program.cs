@@ -216,8 +216,7 @@ namespace IngameScript
         IMyRemoteControl remoteControlActual;
         IMyCameraBlock camera_actual;
         IMyShipConnector connector_actual;
-        IMyRadioAntenna antenna_actual;
-        IMyGyro gyro_monitor;
+        IMyRadioAntenna antenna_actual;        
         IMyTimerBlock tb_TON_act;
         IMyTimerBlock tb_TOFF_act;
         IMyPathRecorderBlock ai_dck_act;
@@ -306,9 +305,9 @@ namespace IngameScript
         List<MyWaypointInfo> waypoints;
         List<IMyThrust> thrust_all;
         List<IMyThrust> thrust_tag;
-        IMyGyro gyro_actual;
+        IMyGyro gyroActual;
         List<IMyGyro> gyro_all;
-        List<IMyGyro> gyro_tag;
+        List<IMyGyro> gyroTag;
         IMyShipDrill drl_act;
         StringBuilder sb;
         MyIni _ini = new MyIni();
@@ -510,27 +509,26 @@ namespace IngameScript
 
         void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1)
         {
-
-            if (gyro_tag.Count > 0)
+            if (gyroTag.Count > 0)
             {
-                for (int j = 0; j < gyro_tag.Count; j++)
+                for (int j = 0; j < gyroTag.Count; j++)
                 {
-                    if (gyro_tag[j] == null)
+                    if (gyroTag[j] == null)
                     {
+                        Echo("Gyro [{i}] not found resetting setup flag");
                         setupIsComplete = false;
                     }
-                    if (gyro_tag[j] != null)
+                    if (gyroTag[j] != null)
                     {
-                        gyro_actual = gyro_tag[j];
-                        gyro_monitor = gyro_actual;
-                        if (gyro_actual != null)
+                        gyroActual = gyroTag[j];                        
+                        if (gyroActual != null)
                         {
-                            if ((!gyro_actual.GyroOverride && OverrideOnOff) || (gyro_actual.GyroOverride && !OverrideOnOff))
-                                gyro_actual.ApplyAction("Override");
-                            gyro_actual.SetValue("Power", Power);
-                            gyro_actual.SetValue("Yaw", settings.GetDim(0));
-                            gyro_actual.SetValue("Pitch", settings.GetDim(1));
-                            gyro_actual.SetValue("Roll", settings.GetDim(2));
+                            if ((!gyroActual.GyroOverride && OverrideOnOff) || (gyroActual.GyroOverride && !OverrideOnOff))
+                                gyroActual.ApplyAction("Override");
+                            gyroActual.SetValue("Power", Power);
+                            gyroActual.SetValue("Yaw", settings.GetDim(0));
+                            gyroActual.SetValue("Pitch", settings.GetDim(1));
+                            gyroActual.SetValue("Roll", settings.GetDim(2));
                         }
                     }
                 }
@@ -1599,7 +1597,7 @@ namespace IngameScript
             }
             drill_all.Clear();
             gyro_all = new List<IMyGyro>();
-            gyro_tag = new List<IMyGyro>();
+            gyroTag = new List<IMyGyro>();
             gts.GetBlocksOfType<IMyGyro>(gyro_all, b => b.CubeGrid == Me.CubeGrid);
             if (gyro_all.Count > 0)
             {
@@ -1609,13 +1607,13 @@ namespace IngameScript
                     {
                         n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
                         gyro_all[i].CustomName = n;
-                        gyro_tag.Add(gyro_all[i]);
+                        gyroTag.Add(gyro_all[i]);
                     }
                     if (!gyro_all[i].CustomName.Contains(D_I_N))
                     {
                         n = s_gyroscope + " " + (i + 1) + " " + D_I_N;
                         gyro_all[i].CustomName = n;
-                        gyro_tag.Add(gyro_all[i]);
+                        gyroTag.Add(gyro_all[i]);
                     }
                 }
             }
@@ -1648,7 +1646,7 @@ namespace IngameScript
                 Echo($"Drills with tag: '{D_I_N}' not found.");
                 return;
             }
-            if (gyro_tag.Count <= 0 || gyro_tag[0] == null)
+            if (gyroTag.Count <= 0 || gyroTag[0] == null)
             {
                 Echo($"Gyro with tag: '{D_I_N}' not found.");
                 return;
