@@ -3896,6 +3896,7 @@ namespace IngameScript
                     );
                 dataTransmissionOut = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
+                Echo("Transmission sent");
                 dataTransmissionOut = "";
                 pinged = false;
                 pingedMessageDataIn = "";
