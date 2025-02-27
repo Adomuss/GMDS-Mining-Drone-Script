@@ -38,6 +38,8 @@ namespace IngameScript
         //rename these for drone
         int drone_id_num = 1;
         string drone_tag = "SWRM_D";
+        //autodocking enbled
+        bool autoDocking = false;
         //ore detection
         bool ORE_sense_enabled = true;
         float ORE_sense_limit = 0.0f;
@@ -88,7 +90,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.342";
+        string ver = "V0.343";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -468,7 +470,7 @@ namespace IngameScript
 
             if (mine_state || was_mining)
             {
-                mining_management();
+                mining_management(autoDocking);
             }
 
             docking_management();
@@ -2548,6 +2550,7 @@ namespace IngameScript
 
         public void navigation_management()
         {
+            if (rc_actual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
             if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && custom_data_read == 1 && nav_state && !connector_actual.IsConnected && is_undocked)
@@ -2819,8 +2822,10 @@ namespace IngameScript
             #endregion
         }
 
-        public void mining_management()
+        public void mining_management(bool autoDock)
         {
+            if (rc_actual == null) { Echo("Error: Remote control is null in mining_management"); return; }
+
             #region mining_management
             // *** Mining sequence ***
             remote_control_position_update();
@@ -3260,8 +3265,7 @@ namespace IngameScript
                 if (!is_docking || !is_undocking)
                 {
                     reset_ai();
-                }
-                docking_stage = 1;
+                }                
                 collision_avoid_light_actual.Enabled = true;
                 if (Collision_sense_enabled)
                 {
@@ -3278,7 +3282,20 @@ namespace IngameScript
                 {
                     dock_light_actual.Enabled = false;
                 }
-                drone_output_status = "RTB";
+                no_speed_dock_delay_count = 0; // Reset docking delay
+                dock_delay_time = 0;
+                if (autoDock)
+                {
+                    docking_stage = 1;
+                    drone_output_status = "RTB: Request A";
+                }
+                else
+                {
+                    docking_stage = 0;
+                    mining_stage = 12;
+                    drone_output_status = "Preparing A";
+                }
+
             }
             if (mining_stage == 11 && !target_depth_achieved && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
             {
@@ -3295,9 +3312,9 @@ namespace IngameScript
                 {
                     reset_ai();
                 }
-                drone_output_status = "Returning to dock";
+                drone_output_status = "Preparing B";
                 main_nav_sequence = 0;
-                docking_stage = 1;
+                
                 if (!collision_avoid_light_actual.Enabled)
                 {
                     collision_avoid_light_actual.Enabled = true;
@@ -3321,6 +3338,32 @@ namespace IngameScript
                 {
                     dock_light_actual.Enabled = false;
                 }
+                no_speed_dock_delay_count = 0; // Reset docking delay
+                dock_delay_time = 0;
+                if (autoDock)
+                {
+                    docking_stage = 1;
+                    drone_output_status = "RTB: Request B";
+                }
+                else
+                {
+                    docking_stage = 0;
+                    mining_stage = 13;
+                    drone_output_status = "Preparing B";
+                }
+                
+            }
+            if (mining_stage == 12 && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked && target_depth_achieved)
+            {
+                no_speed_dock_delay_count = 0; // Reset docking delay
+                dock_delay_time = 0;
+                drone_output_status = "RTB: Ready A";
+            }
+            if (mining_stage == 13 && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked && !target_depth_achieved)
+            {
+                no_speed_dock_delay_count = 0; // Reset docking delay
+                dock_delay_time = 0;
+                drone_output_status = "RTB: Ready B";
             }
             #endregion
         }
