@@ -37,9 +37,7 @@ namespace IngameScript
         }
         //rename these for drone
         int drone_id_num = 1;
-        string drone_tag = "SWRM_D";
-        //autodocking enbled
-        bool autoDocking = false;
+        string drone_tag = "SWRM_D";                
         //ore detection
         bool ORE_sense_enabled = true;
         float ORE_sense_limit = 0.0f;
@@ -74,6 +72,7 @@ namespace IngameScript
         double nav_prec = 0.5;
         double nav_prec2 = 1.2;
         double mine_prec = 0.5;
+        string autodockCommand = "autodock";
 
         //statics
         bool udock_conf = true;
@@ -414,7 +413,7 @@ namespace IngameScript
             _ini.Set("coordinates", "co11", direction.ToString());
             _ini.Set("coordinates", "co12", directionc.ToString());
             _ini.Set("coordinates", "co13", gravity.ToString());
-            _ini.Set("coordinates", "co14", gpsindx.ToString());
+            _ini.Set("coordinates", "co14", gpsindx.ToString());            
             Storage = _ini.ToString();
         }
         #endregion
@@ -434,6 +433,9 @@ namespace IngameScript
             if (!setup_complete) return;
 
             Echo($"GMDS {ver} Running...");
+
+            bool autoDocking = false; // Default or from GMDC command
+            if (!string.IsNullOrEmpty(argument) && argument.Equals(autodockCommand)) { autoDocking = true; }            
 
             #region refresh_waypoints
             if (waypoints.Count > 0)
@@ -475,7 +477,7 @@ namespace IngameScript
 
             docking_management();
             connector_state_management();
-            drone_message_transmission_management();
+            drone_message_transmission_management(autoDocking);
             nagivation_movement_check();
             undock_delay_check();
             dock_delay_check();
@@ -1001,6 +1003,15 @@ namespace IngameScript
             {
                 drnst = "Comp cmd data";
             }
+            if (drnstus == 26)
+            {
+                drnst = "RTB: Ready A";
+            }
+            if (drnstus == 27)
+            {
+                drnst = "RTB: Ready B";
+            }
+
             #endregion
         }
         public void drone_custom_data_check(string custominfo, int index)
@@ -3358,12 +3369,14 @@ namespace IngameScript
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
                 drone_output_status = "RTB: Ready A";
+                drone_status = 26;
             }
             if (miningStage == 13 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && !target_depth_achieved)
             {
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
                 drone_output_status = "RTB: Ready B";
+                drone_status = 27;
             }
             #endregion
         }
@@ -3838,7 +3851,7 @@ namespace IngameScript
 
 
 
-        public void drone_message_transmission_management()
+        public void drone_message_transmission_management(bool autoDock)
         {
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
@@ -3850,7 +3863,7 @@ namespace IngameScript
 
             if (pinged)
             {
-                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}";
+                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:";
                 sb.Clear().EnsureCapacity(128);
                 sb.AppendFormat(baseFormat, D_I_N, 
                     drone_damage_status, tunnel_sequence_finished, drone_output_status,
@@ -3859,29 +3872,9 @@ namespace IngameScript
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
                     drill_sl, Math.Round(distance_current, 2), Math.Round(drill_sl - no_cnvy_dst, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
-                    gpsindx, cargo_full_achieved, recharge_request
+                    gpsindx, cargo_full_achieved, recharge_request,
+                    autoDock
                     );
-                /*   sb.Append(D_I_N).Append(':')
-                     .Append(drone_damage_status).Append(':')
-                     .Append(tunnel_sequence_finished).Append(':')
-                     .Append(drone_output_status).Append(':')
-                     .Append(is_docked).Append(':')
-                     .Append(is_undocked).Append(':')
-                     .Append(is_autopiloting).Append(':')
-                     .Append(rc_actual.IsAutoPilotEnabled).Append(':')
-                     .Append(Math.Round(rc_xyz.X, 2)).Append(':')
-                     .Append(Math.Round(rc_xyz.Y, 2)).Append(':')
-                     .Append(Math.Round(rc_xyz.Z, 2)).Append(':')
-                     .Append(drill_sl).Append(':')
-                     .Append(Math.Round(distance_current, 2)).Append(':')
-                     .Append(Math.Round(drill_sl - no_cnvy_dst, 2)).Append(':')
-                     .Append(Math.Round(percent_battery_power, 2)).Append(':')
-                     .Append(Math.Round(pcnt_gas_tank, 2)).Append(':')
-                     .Append(Math.Round(total_percent_cargo_used, 2)).Append(':')
-                     .Append(gpsindx)
-                     .Append(cargo_full_achieved)
-                     .Append(recharge_request);*/
-
                 dat_out = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dat_out, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
                 pinged = false;
