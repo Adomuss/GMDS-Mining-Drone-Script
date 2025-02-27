@@ -141,12 +141,7 @@ namespace IngameScript
         string rx_channel_recall = "";
         string rx_channel_recall_drone = "";
         //logic flags
-        float ttl_volu = 0.0f;
-        float ttl_volm = 0.0f;
         float total_percent_cargo_used = 0.0f;
-        float ttl_volus = 0.0f;
-        float ttl_volms = 0.0f;
-        float ttl_pctus = 0.0f;
         //float ttl_PWRs;
         float ttl_sPWR;
         //float ttl_PWRm;
@@ -173,7 +168,7 @@ namespace IngameScript
         bool navState = false;
         bool dockState = false;
         bool undockState = false;
-        bool is_full = false;
+        bool cargoIsFull = false;
         bool cargoIsEmpty = false;
         bool cargoFullAchieved = false;
         bool is_full_charge = false;
@@ -1793,8 +1788,8 @@ namespace IngameScript
         public void cargo_check()
         {
             #region cargo_check
-            ttl_volu = 0;
-            ttl_volm = 0;
+            float ttl_volu = 0.0f;
+            float ttl_volm = 0.0f;            
             total_percent_cargo_used = 0;
             for (int i = 0; i < cargo_tag.Count; i++)
             {
@@ -1803,18 +1798,26 @@ namespace IngameScript
                     float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
                     float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
                     ttl_volu += inventory_vol;
-                    ttl_volm += max_inventory_vol;
+                    ttl_volm += max_inventory_vol;                    
+                }
+                if (ttl_volm > 0.0f) 
+                {
                     total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
                 }
+                else
+                {
+                    total_percent_cargo_used = 0.0f;
+                }
+               
             }
             //
             if (total_percent_cargo_used == 100.0f)
             {
-                is_full = true;
+                cargoIsFull = true;
             }
             if (total_percent_cargo_used < 100.0f)
             {
-                is_full = false;
+                cargoIsFull = false;
             }
             if (total_percent_cargo_used == 0.0f)
             {
@@ -1830,9 +1833,9 @@ namespace IngameScript
             }
             if (ORE_sense_enabled && cargo_sense.Count > 0) // Only run if sense container exists
             {
-                ttl_volus = 0;
-                ttl_volms = 0;
-                ttl_pctus = 0;
+                float ttl_volus = 0.0f;
+                float ttl_volms = 0.0f;
+                float ttl_pctus = 0.0f;
                 for (int i = 0; i < cargo_sense.Count; i++)
                 {
                     if (cargo_sense[i] != null)
@@ -1840,9 +1843,16 @@ namespace IngameScript
                         float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
                         float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
                         ttl_volus += inventory_vol_s;
-                        ttl_volms += max_inventory_vol_s;
-                        ttl_pctus = (ttl_volus / ttl_volms) * 100;
+                        ttl_volms += max_inventory_vol_s;                        
                     }
+                }
+                if (ttl_volms > 0.0f)
+                {
+                    ttl_pctus = (ttl_volus / ttl_volms) * 100;
+                }
+                else 
+                {
+                    ttl_pctus = 0.0f;
                 }
                 sens_convOPN = (ttl_pctus > ORE_sense_limit);
             }
@@ -2905,7 +2915,7 @@ namespace IngameScript
                 tunnelSequenceFinished = true;
             }
             //check if cargo is full and mining has been initialised
-            if (is_full && mineState && miningInitialised)
+            if (cargoIsFull && mineState && miningInitialised)
             {
                 cargoFullAchieved = true;
             }
