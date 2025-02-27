@@ -158,7 +158,7 @@ namespace IngameScript
         bool can_gyroOVR = false;
         bool trgt_vld = false;
         bool cnvyrsON = false;
-        bool exit_WPadj = false;
+        bool exitWaypointAdjusted = false;
         double TrgtPitch = 0.0;
         double TrgtRoll = 0.0;
         double TrgtYaw = 0.0;
@@ -168,7 +168,7 @@ namespace IngameScript
         double ttl_GASm;
         bool sens_convOPN = false;
         bool force_request_dock = false;
-        bool request_exit = false;
+        bool requestExit = false;
         bool cmd_chng = false;
         bool stop_state = true;
         bool mine_state = false;
@@ -181,12 +181,12 @@ namespace IngameScript
         bool is_full_charge = false;
         bool is_low_charge = false;
         bool recharge_request = false;
-        bool was_mining = false;
+        bool wasMining = false;
         bool is_docking = false;
         bool is_undocking = false;
-        bool is_autopiloting = false;
+        bool isAutopiloting = false;
         bool is_docked = false;
-        bool is_undocked = false;
+        bool isUndocked = false;
         bool reset_mining = false;
         bool clr_cords = false;
         int custom_data_read = 0;
@@ -254,14 +254,14 @@ namespace IngameScript
         Vector3D directionc;
         Vector3D gravity;
         bool navigation_reset_delay = false;
-        bool mining_initialised = false;
-        bool exit_waypoint_set = false;
-        bool exit_sequence_complete = false;
+        bool miningInitialised = false;
+        bool exitWaypointSet = false;
+        bool exitSequenceComplete = false;
         bool mining_nav_complete = false;
         bool target_depth_achieved = false;
         bool mine_coords_adjusted = false;
         bool add_mine_waypoint = false;
-        int mining_stage = 0;
+        int miningStage = 0;
         int docking_stage = 0;
         int undocking_stage = 0;
         bool yawinst = false;
@@ -370,7 +370,7 @@ namespace IngameScript
         {
             _ini.Set("commands", "c1", recall);
             _ini.Set("commands", "c2", stop_state);
-            _ini.Set("commands", "c3", was_mining);
+            _ini.Set("commands", "c3", wasMining);
             _ini.Set("commands", "c4", nav_state);
             _ini.Set("commands", "c5", mine_state);
             _ini.Set("commands", "c6", dock_state);
@@ -384,17 +384,17 @@ namespace IngameScript
             _ini.Set("unitstate", "u3", main_nav_sequence);
             _ini.Set("unitstate", "u4", main_nav_complete);
             _ini.Set("unitstate", "u5", add_nav_Waypoint_mn);
-            _ini.Set("unitstate", "u6", mining_initialised);
-            _ini.Set("unitstate", "u7", mining_stage);
+            _ini.Set("unitstate", "u6", miningInitialised);
+            _ini.Set("unitstate", "u7", miningStage);
             _ini.Set("unitstate", "u8", add_mine_waypoint);
             _ini.Set("unitstate", "u9", mine_coords_adjusted);
             _ini.Set("unitstate", "u10", target_depth_achieved);
             _ini.Set("unitstate", "u11", reset_mining);
             _ini.Set("unitstate", "u12", mining_nav_complete);
             _ini.Set("unitstate", "u13", force_request_dock);
-            _ini.Set("unitstate", "u14", request_exit);
-            _ini.Set("unitstate", "u15", exit_sequence_complete);
-            _ini.Set("unitstate", "u16", exit_waypoint_set);
+            _ini.Set("unitstate", "u14", requestExit);
+            _ini.Set("unitstate", "u15", exitSequenceComplete);
+            _ini.Set("unitstate", "u16", exitWaypointSet);
             _ini.Set("unitstate", "u17", tunnel_sequence_finished);
             _ini.Set("unitstate", "u18", yawinst);
             _ini.Set("unitstate", "u19", pitchinst);
@@ -468,7 +468,7 @@ namespace IngameScript
                 navigation_management();
             }
 
-            if (mine_state || was_mining)
+            if (mine_state || wasMining)
             {
                 mining_management(autoDocking);
             }
@@ -808,7 +808,7 @@ namespace IngameScript
                 str = _ini.Get("commands", "c2").ToString();
                 bool.TryParse(str, out stop_state);
                 str = _ini.Get("commands", "c3").ToString();
-                bool.TryParse(str, out was_mining);
+                bool.TryParse(str, out wasMining);
                 str = _ini.Get("commands", "c4").ToString();
                 bool.TryParse(str, out nav_state);
                 str = _ini.Get("commands", "c5").ToString();
@@ -838,9 +838,9 @@ namespace IngameScript
                 str = _ini.Get("unitstate", "u5").ToString();
                 bool.TryParse(str, out add_nav_Waypoint_mn);
                 str = _ini.Get("unitstate", "u6").ToString();
-                bool.TryParse(str, out mining_initialised);
+                bool.TryParse(str, out miningInitialised);
                 str = _ini.Get("unitstate", "u7").ToString();
-                int.TryParse(str, out mining_stage);
+                int.TryParse(str, out miningStage);
                 str = _ini.Get("unitstate", "u8").ToString();
                 bool.TryParse(str, out add_mine_waypoint);
                 str = _ini.Get("unitstate", "u9").ToString();
@@ -854,11 +854,11 @@ namespace IngameScript
                 str = _ini.Get("unitstate", "u12").ToString();
                 bool.TryParse(str, out force_request_dock);
                 str = _ini.Get("unitstate", "u13").ToString();
-                bool.TryParse(str, out request_exit);
+                bool.TryParse(str, out requestExit);
                 str = _ini.Get("unitstate", "u14").ToString();
-                bool.TryParse(str, out exit_sequence_complete);
+                bool.TryParse(str, out exitSequenceComplete);
                 str = _ini.Get("uunitstate16", "u15").ToString();
-                bool.TryParse(str, out exit_waypoint_set);
+                bool.TryParse(str, out exitWaypointSet);
                 str = _ini.Get("unitstate", "u16").ToString();
                 bool.TryParse(str, out tunnel_sequence_finished);
                 str = _ini.Get("unitstate", "u18").ToString();
@@ -2157,7 +2157,7 @@ namespace IngameScript
         public void drone_operating_state_mng()
         {
             #region drone_command_state_processing
-            if (dat_invalid && !was_mining)
+            if (dat_invalid && !wasMining)
             {
                 command_request = 0;
             }
@@ -2167,9 +2167,9 @@ namespace IngameScript
                 cmd_read_ack = 0;
             }
             else stop_state = false;
-            if (command_request == 0 && was_mining)
+            if (command_request == 0 && wasMining)
             {
-                was_mining = false;
+                wasMining = false;
                 target_depth_achieved = false;
             }
             if (command_request == 0 && target_depth_achieved)
@@ -2181,7 +2181,7 @@ namespace IngameScript
                 nav_state = true;
             }
             else nav_state = false;
-            if (command_request == 5 && !request_exit)
+            if (command_request == 5 && !requestExit)
             {
                 mine_state = true;
             }
@@ -2338,7 +2338,7 @@ namespace IngameScript
                 }
             }
 
-            if (is_undocked && undocking_stage == 3 && undocking_start == 0)
+            if (isUndocked && undocking_stage == 3 && undocking_start == 0)
             {
                 drone_output_status = "Undocked";
                 reset_ai();
@@ -2364,7 +2364,7 @@ namespace IngameScript
                 undocking_stage = 3;
             }
 
-            if (undocking_stage > 2 && is_undocked)
+            if (undocking_stage > 2 && isUndocked)
             {
                 is_undocking = false;
             }
@@ -2381,9 +2381,9 @@ namespace IngameScript
             else is_docking = false;
             if (is_undocking || is_docking)
             {
-                is_autopiloting = true;
+                isAutopiloting = true;
             }
-            else is_autopiloting = false;
+            else isAutopiloting = false;
             if (dock_light_actual.Enabled)
             {
                 is_docked = true;
@@ -2392,9 +2392,9 @@ namespace IngameScript
 
             if (undock_light_actual.Enabled)
             {
-                is_undocked = true;
+                isUndocked = true;
             }
-            else is_undocked = false;
+            else isUndocked = false;
             #endregion
         }
 
@@ -2406,19 +2406,19 @@ namespace IngameScript
                 main_nav_sequence = 0;
                 main_nav_complete = false;
                 add_nav_Waypoint_mn = false;
-                if (!was_mining)
+                if (!wasMining)
                 {
                     rc_actual.SetCollisionAvoidance(false);
                     rc_actual.SetDockingMode(false);
                     rc_actual.SetAutoPilotEnabled(false);
                     rc_actual.ClearWaypoints();
-                    mining_initialised = false;
+                    miningInitialised = false;
                     add_mine_waypoint = false;
                 }
 
-                if (!request_exit)
+                if (!requestExit)
                 {
-                    mining_stage = 0;
+                    miningStage = 0;
                     mine_state = false;
                 }
                 nav_state = false;
@@ -2429,28 +2429,28 @@ namespace IngameScript
                 cmd_rqt = "0";
             }
             //reset exit request on stop state
-            if (mining_stage == 0 && stop_state && request_exit)
+            if (miningStage == 0 && stop_state && requestExit)
             {
-                request_exit = false;
+                requestExit = false;
             }
 
-            if (mine_state && !was_mining)
+            if (mine_state && !wasMining)
             {
-                was_mining = true;
+                wasMining = true;
             }
-            if (reset_mining && was_mining)
+            if (reset_mining && wasMining)
             {
-                was_mining = false;
+                wasMining = false;
                 reset_mining = false;
-                mining_stage = 0;
+                miningStage = 0;
             }
-            if (reset_mining && !was_mining)
+            if (reset_mining && !wasMining)
             {
                 reset_mining = false;
             }
-            if (!mine_state && !was_mining && mining_stage > 0)
+            if (!mine_state && !wasMining && miningStage > 0)
             {
-                mining_stage = 0;
+                miningStage = 0;
             }
             if (mine_state || nav_state)
             {
@@ -2459,9 +2459,9 @@ namespace IngameScript
             else mode_set = false;
 
 
-            if (dat_invalid && target_depth_achieved && !request_exit && was_mining && custom_data_read == 1 && is_undocked)
+            if (dat_invalid && target_depth_achieved && !requestExit && wasMining && custom_data_read == 1 && isUndocked)
             {
-                request_exit = true;
+                requestExit = true;
             }
             if (target_depth_achieved || cargo_full_achieved || recharge_request || recall)
             {
@@ -2489,7 +2489,7 @@ namespace IngameScript
         public void drone_alignment_management()
         {
             #region drone_alignment_management
-            if (is_docked || docking_stage > 0 || !is_undocked && !is_docked || is_undocking || is_docking)
+            if (is_docked || docking_stage > 0 || !isUndocked && !is_docked || is_undocking || is_docking)
             {
                 can_gyroOVR = false;
             }
@@ -2497,7 +2497,7 @@ namespace IngameScript
             {
                 can_gyroOVR = true;
             }
-            if (mining_stage >= 6 && mining_stage <= 10)
+            if (miningStage >= 6 && miningStage <= 10)
             {
                 can_gyroOVR = true;
             }
@@ -2553,7 +2553,7 @@ namespace IngameScript
             if (rc_actual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
-            if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && custom_data_read == 1 && nav_state && !connector_actual.IsConnected && is_undocked)
+            if (!add_nav_Waypoint_mn && main_nav_sequence == 1 && custom_data_read == 1 && nav_state && !connector_actual.IsConnected && isUndocked)
             {
                 rc_actual.ClearWaypoints();
                 add_nav_Waypoint_mn = true;
@@ -2572,7 +2572,7 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
             }
-            if (main_nav_sequence == 2 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && is_undocked && !main_nav_complete && add_nav_Waypoint_mn)
+            if (main_nav_sequence == 2 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
                 main_nav_sequence = 3;
                 rc_actual.SpeedLimit = nav_speed;
@@ -2672,7 +2672,7 @@ namespace IngameScript
             double rc_cw_x = main_gps_coords.X;
             double rc_cw_y = main_gps_coords.Y;
             double rc_cw_z = main_gps_coords.Z;
-            if (main_nav_sequence == 3 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && is_undocked && !main_nav_complete && add_nav_Waypoint_mn && !rc_actual.IsAutoPilotEnabled && !navinst)
+            if (main_nav_sequence == 3 && rc_xyz != rc_actual.CurrentWaypoint.Coords && nav_state && isUndocked && !main_nav_complete && add_nav_Waypoint_mn && !rc_actual.IsAutoPilotEnabled && !navinst)
             {
                 rc_actual.SpeedLimit = nav_speed;
                 if (command_request == 1)
@@ -2731,7 +2731,7 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
             }
-            if (main_nav_sequence == 3 && rc_xyz.X >= rc_cw_x - nav_prec && rc_xyz.X <= rc_cw_x + nav_prec && rc_xyz.Y >= rc_cw_y - nav_prec && rc_xyz.Y <= rc_cw_y + nav_prec && rc_xyz.Z >= rc_cw_z - nav_prec && rc_xyz.Z <= rc_cw_z + nav_prec && nav_state && is_undocked && !main_nav_complete && add_nav_Waypoint_mn)
+            if (main_nav_sequence == 3 && rc_xyz.X >= rc_cw_x - nav_prec && rc_xyz.X <= rc_cw_x + nav_prec && rc_xyz.Y >= rc_cw_y - nav_prec && rc_xyz.Y <= rc_cw_y + nav_prec && rc_xyz.Z >= rc_cw_z - nav_prec && rc_xyz.Z <= rc_cw_z + nav_prec && nav_state && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
                 main_nav_sequence = 4;
                 main_nav_complete = true;
@@ -2754,7 +2754,7 @@ namespace IngameScript
                 cmd_rqt = "0";
             }
             rc_actual.GetWaypointInfo(waypoints);
-            if (main_nav_sequence == 3 && add_nav_Waypoint_mn && waypoints.Count <= 0 && !main_nav_complete && is_undocked && nav_state)
+            if (main_nav_sequence == 3 && add_nav_Waypoint_mn && waypoints.Count <= 0 && !main_nav_complete && isUndocked && nav_state)
             {
                 main_nav_sequence = 4;
                 main_nav_complete = true;
@@ -2786,15 +2786,15 @@ namespace IngameScript
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
                 rc_actual.ClearWaypoints();
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 drone_status = 21;
-                if (was_mining)
+                if (wasMining)
                 {
                     reset_mining = true;
                 }
-                request_exit = false;
-                was_mining = false;
+                requestExit = false;
+                wasMining = false;
                 target_depth_achieved = false;
                 if (!is_docking || !is_undocking)
                 {
@@ -2830,13 +2830,13 @@ namespace IngameScript
             // *** Mining sequence ***
             remote_control_position_update();
             //initialise mining position
-            if (!mining_initialised && mine_state && custom_data_read == 1 && mining_stage == 0 && !is_autopiloting && is_undocked)
+            if (!miningInitialised && mine_state && custom_data_read == 1 && miningStage == 0 && !isAutopiloting && isUndocked)
             {
                 mine_coords_adjusted = false;
                 tgt_drill_start.X = main_gps_coords.X;
                 tgt_drill_start.Z = main_gps_coords.Z;
                 tgt_drill_start.Y = main_gps_coords.Y;
-                mining_initialised = true;
+                miningInitialised = true;
                 if (trgt_vld)
                 {
                     directionb = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
@@ -2853,7 +2853,7 @@ namespace IngameScript
                 drone_output_status = "Calculating mineshaft";
             }
             //check if depth is achieved
-            if (!target_depth_achieved && rc_xyz.X >= tgt_drill_end.X - trm_prec && rc_xyz.X <= tgt_drill_end.X + trm_prec && rc_xyz.Y >= tgt_drill_end.Y - trm_prec && rc_xyz.Y <= tgt_drill_end.Y + trm_prec && rc_xyz.Z >= tgt_drill_end.Z - trm_prec && rc_xyz.Z <= tgt_drill_end.Z + trm_prec && mine_state && mining_initialised && is_undocked)
+            if (!target_depth_achieved && rc_xyz.X >= tgt_drill_end.X - trm_prec && rc_xyz.X <= tgt_drill_end.X + trm_prec && rc_xyz.Y >= tgt_drill_end.Y - trm_prec && rc_xyz.Y <= tgt_drill_end.Y + trm_prec && rc_xyz.Z >= tgt_drill_end.Z - trm_prec && rc_xyz.Z <= tgt_drill_end.Z + trm_prec && mine_state && miningInitialised && isUndocked)
             {
                 target_depth_achieved = true;
             }
@@ -2870,7 +2870,7 @@ namespace IngameScript
                 // Check if target depth is achieved within tolerance
                 if (!target_depth_achieved &&
                     distance_to_target <= trm_prec &&
-                    mine_state && mining_initialised && is_undocked)
+                    mine_state && miningInitialised && isUndocked)
                 {
                     target_depth_achieved = true;
                     Echo("Target depth achieved");
@@ -2882,7 +2882,7 @@ namespace IngameScript
                     rc_xyz.X <= tgt_drill_end.X + trm_prec * 10 &&
                     rc_xyz.Y >= tgt_drill_end.Y - trm_prec * 10 &&
                     rc_xyz.Y <= tgt_drill_end.Y + trm_prec * 10 &&
-                    mine_state && mining_initialised && is_undocked)
+                    mine_state && miningInitialised && isUndocked)
                 {
                     target_depth_achieved = true;
                     drone_status = 26;
@@ -2895,24 +2895,24 @@ namespace IngameScript
                 tunnel_sequence_finished = true;
             }
             //check if cargo is full and mining has been initialised
-            if (is_full && mine_state && mining_initialised)
+            if (is_full && mine_state && miningInitialised)
             {
                 cargo_full_achieved = true;
             }
             //check if battery is low to request recharge
-            if (is_low_charge && mine_state && mining_initialised && !recharge_request_battery || is_low_charge && connector_actual.IsConnected && !recharge_request_battery || is_low_charge && !connector_actual.IsConnected && !recharge_request_battery && main_nav_sequence > 0 && !mine_state && is_undocked)
+            if (is_low_charge && mine_state && miningInitialised && !recharge_request_battery || is_low_charge && connector_actual.IsConnected && !recharge_request_battery || is_low_charge && !connector_actual.IsConnected && !recharge_request_battery && main_nav_sequence > 0 && !mine_state && isUndocked)
             {
                 recharge_request_battery = true;
             }
             //check if tank is low to request gas recharge if tanks is not ignored
-            if (is_low_tank && mine_state && mining_initialised && !recharge_request_tank && !ignore_Htank || is_low_tank && connector_actual.IsConnected && !recharge_request_tank && !ignore_Htank || is_low_tank && !connector_actual.IsConnected && !recharge_request_tank && !ignore_Htank && main_nav_sequence > 0 && !mine_state && is_undocked)
+            if (is_low_tank && mine_state && miningInitialised && !recharge_request_tank && !ignore_Htank || is_low_tank && connector_actual.IsConnected && !recharge_request_tank && !ignore_Htank || is_low_tank && !connector_actual.IsConnected && !recharge_request_tank && !ignore_Htank && main_nav_sequence > 0 && !mine_state && isUndocked)
             {
                 recharge_request_tank = true;
             }
             //if all pre checks are ok, drone is undocked and ready - initiate mining sequence           
-            if (!target_depth_achieved && mining_stage == 0 && mine_state && mining_initialised && !is_autopiloting && !connector_actual.IsConnected && is_undocked)
+            if (!target_depth_achieved && miningStage == 0 && mine_state && miningInitialised && !isAutopiloting && !connector_actual.IsConnected && isUndocked)
             {
-                mining_stage = 1;
+                miningStage = 1;
                 drone_status = 7;
                 drone_output_status = "Initiating mining";
                 reset_ai(); //reset ai blocks to ensure no AI move block interference with mining sequence
@@ -2923,9 +2923,9 @@ namespace IngameScript
             }
             //mining sequence
 
-            if (mining_stage == 1 && !target_depth_achieved && mine_state && mining_initialised && !is_autopiloting && is_undocked && !mine_coords_adjusted) // scan coordinate position to ground
+            if (miningStage == 1 && !target_depth_achieved && mine_state && miningInitialised && !isAutopiloting && isUndocked && !mine_coords_adjusted) // scan coordinate position to ground
             {
-                mining_stage = 2;
+                miningStage = 2;
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
                 
@@ -2933,10 +2933,10 @@ namespace IngameScript
                 drone_status = 8;
                 drone_output_status = "Mining";
             }
-            if (mining_stage == 2 && !add_mine_waypoint && !target_depth_achieved && mine_state && mining_initialised && !is_autopiloting && is_undocked)
+            if (miningStage == 2 && !add_mine_waypoint && !target_depth_achieved && mine_state && miningInitialised && !isAutopiloting && isUndocked)
             {
 
-                mining_stage = 3;
+                miningStage = 3;
                 add_mine_waypoint = true;
                 if (rc_actual.SpeedLimit != drill_speed)
                 {
@@ -2947,9 +2947,9 @@ namespace IngameScript
                 drone_status = 9;
                 drone_output_status = "Mining+";
             }
-            if (mining_stage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && mining_initialised && !is_autopiloting && is_undocked)
+            if (miningStage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && miningInitialised && !isAutopiloting && isUndocked)
             {
-                mining_stage = 4;
+                miningStage = 4;
                 
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
@@ -2957,9 +2957,9 @@ namespace IngameScript
                 drone_status = 10;
                 drone_output_status = "Mining++";
             }
-            if (mining_stage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && mining_initialised && !is_autopiloting && is_undocked && !rc_actual.IsAutoPilotEnabled)
+            if (miningStage == 3 && add_mine_waypoint && !target_depth_achieved && mine_state && miningInitialised && !isAutopiloting && isUndocked && !rc_actual.IsAutoPilotEnabled)
             {
-                mining_stage = 2;
+                miningStage = 2;
                 add_mine_waypoint = false;
                 drone_status = 10;
                 drone_output_status = "Mining++";
@@ -2969,27 +2969,27 @@ namespace IngameScript
             double rc_cmw_x = mining_gps_coords.X;
             double rc_cmw_y = mining_gps_coords.Y;
             double rc_cmw_z = mining_gps_coords.Z;
-            if (mining_stage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && rc_actual.CurrentWaypoint.Name == null && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && rc_actual.CurrentWaypoint.Name == null && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 1;
+                miningStage = 1;
                 rc_actual.SetAutoPilotEnabled(!navinst);
                 add_mine_waypoint = false;
                 mine_coords_adjusted = false;
                 drone_status = 11;
                 drone_output_status = "Mining++-";
             }
-            if (mining_stage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && !rc_actual.IsAutoPilotEnabled && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && !rc_actual.IsAutoPilotEnabled && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 2;
+                miningStage = 2;
                 rc_actual.SetAutoPilotEnabled(!navinst);
                 add_mine_waypoint = false;
                 drone_status = 11;
                 drone_output_status = "Mining+++";
             }
 
-            if (mining_stage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && rc_xyz.X >= rc_cmw_x - mine_prec && rc_xyz.X <= rc_cmw_x + mine_prec && rc_xyz.Y >= rc_cmw_y - mine_prec && rc_xyz.Y <= rc_cmw_y + mine_prec && rc_xyz.Z >= rc_cmw_z - mine_prec && rc_xyz.Z <= rc_cmw_z + mine_prec && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !target_depth_achieved && rc_xyz.X >= rc_cmw_x - mine_prec && rc_xyz.X <= rc_cmw_x + mine_prec && rc_xyz.Y >= rc_cmw_y - mine_prec && rc_xyz.Y <= rc_cmw_y + mine_prec && rc_xyz.Z >= rc_cmw_z - mine_prec && rc_xyz.Z <= rc_cmw_z + mine_prec && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 5;
+                miningStage = 5;
                 mining_nav_complete = true;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
@@ -2998,9 +2998,9 @@ namespace IngameScript
                 drone_output_status = "Mining++++";
             }
 
-            if (mining_stage == 4 && mining_nav_complete && add_mine_waypoint && !target_depth_achieved && !rc_actual.IsAutoPilotEnabled && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 4 && mining_nav_complete && add_mine_waypoint && !target_depth_achieved && !rc_actual.IsAutoPilotEnabled && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 5;
+                miningStage = 5;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(true);
                 rc_actual.SetAutoPilotEnabled(false);
@@ -3008,13 +3008,13 @@ namespace IngameScript
                 drone_status = 12;
                 drone_output_status = "Mining+++";
             }
-            if (mining_stage == 4 && !mining_nav_complete && !target_depth_achieved && dat_invalid && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 4 && !mining_nav_complete && !target_depth_achieved && dat_invalid && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 6;
-                request_exit = true;
+                miningStage = 6;
+                requestExit = true;
                 Last_Coords_Term = main_gps_coords;
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 rc_actual.SpeedLimit = exit_speed;
                 rc_actual.ClearWaypoints();
                 rc_actual.SetCollisionAvoidance(false);
@@ -3023,12 +3023,12 @@ namespace IngameScript
                 drone_status = 13;
                 drone_output_status = "Terminating mining";
             }
-            if (mining_stage >= 1 && mining_stage <= 4 && !mining_nav_complete && !target_depth_achieved && request_exit && was_mining && mining_initialised && rc_actual.CurrentWaypoint.Name != "exit shaft" && !is_autopiloting && is_undocked)
+            if (miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && !target_depth_achieved && requestExit && wasMining && miningInitialised && rc_actual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
-                mining_stage = 6;
+                miningStage = 6;
                 Last_Coords_Term = main_gps_coords;
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 rc_actual.SpeedLimit = exit_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
@@ -3037,14 +3037,14 @@ namespace IngameScript
                 drone_status = 13;
                 drone_output_status = "Terminating mining";
             }
-            if (force_request_dock && mining_stage >= 1 && mining_stage <= 4 && !mining_nav_complete && dat_valid && custom_data_read == 1 && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (force_request_dock && miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && dat_valid && custom_data_read == 1 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
 
-                mining_stage = 6;
-                request_exit = true;
+                miningStage = 6;
+                requestExit = true;
                 Last_Coords_Term = main_gps_coords;
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 rc_actual.SpeedLimit = exit_speed;
                 rc_actual.ClearWaypoints();
                 rc_actual.SetCollisionAvoidance(false);
@@ -3053,24 +3053,24 @@ namespace IngameScript
                 drone_status = 14;
                 drone_output_status = "Terminating mining";
             }
-            if (mining_stage == 5 && mining_nav_complete && force_request_dock && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 5 && mining_nav_complete && force_request_dock && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 6;
-                request_exit = true;
+                miningStage = 6;
+                requestExit = true;
                 Last_Coords_Term = main_gps_coords;
                 rc_actual.SpeedLimit = exit_speed;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
                 rc_actual.ClearWaypoints();
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 drone_status = 16;
                 drone_output_status = "Terminating mining";
             }
-            if (mining_stage == 5 && mining_nav_complete && !target_depth_achieved && !force_request_dock && mine_state && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 5 && mining_nav_complete && !target_depth_achieved && !force_request_dock && mine_state && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 1;
+                miningStage = 1;
                 target_depth_achieved = false;
                 if (rc_actual.SpeedLimit != exit_speed)
                 {
@@ -3095,12 +3095,12 @@ namespace IngameScript
             {
                 cnvyrsON = false;
             }
-            if (mining_stage == 6 && !exit_waypoint_set && !exit_sequence_complete && was_mining && mining_initialised && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 6 && !exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 7;
-                exit_WPadj = false;
-                exit_waypoint_set = true;
-                exit_sequence_complete = false;
+                miningStage = 7;
+                exitWaypointAdjusted = false;
+                exitWaypointSet = true;
+                exitSequenceComplete = false;
                 reset_ai();
                 if (reset_light_actual.Enabled)
                 {
@@ -3126,12 +3126,12 @@ namespace IngameScript
                 drone_status = 17;
                 drone_output_status = "Exit path";
             }
-            if (mining_stage == 7 && exit_waypoint_set && !exit_sequence_complete && mining_initialised && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 7 && exitWaypointSet && !exitSequenceComplete && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
-                if (!exit_WPadj)
+                if (!exitWaypointAdjusted)
                 {
-                    mining_stage = 8;
-                    exit_WPadj = true;
+                    miningStage = 8;
+                    exitWaypointAdjusted = true;
                     if (trgt_vld)
                     {
                         direction = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
@@ -3149,16 +3149,16 @@ namespace IngameScript
                     drone_output_status = "Exiting mineshaft";
                 }
             }
-            if (mining_stage == 8 && exit_WPadj && !exit_sequence_complete && was_mining && mining_initialised && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 8 && exitWaypointAdjusted && !exitSequenceComplete && wasMining && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 9;
+                miningStage = 9;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(!navinst);
                 drone_status = 18;
                 drone_output_status = "Exiting mineshaft";
             }
-            if (mining_stage == 9 && exit_waypoint_set && !exit_sequence_complete && was_mining && mining_initialised && request_exit && rc_xyz != tgt_drill_exit && rc_actual.CurrentWaypoint.Name != "exit shaft" && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && rc_xyz != tgt_drill_exit && rc_actual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
@@ -3170,7 +3170,7 @@ namespace IngameScript
                     drone_output_status = "Returning to dock";
                 }
             }
-            if (mining_stage == 9 && exit_waypoint_set && !exit_sequence_complete && was_mining && mining_initialised && request_exit && rc_xyz != tgt_drill_exit && !rc_actual.IsAutoPilotEnabled && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && rc_xyz != tgt_drill_exit && !rc_actual.IsAutoPilotEnabled && !isAutopiloting && isUndocked)
             {
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
@@ -3182,10 +3182,10 @@ namespace IngameScript
                     drone_output_status = "Returning to dock";
                 }
             }
-            if (mining_stage == 9 && exit_waypoint_set && !exit_sequence_complete && was_mining && mining_initialised && !rc_actual.IsAutoPilotEnabled && !is_autopiloting && is_undocked && exit_WPadj)
+            if (miningStage == 9 && exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && !rc_actual.IsAutoPilotEnabled && !isAutopiloting && isUndocked && exitWaypointAdjusted)
             {
-                mining_stage = 7;
-                exit_WPadj = false;
+                miningStage = 7;
+                exitWaypointAdjusted = false;
                 drone_output_status = "Exiting mineshaft reloading WP 2";
                 if (docking_stage > 0)
                 {
@@ -3196,39 +3196,39 @@ namespace IngameScript
             double rc_cew_y = tgt_drill_exit.Y;
             double rc_cew_z = tgt_drill_exit.Z;
 
-            if (mining_stage == 9 && !exit_sequence_complete && exit_waypoint_set && rc_xyz.X >= tgt_drill_exit.X - nav_prec2 && rc_xyz.X <= tgt_drill_exit.X + nav_prec2 && rc_xyz.Y >= tgt_drill_exit.Y - nav_prec2 && rc_xyz.Y <= tgt_drill_exit.Y + nav_prec2 && rc_xyz.Z >= tgt_drill_exit.Z - nav_prec2 && rc_xyz.Z <= tgt_drill_exit.Z + nav_prec2 && mining_initialised && was_mining && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= tgt_drill_exit.X - nav_prec2 && rc_xyz.X <= tgt_drill_exit.X + nav_prec2 && rc_xyz.Y >= tgt_drill_exit.Y - nav_prec2 && rc_xyz.Y <= tgt_drill_exit.Y + nav_prec2 && rc_xyz.Z >= tgt_drill_exit.Z - nav_prec2 && rc_xyz.Z <= tgt_drill_exit.Z + nav_prec2 && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 10;
-                exit_sequence_complete = true;
-                exit_waypoint_set = true;
+                miningStage = 10;
+                exitSequenceComplete = true;
+                exitWaypointSet = true;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
                 drone_status = 19;
                 drone_output_status = "Exit Clear";
             }
-            if (mining_stage == 9 && !exit_sequence_complete && exit_waypoint_set && distance_current >= (drill_sl + drill_el) && mining_initialised && was_mining && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && distance_current >= (drill_sl + drill_el) && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 10;
-                exit_sequence_complete = true;
-                exit_waypoint_set = true;
+                miningStage = 10;
+                exitSequenceComplete = true;
+                exitWaypointSet = true;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
                 drone_status = 19;
                 drone_output_status = "Exit Clear";
             }
-            if (mining_stage == 9 && !exit_sequence_complete && exit_waypoint_set && rc_xyz.X >= exit_gps_coords_temp.X - nav_prec && rc_xyz.X <= exit_gps_coords_temp.X + nav_prec && rc_xyz.Y >= exit_gps_coords_temp.Y - nav_prec && rc_xyz.Y <= exit_gps_coords_temp.Y + nav_prec && rc_xyz.Z >= exit_gps_coords_temp.Z - nav_prec && rc_xyz.Z <= exit_gps_coords_temp.Z + nav_prec && mining_initialised && was_mining && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= exit_gps_coords_temp.X - nav_prec && rc_xyz.X <= exit_gps_coords_temp.X + nav_prec && rc_xyz.Y >= exit_gps_coords_temp.Y - nav_prec && rc_xyz.Y <= exit_gps_coords_temp.Y + nav_prec && rc_xyz.Z >= exit_gps_coords_temp.Z - nav_prec && rc_xyz.Z <= exit_gps_coords_temp.Z + nav_prec && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 7;
-                exit_WPadj = false;
+                miningStage = 7;
+                exitWaypointAdjusted = false;
                 rc_actual.SetCollisionAvoidance(false);
                 rc_actual.SetDockingMode(false);
                 rc_actual.SetAutoPilotEnabled(false);
                 drone_status = 19;
                 drone_output_status = "Getting next WP";
             }
-            if (mining_stage == 9 && was_mining && rc_actual.CurrentWaypoint.Name != "exit shaft" && request_exit && mining_initialised && !exit_waypoint_set && !exit_sequence_complete && stop_state && !is_autopiloting && is_undocked)
+            if (miningStage == 9 && wasMining && rc_actual.CurrentWaypoint.Name != "exit shaft" && requestExit && miningInitialised && !exitWaypointSet && !exitSequenceComplete && stop_state && !isAutopiloting && isUndocked)
             {
                 rc_actual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
                 rc_actual.SetCollisionAvoidance(false);
@@ -3237,30 +3237,30 @@ namespace IngameScript
                 drone_output_status = "Exiting mineshaft";
 
             }
-            if (mining_stage == 10 && exit_waypoint_set && exit_sequence_complete && mining_initialised && request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 10 && exitWaypointSet && exitSequenceComplete && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
-                mining_stage = 11;
+                miningStage = 11;
                 rc_actual.ClearWaypoints();
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
-                request_exit = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
+                requestExit = false;
                 drone_status = 20;
                 drone_output_status = "Exit Clear";
             }
-            if (mining_stage == 11 && target_depth_achieved && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 11 && target_depth_achieved && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
                 rc_actual.ClearWaypoints();
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
 
                 drone_status = 21;
 
-                if (was_mining)
+                if (wasMining)
                 {
                     reset_mining = true;
                 }
-                request_exit = false;
-                was_mining = false;
+                requestExit = false;
+                wasMining = false;
                 target_depth_achieved = false;
                 if (!is_docking || !is_undocking)
                 {
@@ -3292,22 +3292,22 @@ namespace IngameScript
                 else
                 {
                     docking_stage = 0;
-                    mining_stage = 12;
+                    miningStage = 12;
                     drone_output_status = "Preparing A";
                 }
 
             }
-            if (mining_stage == 11 && !target_depth_achieved && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked)
+            if (miningStage == 11 && !target_depth_achieved && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
                 rc_actual.ClearWaypoints();
-                exit_waypoint_set = false;
-                exit_sequence_complete = false;
+                exitWaypointSet = false;
+                exitSequenceComplete = false;
                 drone_status = 22;
-                if (was_mining)
+                if (wasMining)
                 {
                     reset_mining = true;
                 }
-                request_exit = false;
+                requestExit = false;
                 if (!is_docking || !is_undocking)
                 {
                     reset_ai();
@@ -3348,18 +3348,18 @@ namespace IngameScript
                 else
                 {
                     docking_stage = 0;
-                    mining_stage = 13;
+                    miningStage = 13;
                     drone_output_status = "Preparing B";
                 }
                 
             }
-            if (mining_stage == 12 && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked && target_depth_achieved)
+            if (miningStage == 12 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && target_depth_achieved)
             {
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
                 drone_output_status = "RTB: Ready A";
             }
-            if (mining_stage == 13 && was_mining && mining_initialised && !request_exit && !is_autopiloting && is_undocked && !target_depth_achieved)
+            if (miningStage == 13 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && !target_depth_achieved)
             {
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
@@ -3854,7 +3854,7 @@ namespace IngameScript
                 sb.Clear().EnsureCapacity(128);
                 sb.AppendFormat(baseFormat, D_I_N, 
                     drone_damage_status, tunnel_sequence_finished, drone_output_status,
-                    is_docked, is_undocked, is_autopiloting, 
+                    is_docked, isUndocked, isAutopiloting, 
                     rc_actual.IsAutoPilotEnabled,
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
                     drill_sl, Math.Round(distance_current, 2), Math.Round(drill_sl - no_cnvy_dst, 2),
@@ -3910,15 +3910,15 @@ namespace IngameScript
 
             if (clr_cords && custom_data_read == 1)
             {
-                if (nav_state && cmd_chng && is_undocked)
+                if (nav_state && cmd_chng && isUndocked)
                 {
                     main_nav_sequence = 1;
                     drone_output_status = "Nav";
                 }
-                if (mine_state && cmd_chng && is_undocked)
+                if (mine_state && cmd_chng && isUndocked)
                 {
-                    mining_stage = 0;
-                    mining_initialised = false;
+                    miningStage = 0;
+                    miningInitialised = false;
                 }
             }
             #endregion
@@ -3941,7 +3941,7 @@ namespace IngameScript
             Echo($"Drone ID: {D_I_N} # {drone_damage_status}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {drone_output_status}");
-            Echo($"Distance ID: {mining_initialised}");
+            Echo($"Distance ID: {miningInitialised}");
             Echo($"Command seq: {cmd_rqt}");
             Echo($"Cargo: {cargoPercent}%  Full: {cargo_full_achieved}");
             Echo($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
@@ -3950,10 +3950,10 @@ namespace IngameScript
                 Echo($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
             }
             Echo($"Mine distance: {mineDistance}m  Mine Start: {(drill_sl - no_cnvy_dst)}m");
-            Echo($"Mine: {mine_state} - Stage: {mining_stage}");
+            Echo($"Mine: {mine_state} - Stage: {miningStage}");
             Echo($"Nav: {nav_state} - Stage: {main_nav_sequence}");
             Echo($"Dock: {is_docked} - Stage: {docking_stage}");
-            Echo($"Undock: {is_undocked} - Stage: {undocking_stage}");
+            Echo($"Undock: {isUndocked} - Stage: {undocking_stage}");
             Echo($"Connected: {connector_actual.IsConnected}");
             Echo($"Depth Achieved: {target_depth_achieved}");
             Echo($"Stopped: {stop_state}");
