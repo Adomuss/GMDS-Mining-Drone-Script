@@ -116,8 +116,8 @@ namespace IngameScript
         string drone_damage_status = "OK";
         string droneStatusOutput = "Idle";
         string recall_command = "recall";
-        double trm_prec = 0.0;
-        double trm_coeff = 0.02;
+        double terminiationPrecision = 0.0;
+        double terminationCoefficient = 0.02;
         float GyrMlt = 2;
         string dat_in;
         string dat_in2 = "";
@@ -449,7 +449,7 @@ namespace IngameScript
             power_check();
             fuel_check();
             recharge_state_check();
-            trm_prec = (trm_coeff * drillSetLength) + 0.6;
+            terminiationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
             check_comms_channels();
             custom_data_command_presence_check();
             command_poll();
@@ -2863,7 +2863,7 @@ namespace IngameScript
                 droneStatusOutput = "Calculating mineshaft";
             }
             //check if depth is achieved
-            if (!targetDepthAchieved && rc_xyz.X >= tgt_drill_end.X - trm_prec && rc_xyz.X <= tgt_drill_end.X + trm_prec && rc_xyz.Y >= tgt_drill_end.Y - trm_prec && rc_xyz.Y <= tgt_drill_end.Y + trm_prec && rc_xyz.Z >= tgt_drill_end.Z - trm_prec && rc_xyz.Z <= tgt_drill_end.Z + trm_prec && mineState && miningInitialised && isUndocked)
+            if (!targetDepthAchieved && rc_xyz.X >= tgt_drill_end.X - terminiationPrecision && rc_xyz.X <= tgt_drill_end.X + terminiationPrecision && rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision && rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision && rc_xyz.Z >= tgt_drill_end.Z - terminiationPrecision && rc_xyz.Z <= tgt_drill_end.Z + terminiationPrecision && mineState && miningInitialised && isUndocked)
             {
                 targetDepthAchieved = true;
             }
@@ -2879,7 +2879,7 @@ namespace IngameScript
 
                 // Check if target depth is achieved within tolerance
                 if (!targetDepthAchieved &&
-                    distance_to_target <= trm_prec &&
+                    distance_to_target <= terminiationPrecision &&
                     mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
@@ -2887,11 +2887,11 @@ namespace IngameScript
                 }
                 // Check for overshoot (Z goes beyond target by too much)
                 else if (!targetDepthAchieved &&
-                    rc_xyz.Z > tgt_drill_end.Z + trm_prec && // Overshoot on Z-axis
-                    rc_xyz.X >= tgt_drill_end.X - trm_prec * 10 &&
-                    rc_xyz.X <= tgt_drill_end.X + trm_prec * 10 &&
-                    rc_xyz.Y >= tgt_drill_end.Y - trm_prec * 10 &&
-                    rc_xyz.Y <= tgt_drill_end.Y + trm_prec * 10 &&
+                    rc_xyz.Z > tgt_drill_end.Z + terminiationPrecision && // Overshoot on Z-axis
+                    rc_xyz.X >= tgt_drill_end.X - terminiationPrecision * 10 &&
+                    rc_xyz.X <= tgt_drill_end.X + terminiationPrecision * 10 &&
+                    rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision * 10 &&
+                    rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision * 10 &&
                     mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
@@ -3402,7 +3402,7 @@ namespace IngameScript
             );
 
             // Correct alignment if drifted
-            if (xy_drift > trm_prec * 2)
+            if (xy_drift > terminiationPrecision * 2)
             {
                 Echo("XY Drift: " + xy_drift.ToString("F2") + " - Correcting");
                 // Update waypoint to the expected position to realign the drone
