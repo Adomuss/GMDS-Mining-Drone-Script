@@ -129,12 +129,12 @@ namespace IngameScript
         int cmd_rqold = 0;
         bool mode_set = false;
         string drnst;
-        string cmd_rqt = "0";
-        string cmd_dist = "10.0";
+        string commandCommandDataRequested = "0";
+        string commandDataDistance = "10.0";
         double ignoreDistance = 0.0;
-        double tgtX = 0.0;
-        double tgtY = 0.0;
-        double tgtZ = 0.0;
+        double alignmentTargetX = 0.0;
+        double alignmentTargetY = 0.0;
+        double alignmentTargetZ = 0.0;
         //comms channel
         string rx_ch;
         string tx_ch = "";
@@ -149,7 +149,7 @@ namespace IngameScript
         //float ttl_cPWR;
         float ttl_PWRc;
         bool can_gyroOVR = false;
-        bool trgt_vld = false;
+        bool targetAlignmentValid = false;
         bool cnvyrsON = false;
         bool exitWaypointAdjusted = false;
         double TrgtPitch = 0.0;
@@ -199,16 +199,16 @@ namespace IngameScript
         bool no_speed_ready_dock = false;
         bool transmit_delay = false;
         bool recall = false;
-        bool dt_prsnt4 = false;
-        bool dt_prsnt5 = false;
-        bool dt_prsnt6 = false;
-        string gps_dat_7 = "";
-        string gps_dat_8 = "";
-        string gps_dat_9 = "";
-        string gps_dat_10 = "";
-        string gps_dat_11 = "";
-        string gps_dat_12 = "";
-        string gpsindx = "";
+        bool commandDataPresent_11 = false;
+        bool commandDataPresent_12 = false;
+        bool commandDataPresent_13 = false;
+        string commandDataIgnoreDistance = "";
+        string commandData8 = "";
+        string commandData9 = "";
+        string commandDataAlignX = "";
+        string commandDataAlignY = "";
+        string commandDataAlignZ = "";
+        string gpsIndex = "";
         int cmd_read_ack = 0;
         int main_nav_sequence = 0;
         bool add_nav_Waypoint_mn = false;
@@ -240,7 +240,7 @@ namespace IngameScript
         Vector3D exit_gps_coords_temp;
         Vector3D Last_Coords_Term;
         Vector3D crnt_tgt_align;
-        Vector3D align_tgt_new;
+        Vector3D alignmentTargetNew;
         Vector3D directionb;
         Vector3D direction;
         Vector3D directionc;
@@ -401,12 +401,12 @@ namespace IngameScript
             _ini.Set("coordinates", "co6", exit_gps_coords_temp.ToString());
             _ini.Set("coordinates", "co7", main_gps_coords.ToString());
             _ini.Set("coordinates", "co8", crnt_tgt_align.ToString());
-            _ini.Set("coordinates", "co9", align_tgt_new.ToString());
+            _ini.Set("coordinates", "co9", alignmentTargetNew.ToString());
             _ini.Set("coordinates", "co10", directionb.ToString());
             _ini.Set("coordinates", "co11", direction.ToString());
             _ini.Set("coordinates", "co12", directionc.ToString());
             _ini.Set("coordinates", "co13", gravity.ToString());
-            _ini.Set("coordinates", "co14", gpsindx.ToString());            
+            _ini.Set("coordinates", "co14", gpsIndex.ToString());            
             Storage = _ini.ToString();
         }
         #endregion
@@ -491,13 +491,13 @@ namespace IngameScript
             Vector3D RCup = remoteControlActual.WorldMatrix.Up;
             Vector3D RCleft = remoteControlActual.WorldMatrix.Left;
             Vector3D RCright = remoteControlActual.WorldMatrix.Right;
-            if (trgt_vld)
+            if (targetAlignmentValid)
             {
                 TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
                 TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
 
             }
-            if (!trgt_vld)
+            if (!targetAlignmentValid)
             {
 
                 TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(remoteControlActual.GetNaturalGravity()), RCleft))) - (Math.PI / 2);
@@ -566,18 +566,21 @@ namespace IngameScript
              */
             if (gpsCommandData.Length > 5)
             {
-                gpsindx = gpsCommandData[1];
+                gpsIndex = gpsCommandData[1];
                 main_gps_coords = new Vector3D(Double.Parse(gpsCommandData[2]), Double.Parse(gpsCommandData[3]), Double.Parse(gpsCommandData[4]));
-                cmd_rqt = gpsCommandData[6];
-                if (!int.TryParse(cmd_rqt, out commandRequest))
+
+                commandCommandDataRequested = gpsCommandData[6];
+                if (!int.TryParse(commandCommandDataRequested, out commandRequest))
                 {
                     commandRequest = 0;
                 }
-                cmd_dist = gpsCommandData[7];
-                if (!Double.TryParse(cmd_dist, out drillSetLength))
+
+                commandDataDistance = gpsCommandData[7];
+                if (!Double.TryParse(commandDataDistance, out drillSetLength))
                 {
                     drillSetLength = 1.0;
                 }
+                
             }
 
             if (gpsCommandData.Length < 9)
@@ -585,18 +588,18 @@ namespace IngameScript
                 ignoreDistance = 0.0;
                 return;
             }
-
+            
             if (gpsCommandData.Length > 9)
             {
                 if (gpsCommandData[8] == null || gpsCommandData[8] == "")
                 {
-                    gps_dat_7 = "";
+                    commandDataIgnoreDistance = "";
                     ignoreDistance = 0.0;
                 }
                 else
                 {
-                    gps_dat_7 = gpsCommandData[8];
-                    if (!double.TryParse(gps_dat_7, out ignoreDistance))
+                    commandDataIgnoreDistance = gpsCommandData[8];
+                    if (!double.TryParse(commandDataIgnoreDistance, out ignoreDistance))
                     {
                         ignoreDistance = 0.0;
                     }
@@ -607,11 +610,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[9] == null || gpsCommandData[9] == "")
                 {
-                    gps_dat_8 = "";
+                    commandData8 = "";
                 }
                 else
                 {
-                    gps_dat_8 = gpsCommandData[9].ToString();
+                    commandData8 = gpsCommandData[9];
                 }
             }
 
@@ -619,11 +622,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[10] == null || gpsCommandData[10] == "")
                 {
-                    gps_dat_9 = "";
+                    commandData9 = "";
                 }
                 else
                 {
-                    gps_dat_9 = gpsCommandData[10];
+                    commandData9 = gpsCommandData[10];
                 }
             }
 
@@ -631,22 +634,22 @@ namespace IngameScript
             {
                 if (gpsCommandData[11] == null || gpsCommandData[11] == "")
                 {
-                    gps_dat_10 = "";
-                    dt_prsnt4 = false;
+                    commandDataAlignX = "";
+                    commandDataPresent_11 = false;
                 }
                 else
                 {
-                    gps_dat_10 = gpsCommandData[11];
+                    commandDataAlignX = gpsCommandData[11];
 
-                    if (!double.TryParse(gps_dat_10, out tgtX))
+                    if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
                     {
-                        tgtX = 0.0;
-                        dt_prsnt4 = false;
+                        alignmentTargetX = 0.0;
+                        commandDataPresent_11 = false;
 
                     }
                     else
                     {
-                        dt_prsnt4 = true;
+                        commandDataPresent_11 = true;
                     }
                 }
             }
@@ -655,22 +658,22 @@ namespace IngameScript
             {
                 if (gpsCommandData[12] == null || gpsCommandData[12] == "")
                 {
-                    gps_dat_11 = "";
-                    dt_prsnt5 = false;
+                    commandDataAlignY = "";
+                    commandDataPresent_12 = false;
                 }
                 else
                 {
-                    gps_dat_11 = gpsCommandData[12];
+                    commandDataAlignY = gpsCommandData[12];
 
-                    if (!double.TryParse(gps_dat_11, out tgtY))
+                    if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
                     {
-                        tgtY = 0.0;
-                        dt_prsnt5 = false;
+                        alignmentTargetY = 0.0;
+                        commandDataPresent_12 = false;
 
                     }
                     else
                     {
-                        dt_prsnt5 = true;
+                        commandDataPresent_12 = true;
                     }
                 }
             }
@@ -679,49 +682,49 @@ namespace IngameScript
             {
                 if (gpsCommandData[13] == null || gpsCommandData[13] == "")
                 {
-                    gps_dat_12 = "";
-                    dt_prsnt6 = false;
+                    commandDataAlignZ = "";
+                    commandDataPresent_13 = false;
                 }
                 else
                 {
-                    gps_dat_12 = gpsCommandData[13].ToString();
+                    commandDataAlignZ = gpsCommandData[13].ToString();
 
-                    if (!double.TryParse(gps_dat_12, out tgtZ))
+                    if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
                     {
-                        tgtZ = 0.0;
-                        dt_prsnt6 = false;
+                        alignmentTargetZ = 0.0;
+                        commandDataPresent_13 = false;
 
                     }
                     else
                     {
-                        dt_prsnt6 = true;
+                        commandDataPresent_13 = true;
                     }
                 }
             }
 
-            if (dt_prsnt4 && dt_prsnt5 && dt_prsnt6)
+            if (commandDataPresent_11 && commandDataPresent_12 && commandDataPresent_13)
             {
-                trgt_vld = true;
-                align_tgt_new.X = tgtX;
-                align_tgt_new.Y = tgtY;
-                align_tgt_new.Z = tgtZ;
+                targetAlignmentValid = true;
+                alignmentTargetNew.X = alignmentTargetX;
+                alignmentTargetNew.Y = alignmentTargetY;
+                alignmentTargetNew.Z = alignmentTargetZ;
             }
             else
             {
-                trgt_vld = false;
+                targetAlignmentValid = false;
             }
 
             if (gpsCommandData.Length < 14)
             {
-                dt_prsnt6 = false;
+                commandDataPresent_13 = false;
             }
             if (gpsCommandData.Length < 13)
             {
-                dt_prsnt5 = false;
+                commandDataPresent_12 = false;
             }
             if (gpsCommandData.Length < 12)
             {
-                dt_prsnt4 = false;
+                commandDataPresent_11 = false;
             }
         }
 
@@ -909,7 +912,7 @@ namespace IngameScript
                 str = _ini.Get("coordinates", "c8").ToString();
                 Vector3D.TryParse(str, out crnt_tgt_align);
                 str = _ini.Get("coordinates", "c9").ToString();
-                Vector3D.TryParse(str, out align_tgt_new);
+                Vector3D.TryParse(str, out alignmentTargetNew);
                 str = _ini.Get("coordinates", "c10").ToString();
                 Vector3D.TryParse(str, out directionb);
                 str = _ini.Get("coordinates", "c11").ToString();
@@ -919,7 +922,7 @@ namespace IngameScript
                 str = _ini.Get("coordinates", "c13").ToString();
                 Vector3D.TryParse(str, out gravity);
                 str = _ini.Get("coordinates", "co14").ToString();
-                gpsindx = str;
+                gpsIndex = str;
             }
 
         }
@@ -2479,7 +2482,7 @@ namespace IngameScript
                 droneStatusOutput = "Idle";
                 undocking_stage = 0;
                 droneStatus = 0;
-                cmd_rqt = "0";
+                commandCommandDataRequested = "0";
             }
             //reset exit request on stop state
             if (miningStage == 0 && stopState && requestExit)
@@ -2528,11 +2531,11 @@ namespace IngameScript
         {
             #region check_for_planetary_gravity_presence
             gravity = remoteControlActual.GetNaturalGravity();
-            if (trgt_vld)
+            if (targetAlignmentValid)
             {
-                crnt_tgt_align = align_tgt_new;
+                crnt_tgt_align = alignmentTargetNew;
             }
-            if (!trgt_vld)
+            if (!targetAlignmentValid)
             {
                 crnt_tgt_align = gravity;
             }
@@ -2580,7 +2583,7 @@ namespace IngameScript
             }
             else rollinst = false;
 
-            if (main_nav_sequence > 0 && main_nav_sequence < 4 && trgt_vld)
+            if (main_nav_sequence > 0 && main_nav_sequence < 4 && targetAlignmentValid)
             {
                 nav_act = true;
             }
@@ -2804,7 +2807,7 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
                 main_nav_sequence = 0;
-                cmd_rqt = "0";
+                commandCommandDataRequested = "0";
             }
             remoteControlActual.GetWaypointInfo(waypoints);
             if (main_nav_sequence == 3 && add_nav_Waypoint_mn && waypoints.Count <= 0 && !main_nav_complete && isUndocked && navState)
@@ -2827,7 +2830,7 @@ namespace IngameScript
                     dock_light_actual.Enabled = false;
                 }
                 main_nav_sequence = 0;
-                cmd_rqt = "0";
+                commandCommandDataRequested = "0";
             }
 
             if (main_nav_sequence > 0 && recharge_request || main_nav_sequence > 0 && force_request_dock)
@@ -2890,11 +2893,11 @@ namespace IngameScript
                 tgt_drill_start.Z = main_gps_coords.Z;
                 tgt_drill_start.Y = main_gps_coords.Y;
                 miningInitialised = true;
-                if (trgt_vld)
+                if (targetAlignmentValid)
                 {
                     directionb = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
                 }
-                if (!trgt_vld)
+                if (!targetAlignmentValid)
                 {
                     directionb = Vector3D.Normalize(new Vector3D(gravity));
                 }
@@ -3163,11 +3166,11 @@ namespace IngameScript
                 {
                     remoteControlActual.SpeedLimit = exit_speed; //initialise mining exit speed
                 }
-                if (trgt_vld)
+                if (targetAlignmentValid)
                 {
                     directionc = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
                 }
-                if (!trgt_vld)
+                if (!targetAlignmentValid)
                 {
                     directionc = Vector3D.Normalize(new Vector3D(gravity));
                 }
@@ -3185,11 +3188,11 @@ namespace IngameScript
                 {
                     miningStage = 8;
                     exitWaypointAdjusted = true;
-                    if (trgt_vld)
+                    if (targetAlignmentValid)
                     {
                         direction = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
                     }
-                    if (!trgt_vld)
+                    if (!targetAlignmentValid)
                     {
                         direction = Vector3D.Normalize(new Vector3D(gravity));
                     }
@@ -3457,11 +3460,11 @@ namespace IngameScript
 
         private void InitializeMining_Coordinates()
         {
-            if (trgt_vld)
+            if (targetAlignmentValid)
             {
                 direction = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
             }
-            if (!trgt_vld)
+            if (!targetAlignmentValid)
             {
                 direction = Vector3D.Normalize(new Vector3D(gravity));
             }
@@ -3917,7 +3920,7 @@ namespace IngameScript
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
                     drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
-                    gpsindx, cargoFullAchieved, recharge_request,
+                    gpsIndex, cargoFullAchieved, recharge_request,
                     autoDock
                     );
                 dataTransmissionOut = sb.ToString();
@@ -3982,7 +3985,7 @@ namespace IngameScript
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {droneStatusOutput}");
             Echo($"Distance ID: {miningInitialised}");
-            Echo($"Command seq: {cmd_rqt}");
+            Echo($"Command seq: {commandCommandDataRequested}");
             Echo($"Cargo: {cargoPercent}%  Full: {cargoFullAchieved}");
             Echo($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
             if (hydrogen_tank_tag.Count > 0)
