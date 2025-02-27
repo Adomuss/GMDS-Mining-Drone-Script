@@ -537,43 +537,65 @@ namespace IngameScript
 
         void GetCustomData()
         {
-            String[] gps_cd = Me.CustomData.Split(':');
-            if (gps_cd.Length < 5)
+            if (!string.IsNullOrEmpty(Me.CustomData))
             {
-                Me.CustomData = fail_data;
+                Echo("Custom Data is empty");
             }
-            if (gps_cd.Length > 5)
+            String[] gpsCommandData = Me.CustomData.Split(':');
+            if (gpsCommandData.Length < 5)
             {
-                gpsindx = gps_cd[1];
-                main_gps_coords = new Vector3D(Double.Parse(gps_cd[2]), Double.Parse(gps_cd[3]), Double.Parse(gps_cd[4]));
-                cmd_rqt = gps_cd[6].ToString();
+                Echo("Custom Data is faulty");
+                Me.CustomData = fail_data;                
+            }
+            /* Custom data message structure
+             * 0 = GPS Text
+             * 1 = GPS Index
+             * 2 = Main Target X
+             * 3 = Main Y
+             * 4 = Main Z
+             * 5 = Colour output?
+             * 6 = Command Request
+             * 7 = Command Distance
+             * 8 = Ignore Distance
+             * 9 = GPS Data 8
+             * 10 = GPS Data 9
+             * 11 = Alignment Target X
+             * 12 = Alignment Target Y
+             * 13 = Alignment Target Z
+             * 
+             */
+            if (gpsCommandData.Length > 5)
+            {
+                gpsindx = gpsCommandData[1];
+                main_gps_coords = new Vector3D(Double.Parse(gpsCommandData[2]), Double.Parse(gpsCommandData[3]), Double.Parse(gpsCommandData[4]));
+                cmd_rqt = gpsCommandData[6].ToString();
                 if (!int.TryParse(cmd_rqt, out commandRequest))
                 {
                     commandRequest = 0;
                 }
-                cmd_dist = gps_cd[7].ToString();
+                cmd_dist = gpsCommandData[7].ToString();
                 if (!Double.TryParse(cmd_dist, out drillSetLength))
                 {
                     drillSetLength = 1.0;
                 }
             }
 
-            if (gps_cd.Length < 9)
+            if (gpsCommandData.Length < 9)
             {
                 ignoreDistance = 0.0;
                 return;
             }
 
-            if (gps_cd.Length > 9)
+            if (gpsCommandData.Length > 9)
             {
-                if (gps_cd[8] == null || gps_cd[8] == "")
+                if (gpsCommandData[8] == null || gpsCommandData[8] == "")
                 {
                     gps_dat_7 = "";
                     ignoreDistance = 0.0;
                 }
                 else
                 {
-                    gps_dat_7 = gps_cd[8].ToString();
+                    gps_dat_7 = gpsCommandData[8].ToString();
                     if (!double.TryParse(gps_dat_7, out ignoreDistance))
                     {
                         ignoreDistance = 0.0;
@@ -581,40 +603,40 @@ namespace IngameScript
                 }
             }
 
-            if (gps_cd.Length > 10)
+            if (gpsCommandData.Length > 10)
             {
-                if (gps_cd[9] == null || gps_cd[9] == "")
+                if (gpsCommandData[9] == null || gpsCommandData[9] == "")
                 {
                     gps_dat_8 = "";
                 }
                 else
                 {
-                    gps_dat_8 = gps_cd[9].ToString();
+                    gps_dat_8 = gpsCommandData[9].ToString();
                 }
             }
 
-            if (gps_cd.Length > 11)
+            if (gpsCommandData.Length > 11)
             {
-                if (gps_cd[10] == null || gps_cd[10] == "")
+                if (gpsCommandData[10] == null || gpsCommandData[10] == "")
                 {
                     gps_dat_9 = "";
                 }
                 else
                 {
-                    gps_dat_9 = gps_cd[10].ToString();
+                    gps_dat_9 = gpsCommandData[10].ToString();
                 }
             }
 
-            if (gps_cd.Length > 12)
+            if (gpsCommandData.Length > 12)
             {
-                if (gps_cd[11] == null || gps_cd[11] == "")
+                if (gpsCommandData[11] == null || gpsCommandData[11] == "")
                 {
                     gps_dat_10 = "";
                     dt_prsnt4 = false;
                 }
                 else
                 {
-                    gps_dat_10 = gps_cd[11].ToString();
+                    gps_dat_10 = gpsCommandData[11].ToString();
 
                     if (!double.TryParse(gps_dat_10, out tgtX))
                     {
@@ -629,16 +651,16 @@ namespace IngameScript
                 }
             }
 
-            if (gps_cd.Length > 13)
+            if (gpsCommandData.Length > 13)
             {
-                if (gps_cd[12] == null || gps_cd[12] == "")
+                if (gpsCommandData[12] == null || gpsCommandData[12] == "")
                 {
                     gps_dat_11 = "";
                     dt_prsnt5 = false;
                 }
                 else
                 {
-                    gps_dat_11 = gps_cd[12].ToString();
+                    gps_dat_11 = gpsCommandData[12].ToString();
 
                     if (!double.TryParse(gps_dat_11, out tgtY))
                     {
@@ -653,16 +675,16 @@ namespace IngameScript
                 }
             }
 
-            if (gps_cd.Length > 14)
+            if (gpsCommandData.Length > 14)
             {
-                if (gps_cd[13] == null || gps_cd[13] == "")
+                if (gpsCommandData[13] == null || gpsCommandData[13] == "")
                 {
                     gps_dat_12 = "";
                     dt_prsnt6 = false;
                 }
                 else
                 {
-                    gps_dat_12 = gps_cd[13].ToString();
+                    gps_dat_12 = gpsCommandData[13].ToString();
 
                     if (!double.TryParse(gps_dat_12, out tgtZ))
                     {
@@ -689,15 +711,15 @@ namespace IngameScript
                 trgt_vld = false;
             }
 
-            if (gps_cd.Length < 14)
+            if (gpsCommandData.Length < 14)
             {
                 dt_prsnt6 = false;
             }
-            if (gps_cd.Length < 13)
+            if (gpsCommandData.Length < 13)
             {
                 dt_prsnt5 = false;
             }
-            if (gps_cd.Length < 12)
+            if (gpsCommandData.Length < 12)
             {
                 dt_prsnt4 = false;
             }
