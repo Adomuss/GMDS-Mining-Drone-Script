@@ -42,7 +42,7 @@ namespace IngameScript
         bool ORE_sense_enabled = true;
         float ORE_sense_limit = 0.0f;
         //dmg detect
-        bool dmg_report_enabled = true;
+        bool damageReportingEnabled = true;
         //collision sense ranges
         bool Collision_sense_enabled = true;
         float s_llm = 4.0f;
@@ -113,7 +113,7 @@ namespace IngameScript
         string DLT = "";
         string P_CH = "";
         string p_cht = "ping";
-        string drone_damage_status = "OK";
+        string droneDamageStatus = "OK";
         string droneStatusOutput = "Idle";
         string recall_command = "recall";
         double terminiationPrecision = 0.0;
@@ -229,7 +229,7 @@ namespace IngameScript
         IMyLightingBlock collision_avoid_light_actual;
         IMyLightingBlock precM_light_actual;
         IMyLightingBlock reset_light_actual;
-        IMyLightingBlock dmg_light_actual;
+        IMyLightingBlock damageLightActual;
         IMySensorBlock sensor_actual;
         IMyGasTank crnthyrdogentank;
         Vector3D main_gps_coords;
@@ -1768,14 +1768,14 @@ namespace IngameScript
             }
             reset_light_actual = light_reset_tag[0];
 
-            if (light_dmg_tag.Count <= 0 && dmg_report_enabled)
+            if (light_dmg_tag.Count <= 0 && damageReportingEnabled)
             {
                 Echo($"Damage indicator light with tag: '{DLT}' not found. Add ' {dmg}' tag\"");
                 Echo("");
             }
-            if (light_dmg_tag.Count > 0 && dmg_report_enabled && light_dmg_tag[0] != null)
+            if (light_dmg_tag.Count > 0 && damageReportingEnabled && light_dmg_tag[0] != null)
             {
-                dmg_light_actual = light_dmg_tag[0];
+                damageLightActual = light_dmg_tag[0];
             }
 
             if (battery_tag.Count <= 0 || battery_tag[0] == null)
@@ -1883,25 +1883,26 @@ namespace IngameScript
         public void damage_check()
         {
             #region damage_check
-            if (!dmg_report_enabled)
+            if (!damageReportingEnabled)
             {
-                drone_damage_status = "OK";
+                droneDamageStatus = "OK";
             }
-            if (dmg_report_enabled)
+            if (damageReportingEnabled)
             {
-                if (dmg_light_actual == null && dmg_report_enabled)
+                if (damageLightActual == null && damageReportingEnabled)
                 {
-                    drone_damage_status = "UNK";
+                    droneDamageStatus = "UNK";
+                    Echo("Warning: Damage light is null in damage check");
                 }
-                if (dmg_light_actual != null)
+                if (damageLightActual != null)
                 {
-                    if (dmg_light_actual.Enabled && dmg_report_enabled && dmg_light_actual.IsFunctional || dmg_report_enabled && !dmg_light_actual.IsFunctional)
+                    if (damageLightActual.Enabled && damageReportingEnabled && damageLightActual.IsFunctional || damageReportingEnabled && !damageLightActual.IsFunctional)
                     {
-                        drone_damage_status = "DMG";
+                        droneDamageStatus = "DMG";
                     }
-                    if (!dmg_light_actual.Enabled && dmg_report_enabled && dmg_light_actual.IsFunctional)
+                    if (!damageLightActual.Enabled && damageReportingEnabled && damageLightActual.IsFunctional)
                     {
-                        drone_damage_status = "OK";
+                        droneDamageStatus = "OK";
                     }
                 }
             }
@@ -3885,7 +3886,7 @@ namespace IngameScript
                 const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:";
                 sb.Clear().EnsureCapacity(128);
                 sb.AppendFormat(baseFormat, D_I_N, 
-                    drone_damage_status, tunnelSequenceFinished, droneStatusOutput,
+                    droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
                     is_docked, isUndocked, isAutopiloting, 
                     rc_actual.IsAutoPilotEnabled,
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
@@ -3952,7 +3953,7 @@ namespace IngameScript
 
             // Core status report
             Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction}");
-            Echo($"Drone ID: {D_I_N} # {drone_damage_status}");
+            Echo($"Drone ID: {D_I_N} # {droneDamageStatus}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {droneStatusOutput}");
             Echo($"Distance ID: {miningInitialised}");
