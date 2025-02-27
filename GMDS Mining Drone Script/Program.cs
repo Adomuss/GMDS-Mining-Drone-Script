@@ -1800,15 +1800,18 @@ namespace IngameScript
                     ttl_volu += inventory_vol;
                     ttl_volm += max_inventory_vol;                    
                 }
-                if (ttl_volm > 0.0f) 
-                {
-                    total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
-                }
                 else
                 {
-                    total_percent_cargo_used = 0.0f;
-                }
-               
+                    Echo($"Warning: Cargo container [{i}] is null in cargo_check");
+                }               
+            }
+            if (ttl_volm > 0.0f)
+            {
+                total_percent_cargo_used = (ttl_volu / ttl_volm) * 100;
+            }
+            else
+            {
+                total_percent_cargo_used = 0.0f;
             }
             //
             if (total_percent_cargo_used == 100.0f)
@@ -1844,6 +1847,10 @@ namespace IngameScript
                         float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
                         ttl_volus += inventory_vol_s;
                         ttl_volms += max_inventory_vol_s;                        
+                    }
+                    else
+                    {
+                        Echo($"Warning: Sense cargo container [{i}] is null in cargo_check");
                     }
                 }
                 if (ttl_volms > 0.0f)
