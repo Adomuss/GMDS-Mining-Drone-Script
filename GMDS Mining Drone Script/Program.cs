@@ -2999,10 +2999,10 @@ namespace IngameScript
             }
             if (miningStage == 1 && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked && mine_coords_adjusted) // scan coordinate position to ground
             {
-                miningStage = 12;                                
+                                               
                 StDrlOnOff(false, cnvyrsON);
                 droneStatus = 8;
-                droneStatusOutput = " RTB Terminating Mining";
+                droneStatusOutput = "Initiating RTB"; //tDA Bug - TDA was being removed early
             }
             if (miningStage == 2 && !add_mine_waypoint && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked)
             {
@@ -3326,17 +3326,9 @@ namespace IngameScript
 
                 droneStatus = 21;
 
-                if (wasMining)
-                {
-                    reset_mining = true;
-                }
-                requestExit = false;
-                wasMining = false;
-                targetDepthAchieved = false;
-                if (!isDocking || !isUndocking)
-                {
-                    reset_ai();
-                }
+
+                //targetDepthAchieved = false;
+
                 collision_avoid_light_actual.Enabled = true;
                 if (Collision_sense_enabled)
                 {
@@ -3360,6 +3352,16 @@ namespace IngameScript
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request A";
                     dockingReady = false;
+                    if (wasMining)
+                    {
+                        reset_mining = true;
+                    }
+                    if (!isDocking || !isUndocking)
+                    {
+                        reset_ai();
+                    }
+                    requestExit = false;
+                    wasMining = false;
                 }
                 else
                 {
@@ -3375,15 +3377,8 @@ namespace IngameScript
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 droneStatus = 22;
-                if (wasMining)
-                {
-                    reset_mining = true;
-                }
                 requestExit = false;
-                if (!isDocking || !isUndocking)
-                {
-                    reset_ai();
-                }
+
                 droneStatusOutput = "Preparing B";
                 main_nav_sequence = 0;
 
@@ -3417,6 +3412,14 @@ namespace IngameScript
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request B";
                     dockingReady = false;
+                    if (wasMining)
+                    {
+                        reset_mining = true;
+                    }
+                    if (!isDocking || !isUndocking)
+                    {
+                        reset_ai();
+                    }
                 }
                 else
                 {
