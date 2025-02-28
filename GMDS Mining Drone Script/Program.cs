@@ -430,7 +430,7 @@ namespace IngameScript
 
             bool autoDocking = false; // Default or from GMDC command
             if (!string.IsNullOrEmpty(argument) && argument.Contains(autodockCommand)) { autoDocking = true; }
-            bool canDock = (dockingReady || recall || dockState);
+            bool canDock = (dockingReady || dockState);
             #region refresh_waypoints
             if (waypoints.Count > 0)
             {
