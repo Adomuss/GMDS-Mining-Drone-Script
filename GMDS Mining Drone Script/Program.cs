@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.345";
+        string ver = "V0.346";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3675,9 +3675,14 @@ namespace IngameScript
                     undocking_stage = 0;
                 }
 
+                if (!locked.Equals(cc) && dockingStage == 2 && !no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior"))))
+                {
+                    ai_dck_act.ApplyAction(ab1);
+                    ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
+                }
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
-
-                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1)))
+                //get terminal properties
+                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior")|| (ai_dck_act.GetValue<bool>("ActivateBehavior")))))
                 {
                     if (!reset_light_actual.Enabled)
                     {
