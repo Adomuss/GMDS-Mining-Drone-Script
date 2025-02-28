@@ -26,7 +26,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.341A       
+        // General Mining Drone Script v0.344A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.343";
+        string ver = "V0.344";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -535,7 +535,7 @@ namespace IngameScript
             }
         }
 
-        void GetCustomData()
+        void GetCustomDataCommand()
         {
             if (!string.IsNullOrEmpty(Me.CustomData))
             {
@@ -2167,7 +2167,7 @@ namespace IngameScript
                 }
                 if (custom_data_read == 0)
                 {
-                    GetCustomData();
+                    GetCustomDataCommand();
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -2193,7 +2193,7 @@ namespace IngameScript
 
                 if (custom_data_read == 0)
                 {
-                    GetCustomData();
+                    GetCustomDataCommand();
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -2615,7 +2615,7 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 main_nav_sequence = 2;
-                GetCustomData();
+                GetCustomDataCommand();
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
