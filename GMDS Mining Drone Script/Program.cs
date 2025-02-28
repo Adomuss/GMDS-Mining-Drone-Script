@@ -32,12 +32,12 @@ namespace IngameScript
         // 
         #region mdk preserve
         public Program()
-        {       
+        {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
         }
         //rename these for drone
         int drone_id_num = 1;
-        string drone_tag = "SWRM_D";                
+        string drone_tag = "SWRM_D";
         //ore detection
         bool ORE_sense_enabled = true;
         float ORE_sense_limit = 0.0f;
@@ -123,7 +123,7 @@ namespace IngameScript
         string dat_in2 = "";
         string pingedMessageDataIn = "";
         string dat_in4 = "";
-        bool pinged = false;        
+        bool pinged = false;
         int droneStatus = 0;
         int commandRequest = 0;
         int cmd_rqold = 0;
@@ -216,7 +216,7 @@ namespace IngameScript
         IMyRemoteControl remoteControlActual;
         IMyCameraBlock camera_actual;
         IMyShipConnector connector_actual;
-        IMyRadioAntenna antenna_actual;        
+        IMyRadioAntenna antenna_actual;
         IMyTimerBlock tb_TON_act;
         IMyTimerBlock tb_TOFF_act;
         IMyPathRecorderBlock ai_dck_act;
@@ -355,6 +355,7 @@ namespace IngameScript
         double pcnt_gas_tank = 0.0;
         double _Runtime;
         int _Instruction;
+        bool dockingReady = false;
         #endregion
 
         #region save_state_management
@@ -406,7 +407,7 @@ namespace IngameScript
             _ini.Set("coordinates", "co11", direction.ToString());
             _ini.Set("coordinates", "co12", directionc.ToString());
             _ini.Set("coordinates", "co13", gravity.ToString());
-            _ini.Set("coordinates", "co14", gpsIndex.ToString());            
+            _ini.Set("coordinates", "co14", gpsIndex.ToString());
             Storage = _ini.ToString();
         }
         #endregion
@@ -428,8 +429,8 @@ namespace IngameScript
             Echo($"GMDS {ver} Running...");
 
             bool autoDocking = false; // Default or from GMDC command
-            if (!string.IsNullOrEmpty(argument) && argument.Contains(autodockCommand)) { autoDocking = true; }            
-
+            if (!string.IsNullOrEmpty(argument) && argument.Contains(autodockCommand)) { autoDocking = true; }
+            bool canDock = (dockingReady || recall || dockState);
             #region refresh_waypoints
             if (waypoints.Count > 0)
             {
@@ -468,9 +469,10 @@ namespace IngameScript
                 mining_management(autoDocking);
             }
 
-            docking_management();
+            
+            docking_management(canDock);
             connector_state_management();
-            drone_message_transmission_management(autoDocking, remoteControlActual,antenna_actual);
+            drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual);
             nagivation_movement_check();
             undock_delay_check();
             dock_delay_check();
@@ -480,11 +482,11 @@ namespace IngameScript
         }
         Vector3D GetNavAngles(Vector3D Target)
         {
-            if(remoteControlActual == null)
+            if (remoteControlActual == null)
             {
                 Echo("No RC found");
                 return new Vector3D(0, 0, 0);
-                
+
             }
             Vector3D RCcenter = remoteControlActual.GetPosition();
             Vector3D RCfow = remoteControlActual.WorldMatrix.Forward;
@@ -520,7 +522,7 @@ namespace IngameScript
                     }
                     if (gyroTag[j] != null)
                     {
-                        gyroActual = gyroTag[j];                        
+                        gyroActual = gyroTag[j];
                         if (gyroActual != null)
                         {
                             if ((!gyroActual.GyroOverride && OverrideOnOff) || (gyroActual.GyroOverride && !OverrideOnOff))
@@ -537,7 +539,7 @@ namespace IngameScript
 
         void GetCustomDataCommand()
         {
-            if (!string.IsNullOrEmpty(Me.CustomData))
+            if (string.IsNullOrEmpty(Me.CustomData))
             {
                 Echo("Custom Data is empty");
             }
@@ -545,7 +547,7 @@ namespace IngameScript
             if (gpsCommandData.Length < 5)
             {
                 Echo("Custom Data is faulty");
-                Me.CustomData = fail_data;                
+                Me.CustomData = fail_data;
             }
             /* Custom data message structure
              * 0 = GPS Text
@@ -580,7 +582,7 @@ namespace IngameScript
                 {
                     drillSetLength = 1.0;
                 }
-                
+
             }
 
             if (gpsCommandData.Length < 9)
@@ -588,7 +590,7 @@ namespace IngameScript
                 ignoreDistance = 0.0;
                 return;
             }
-            
+
             if (gpsCommandData.Length > 9)
             {
                 if (gpsCommandData[8] == null || gpsCommandData[8] == "")
@@ -1817,7 +1819,7 @@ namespace IngameScript
         {
             #region cargo_check
             float ttl_volu = 0.0f;
-            float ttl_volm = 0.0f;            
+            float ttl_volm = 0.0f;
             total_percent_cargo_used = 0;
             for (int i = 0; i < cargo_tag.Count; i++)
             {
@@ -1826,12 +1828,12 @@ namespace IngameScript
                     float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
                     float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
                     ttl_volu += inventory_vol;
-                    ttl_volm += max_inventory_vol;                    
+                    ttl_volm += max_inventory_vol;
                 }
                 else
                 {
                     Echo($"Warning: Cargo container [{i}] is null in cargo_check");
-                }               
+                }
             }
             if (ttl_volm > 0.0f)
             {
@@ -1874,7 +1876,7 @@ namespace IngameScript
                         float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
                         float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
                         ttl_volus += inventory_vol_s;
-                        ttl_volms += max_inventory_vol_s;                        
+                        ttl_volms += max_inventory_vol_s;
                     }
                     else
                     {
@@ -1885,7 +1887,7 @@ namespace IngameScript
                 {
                     ttl_pctus = (ttl_volus / ttl_volms) * 100;
                 }
-                else 
+                else
                 {
                     ttl_pctus = 0.0f;
                 }
@@ -2237,7 +2239,7 @@ namespace IngameScript
                 navState = true;
             }
             else navState = false;
-            if (commandRequest == 5 && !requestExit)
+            if (commandRequest == 5 && (!requestExit))
             {
                 mineState = true;
             }
@@ -2264,8 +2266,12 @@ namespace IngameScript
 
         public void connected_battery_recharge_check()
         {
-            #region connected_battery_recharge_check
-            if (connector_actual.IsConnected && autoChargeMode && !undockState && (!recharge_request_battery || recharge_request_battery))
+            if (connector_actual.IsConnected && dockingReady)
+            {
+                dockingReady = false;
+            }
+                #region connected_battery_recharge_check
+                if (connector_actual.IsConnected && autoChargeMode && !undockState && (!recharge_request_battery || recharge_request_battery))
             {
                 for (int i = 0; i < battery_tag.Count; i++)
                 {
@@ -2304,6 +2310,7 @@ namespace IngameScript
             if (dockState && !connector_actual.IsConnected && dockingStage == 0)
             {
                 droneStatusOutput = "Docking init";
+                dockingReady = false;
                 string locked = connector_actual.Status.ToString();
                 if (!undock_light_actual.Enabled && !connector_actual.IsConnected && !locked.Equals(cc))
                 {
@@ -2494,6 +2501,10 @@ namespace IngameScript
             {
                 wasMining = true;
             }
+            if (dockingReady)
+            {
+                wasMining = false;
+            }
             if (reset_mining && wasMining)
             {
                 wasMining = false;
@@ -2558,7 +2569,7 @@ namespace IngameScript
                 can_gyroOVR = true;
             }
             SetGyroOverride(can_gyroOVR, GetNavAngles(crnt_tgt_align) * GyrMlt);
-            
+
             double YawMon = GetNavAngles(crnt_tgt_align).GetDim(0);
             double PitchMon = GetNavAngles(crnt_tgt_align).GetDim(1);
             double RollMon = GetNavAngles(crnt_tgt_align).GetDim(2);
@@ -2984,7 +2995,7 @@ namespace IngameScript
                 miningStage = 2;
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
-                
+
                 StDrlOnOff(true, cnvyrsON);
                 droneStatus = 8;
                 droneStatusOutput = "Mining";
@@ -3006,7 +3017,7 @@ namespace IngameScript
             if (miningStage == 3 && add_mine_waypoint && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked)
             {
                 miningStage = 4;
-                
+
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(true);
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
@@ -3049,7 +3060,7 @@ namespace IngameScript
                 mining_nav_complete = true;
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(true);
-                remoteControlActual.SetAutoPilotEnabled(false);                
+                remoteControlActual.SetAutoPilotEnabled(false);
                 droneStatus = 12;
                 droneStatusOutput = "Mining++++";
             }
@@ -3321,7 +3332,7 @@ namespace IngameScript
                 if (!isDocking || !isUndocking)
                 {
                     reset_ai();
-                }                
+                }
                 collision_avoid_light_actual.Enabled = true;
                 if (Collision_sense_enabled)
                 {
@@ -3344,6 +3355,7 @@ namespace IngameScript
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request A";
+                    dockingReady = true;
                 }
                 else
                 {
@@ -3370,7 +3382,7 @@ namespace IngameScript
                 }
                 droneStatusOutput = "Preparing B";
                 main_nav_sequence = 0;
-                
+
                 if (!collision_avoid_light_actual.Enabled)
                 {
                     collision_avoid_light_actual.Enabled = true;
@@ -3400,6 +3412,7 @@ namespace IngameScript
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request B";
+                    dockingReady = true;
                 }
                 else
                 {
@@ -3407,7 +3420,7 @@ namespace IngameScript
                     miningStage = 13;
                     droneStatusOutput = "Preparing B";
                 }
-                
+
             }
             if (miningStage == 12 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && targetDepthAchieved)
             {
@@ -3415,6 +3428,7 @@ namespace IngameScript
                 dock_delay_time = 0;
                 droneStatusOutput = "RTB Ready A";
                 droneStatus = 26;
+                dockingReady = true;
             }
             if (miningStage == 13 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && !targetDepthAchieved)
             {
@@ -3422,6 +3436,7 @@ namespace IngameScript
                 dock_delay_time = 0;
                 droneStatusOutput = "RTB Ready B";
                 droneStatus = 27;
+                dockingReady = true;
             }
             #endregion
         }
@@ -3474,12 +3489,21 @@ namespace IngameScript
             mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);
         }
 
-        public void docking_management()
+        public void docking_management(bool canDock)
         {
-            if (!dockState)
+            if (!canDock)
             {
+                if (dockingStage > 0) 
+                { 
+                dockingStage = 0;
+                }
+
                 //early return if docking is disabled
                 return;
+            }
+            if ((canDock) && dockingStage == 0 && !is_docked)
+            {
+                dockingStage = 1;
             }
             #region docking_management
             if (reset_light_actual.Enabled && dockingStage > 0)
@@ -3596,7 +3620,7 @@ namespace IngameScript
             if (dockingStage == 2)
             {
                 IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
-                 
+
                 currentSpeed = remoteControlActual.GetShipSpeed();
                 string locked = connector_actual.Status.ToString();
                 if (!locked.Equals(cc)
@@ -3641,7 +3665,7 @@ namespace IngameScript
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
 
-                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) ))
+                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1)))
                 {
                     if (!reset_light_actual.Enabled)
                     {
@@ -3913,9 +3937,9 @@ namespace IngameScript
             {
                 const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:";
                 sb.Clear().EnsureCapacity(128);
-                sb.AppendFormat(baseFormat, D_I_N, 
+                sb.AppendFormat(baseFormat, D_I_N,
                     droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
-                    is_docked, isUndocked, isAutopiloting, 
+                    is_docked, isUndocked, isAutopiloting,
                     rc_actual.IsAutoPilotEnabled,
                     Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
                     drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
@@ -3993,9 +4017,9 @@ namespace IngameScript
                 Echo($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
             }
             Echo($"Mine distance: {mineDistance}m  Mine Start: {(drillSetLength - ignoreDistance)}m");
-            Echo($"Mine: {mineState} - Stage: {miningStage}");
+            Echo($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining}");
             Echo($"Nav: {navState} - Stage: {main_nav_sequence}");
-            Echo($"Dock: {is_docked} - Stage: {dockingStage}");
+            Echo($"Dock: {is_docked} - Stage: {dockingStage} DR: {dockingReady}");
             Echo($"Undock: {isUndocked} - Stage: {undocking_stage}");
             Echo($"Connected: {connector_actual.IsConnected}");
             Echo($"Depth Achieved: {targetDepthAchieved}");
