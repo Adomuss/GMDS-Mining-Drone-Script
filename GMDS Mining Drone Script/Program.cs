@@ -2997,6 +2997,13 @@ namespace IngameScript
                 droneStatus = 8;
                 droneStatusOutput = "Mining";
             }
+            if (miningStage == 1 && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked && mine_coords_adjusted) // scan coordinate position to ground
+            {
+                miningStage = 12;                                
+                StDrlOnOff(false, cnvyrsON);
+                droneStatus = 8;
+                droneStatusOutput = " RTB Terminating Mining";
+            }
             if (miningStage == 2 && !add_mine_waypoint && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked)
             {
 
