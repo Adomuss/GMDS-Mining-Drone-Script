@@ -430,7 +430,7 @@ namespace IngameScript
 
             bool autoDocking = false; // Default or from GMDC command
             if (!string.IsNullOrEmpty(argument) && argument.Contains(autodockCommand)) { autoDocking = true; }
-            bool canDock = (dockingReady || dockState);
+            bool canDock = (dockState);
             #region refresh_waypoints
             if (waypoints.Count > 0)
             {
@@ -449,7 +449,7 @@ namespace IngameScript
             custom_data_command_presence_check();
             command_poll();
             drone_operating_state_mng();
-            connected_battery_recharge_check();
+            connected_battery_recharge_check(dockingReady);
             docking_state_check();
 
             undock_management();
@@ -470,8 +470,8 @@ namespace IngameScript
             }
 
             
-            docking_management(canDock);
-            connector_state_management();
+            docking_management(canDock, autoDocking);
+            connector_state_management(dockingReady);
             drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual);
             nagivation_movement_check();
             undock_delay_check();
@@ -2264,7 +2264,7 @@ namespace IngameScript
             #endregion
         }
 
-        public void connected_battery_recharge_check()
+        public void connected_battery_recharge_check(bool dockingReady)
         {
             if (connector_actual.IsConnected && dockingReady)
             {
@@ -2497,15 +2497,12 @@ namespace IngameScript
                 requestExit = false;
             }
 
-            if (mineState && !wasMining)
+            if (mineState && !wasMining && !dockingReady)
             {
                 wasMining = true;
             }
-            if (dockingReady)
-            {
-                wasMining = false;
-            }
-            if (reset_mining && wasMining)
+ 
+            if (reset_mining && wasMining && !dockingReady)
             {
                 wasMining = false;
                 reset_mining = false;
@@ -3355,7 +3352,7 @@ namespace IngameScript
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request A";
-                    dockingReady = true;
+                    dockingReady = false;
                 }
                 else
                 {
@@ -3412,7 +3409,7 @@ namespace IngameScript
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request B";
-                    dockingReady = true;
+                    dockingReady = false;
                 }
                 else
                 {
@@ -3489,11 +3486,11 @@ namespace IngameScript
             mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);
         }
 
-        public void docking_management(bool canDock)
+        public void docking_management(bool canDock, bool autoDock)
         {
             if (!canDock)
             {
-                if (dockingStage > 0) 
+                if (dockingStage > 0 && autoDock) 
                 { 
                 dockingStage = 0;
                 }
@@ -3774,8 +3771,13 @@ namespace IngameScript
             #endregion
         }
 
-        public void connector_state_management()
+        public void connector_state_management(bool dockingReady)
         {
+            if (connector_actual.IsConnected && dockingReady)
+            {
+                dockingReady = false;
+            }
+
             #region connector_state_management
             if (connector_actual.IsConnected && ignore_Htank || connector_actual.IsConnected && !ignore_Htank)
             {
@@ -3982,7 +3984,7 @@ namespace IngameScript
                     main_nav_sequence = 1;
                     droneStatusOutput = "Nav";
                 }
-                if (mineState && commandChanged && isUndocked)
+                if (mineState && commandChanged && isUndocked && !dockingReady)
                 {
                     miningStage = 0;
                     miningInitialised = false;
