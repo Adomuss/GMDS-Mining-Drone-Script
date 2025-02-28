@@ -3684,8 +3684,9 @@ namespace IngameScript
                 //get terminal properties
                 if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior")|| (ai_dck_act.GetValue<bool>("ActivateBehavior")))))
                 {
+                    
                     if (!reset_light_actual.Enabled)
-                    {
+                    {                        
                         reset_light_actual.Enabled = true;
                     }
                 }
