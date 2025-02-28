@@ -2481,7 +2481,9 @@ namespace IngameScript
 
                 if (!requestExit)
                 {
+                    if (!dockingReady) { 
                     miningStage = 0;
+                    }
                     mineState = false;
                 }
                 navState = false;
@@ -2501,12 +2503,14 @@ namespace IngameScript
             {
                 wasMining = true;
             }
- 
-            if (reset_mining && wasMining && !dockingReady)
+
+            if (reset_mining && wasMining)
             {
                 wasMining = false;
                 reset_mining = false;
-                miningStage = 0;
+                if (!dockingReady) { 
+                    miningStage = 0;
+                    }
             }
             if (reset_mining && !wasMining)
             {
@@ -2514,7 +2518,10 @@ namespace IngameScript
             }
             if (!mineState && !wasMining && miningStage > 0)
             {
-                miningStage = 0;
+                if (!dockingReady)
+                {
+                    miningStage = 0;
+                }
             }
             if (mineState || navState)
             {
@@ -3323,9 +3330,17 @@ namespace IngameScript
                 remoteControlActual.ClearWaypoints();
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
-
+                requestExit = false;
+                if (wasMining)
+                {
+                    reset_mining = true;
+                }
+                if (!isDocking || !isUndocking)
+                {
+                    reset_ai();
+                }
                 droneStatus = 21;
-
+                main_nav_sequence = 0;
 
                 //targetDepthAchieved = false;
 
@@ -3345,22 +3360,14 @@ namespace IngameScript
                 {
                     dock_light_actual.Enabled = false;
                 }
-                no_speed_dock_delay_count = 0; // Reset docking delay
-                dock_delay_time = 0;
+
                 if (autoDock)
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request A";
                     dockingReady = false;
-                    if (wasMining)
-                    {
-                        reset_mining = true;
-                    }
-                    if (!isDocking || !isUndocking)
-                    {
-                        reset_ai();
-                    }
-                    requestExit = false;
+                    no_speed_dock_delay_count = 0; // Reset docking delay
+                    dock_delay_time = 0;
                     wasMining = false;
                 }
                 else
@@ -3377,11 +3384,16 @@ namespace IngameScript
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 droneStatus = 22;
-                requestExit = false;
-
-                droneStatusOutput = "Preparing B";
+                requestExit = false;                
                 main_nav_sequence = 0;
-
+                if (wasMining)
+                {
+                    reset_mining = true;
+                }
+                if (!isDocking || !isUndocking)
+                {
+                    reset_ai();
+                }
                 if (!collision_avoid_light_actual.Enabled)
                 {
                     collision_avoid_light_actual.Enabled = true;
@@ -3405,21 +3417,14 @@ namespace IngameScript
                 {
                     dock_light_actual.Enabled = false;
                 }
-                no_speed_dock_delay_count = 0; // Reset docking delay
-                dock_delay_time = 0;
+
                 if (autoDock)
                 {
                     dockingStage = 1;
                     droneStatusOutput = "RTB Request B";
                     dockingReady = false;
-                    if (wasMining)
-                    {
-                        reset_mining = true;
-                    }
-                    if (!isDocking || !isUndocking)
-                    {
-                        reset_ai();
-                    }
+                    no_speed_dock_delay_count = 0; // Reset docking delay
+                    dock_delay_time = 0;
                 }
                 else
                 {
