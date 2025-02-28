@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.344";
+        string ver = "V0.345";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1027,11 +1027,11 @@ namespace IngameScript
             }
             if (drnstus == 26)
             {
-                drnst = "RTB: Ready A";
+                drnst = "RTB Ready A";
             }
             if (drnstus == 27)
             {
-                drnst = "RTB: Ready B";
+                drnst = "RTB Ready B";
             }
 
             #endregion
@@ -3343,7 +3343,7 @@ namespace IngameScript
                 if (autoDock)
                 {
                     dockingStage = 1;
-                    droneStatusOutput = "RTB: Request A";
+                    droneStatusOutput = "RTB Request A";
                 }
                 else
                 {
@@ -3399,7 +3399,7 @@ namespace IngameScript
                 if (autoDock)
                 {
                     dockingStage = 1;
-                    droneStatusOutput = "RTB: Request B";
+                    droneStatusOutput = "RTB Request B";
                 }
                 else
                 {
@@ -3413,14 +3413,14 @@ namespace IngameScript
             {
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
-                droneStatusOutput = "RTB: Ready A";
+                droneStatusOutput = "RTB Ready A";
                 droneStatus = 26;
             }
             if (miningStage == 13 && wasMining && miningInitialised && !requestExit && !isAutopiloting && isUndocked && !targetDepthAchieved)
             {
                 no_speed_dock_delay_count = 0; // Reset docking delay
                 dock_delay_time = 0;
-                droneStatusOutput = "RTB: Ready B";
+                droneStatusOutput = "RTB Ready B";
                 droneStatus = 27;
             }
             #endregion
