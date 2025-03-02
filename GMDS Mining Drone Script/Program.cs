@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.346";
+        string ver = "V0.347B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -472,7 +472,7 @@ namespace IngameScript
             
             docking_management(canDock, autoDocking);
             connector_state_management(dockingReady);
-            drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual);
+            drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual, dockingReady);
             nagivation_movement_check();
             undock_delay_check();
             dock_delay_check();
@@ -3943,7 +3943,7 @@ namespace IngameScript
 
 
 
-        public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual)
+        public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
             string dataTransmissionOut;
             if (antenna_actual == null) { Echo("Error: antenna is null in drone_message_transmission_management"); return; }
@@ -3968,7 +3968,7 @@ namespace IngameScript
                     drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
                     gpsIndex, cargoFullAchieved, recharge_request,
-                    autoDock
+                    autoDock, dockingReady
                     );
                 dataTransmissionOut = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
