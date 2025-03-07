@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.351B";
+        string ver = "V0.352B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3720,6 +3720,13 @@ namespace IngameScript
                 {
                     ai_dck_act.ApplyAction(ab1);
                     ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
+                }
+                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (ai_dck_act.GetValue<bool>(p1) && (ai_dck_act.GetValue<bool>("ActivateBehavior"))))
+                {
+                    if (precM_light_actual.Enabled)
+                    {
+                        precM_light_actual.Enabled = false;
+                    }
                 }
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
