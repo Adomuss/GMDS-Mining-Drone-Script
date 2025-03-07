@@ -26,7 +26,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.344A       
+        // General Mining Drone Script v0.350A       
         // Adomus o7 o7 o7
         // 
         // 
@@ -89,7 +89,7 @@ namespace IngameScript
         string dmg = "Dmg";
 
         #endregion
-        string ver = "V0.347B";
+        string ver = "V0.351B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -418,7 +418,7 @@ namespace IngameScript
 
             #region setup_code
             if (!setupIsComplete)
-            {
+            {                
                 setup_function();
                 setupIsComplete = true;
                 Echo("Setup complete!");
@@ -1662,6 +1662,7 @@ namespace IngameScript
         }
         public void item_presence_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (!setupIsComplete)
             {
                 Echo("Setup not complete.");
@@ -1814,9 +1815,11 @@ namespace IngameScript
                 return;
             }
             #endregion
+            Echo($"item_presence_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
         public void cargo_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region cargo_check
             float ttl_volu = 0.0f;
             float ttl_volm = 0.0f;
@@ -1898,20 +1901,26 @@ namespace IngameScript
                 sens_convOPN = false; // Default if no sense container
             }
             #endregion
+            Echo($"cargo_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void remote_control_position_update()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             rc_xyz = remoteControlActual.GetPosition();
+            Echo($"remote_control_position_update: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void GetSpeed()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             spd = remoteControlActual.GetShipSpeed();
+            Echo($"GetSpeed: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void damage_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region damage_check
             if (!damageReportingEnabled)
             {
@@ -1937,10 +1946,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"damage_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void power_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region power_check
             ttl_sPWR = 0f;  // Total stored power
             ttl_mPWR = 0f;  // Total max power
@@ -1980,10 +1991,12 @@ namespace IngameScript
             }
 
             #endregion
+            Echo($"power_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void fuel_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region fuel_check
             if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
             {
@@ -2045,10 +2058,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"fuel_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void recharge_state_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region recharge_request_check
             if (recharge_request_battery || recharge_request_tank)
             {
@@ -2059,10 +2074,12 @@ namespace IngameScript
                 recharge_request = false;
             }
             #endregion
+            Echo($"recharge_state_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void check_comms_channels()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region check_comms_channels
             if (listn.HasPendingMessage)
             {
@@ -2131,10 +2148,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"check_comms_channels: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void custom_data_command_presence_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region custom_data_command_presence_check
             if (Me.CustomData != null && Me.CustomData != "" && Me.CustomData != fail_data)
             {
@@ -2152,10 +2171,12 @@ namespace IngameScript
             }
             else dataInvalid = false;
             #endregion
+            Echo($"custom_data_command_presence_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void command_poll()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region command_read
 
 
@@ -2210,10 +2231,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"command_poll: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void drone_operating_state_mng()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region drone_command_state_processing
             if (dataInvalid && !wasMining)
             {
@@ -2262,10 +2285,12 @@ namespace IngameScript
                 droneStatusOutput = "Resetting";
             }
             #endregion
+            Echo($"drone_operating_state_mng: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void connected_battery_recharge_check(bool dockingReady)
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (connector_actual.IsConnected && dockingReady)
             {
                 dockingReady = false;
@@ -2298,10 +2323,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"connected_battery_recharge_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void docking_state_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (!dockState)
             {
                 //early exit if not in dock state
@@ -2340,6 +2367,7 @@ namespace IngameScript
 
         public void undock_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (!undockState)
             {
                 //early exit if undock not required
@@ -2432,10 +2460,12 @@ namespace IngameScript
                 isUndocking = false;
             }
             #endregion
+            Echo($"undock_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void dock_undock_state_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region dock_undock_state_check
             if (dockingStage > 0)
             {
@@ -2459,10 +2489,12 @@ namespace IngameScript
             }
             else isUndocked = false;
             #endregion
+            Echo($"dock_undock_state_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void drone_diver_state_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region drone_diver_state_management
             if (stopState)
             {
@@ -2540,10 +2572,12 @@ namespace IngameScript
             }
             else force_request_dock = false;
             #endregion
+            Echo($"drone_diver_state_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void check_for_planetary_gravity_presence()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region check_for_planetary_gravity_presence
             gravity = remoteControlActual.GetNaturalGravity();
             if (targetAlignmentValid)
@@ -2555,10 +2589,12 @@ namespace IngameScript
                 crnt_tgt_align = gravity;
             }
             #endregion
+            Echo($"check_for_planetary_gravity_presence: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void drone_alignment_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region drone_alignment_management
             if (is_docked || dockingStage > 0 || !isUndocked && !is_docked || isUndocking || isDocking)
             {
@@ -2617,10 +2653,12 @@ namespace IngameScript
             }
 
             #endregion
+            Echo($"drone_alignment_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void navigation_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
@@ -2891,10 +2929,12 @@ namespace IngameScript
                 droneStatusOutput = "RTB";
             }
             #endregion
+            Echo($"navigation_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void mining_management(bool autoDock)
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (remoteControlActual == null) { Echo("Error: Remote control is null in mining_management"); return; }
 
             #region mining_management
@@ -3451,10 +3491,12 @@ namespace IngameScript
                 dockingReady = true;
             }
             #endregion
+            Echo($"mining_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         private void Calculate_miningCoords()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             mining_gps_coords.X = mining_gps_coords_temp.X;
             mining_gps_coords.Y = mining_gps_coords_temp.Y;
             mining_gps_coords.Z = mining_gps_coords_temp.Z;
@@ -3483,10 +3525,12 @@ namespace IngameScript
                 mining_gps_coords.Y = expected_y;
                 // Note: Z remains mining_gps_coords_temp.Z unless you want to adjust it too
             }
+            Echo($"Calculate_miningCoords: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         private void InitializeMining_Coordinates()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (targetAlignmentValid)
             {
                 direction = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
@@ -3499,10 +3543,12 @@ namespace IngameScript
             mining_gps_coords_temp.X = Math.Round(rc_xyz.X + targetposition.X, 2);
             mining_gps_coords_temp.Y = Math.Round(rc_xyz.Y + targetposition.Y, 2);
             mining_gps_coords_temp.Z = Math.Round(rc_xyz.Z + targetposition.Z, 2);
+            Echo($"InitializeMining_Coordinates: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void docking_management(bool canDock, bool autoDock)
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (!canDock)
             {
                 if (dockingStage > 0 && autoDock) 
@@ -3680,6 +3726,13 @@ namespace IngameScript
                     ai_dck_act.ApplyAction(ab1);
                     ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
                 }
+                if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (ai_dck_act.GetValue<bool>(p1) && (ai_dck_act.GetValue<bool>("ActivateBehavior"))))
+                {
+                    if (precM_light_actual.Enabled)
+                    {
+                        precM_light_actual.Enabled = false;
+                    }
+                }
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
                 //get terminal properties
                 if (!locked.Equals(cc) && dockingStage == 2 && no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior")|| (ai_dck_act.GetValue<bool>("ActivateBehavior")))))
@@ -3688,6 +3741,10 @@ namespace IngameScript
                     if (!reset_light_actual.Enabled)
                     {                        
                         reset_light_actual.Enabled = true;
+                    }
+                    if (precM_light_actual.Enabled)
+                    {
+                        precM_light_actual.Enabled = false;
                     }
                 }
 
@@ -3790,10 +3847,12 @@ namespace IngameScript
                 dockingStage = 0;
             }
             #endregion
+            Echo($"docking_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void connector_state_management(bool dockingReady)
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (connector_actual.IsConnected && dockingReady)
             {
                 dockingReady = false;
@@ -3904,10 +3963,12 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"connector_state_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void nagivation_movement_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region nagivation_movement_check
             if (navigation_reset_delay)
             {
@@ -3916,10 +3977,12 @@ namespace IngameScript
                 no_speed_count_navigation_reset_delay_count = 0;
             }
             #endregion
+            Echo($"nagivation_movement_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void undock_delay_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region undock_delay_check
             if (no_speed_ready_undock)
             {
@@ -3928,9 +3991,11 @@ namespace IngameScript
                 no_speed_undock_delay_count = 0;
             }
             #endregion
+            Echo($"undock_delay_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
         public void dock_delay_check()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region dock_delay_check
             if (no_speed_ready_dock)
             {
@@ -3939,12 +4004,14 @@ namespace IngameScript
                 no_speed_dock_delay_count = 0;
             }
             #endregion
+            Echo($"dock_delay_check: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
 
 
         public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             string dataTransmissionOut;
             if (antenna_actual == null) { Echo("Error: antenna is null in drone_message_transmission_management"); return; }
             if (rc_actual == null) { Echo("Error: remote control is null in drone_message_transmission_management"); return; }
@@ -3978,9 +4045,11 @@ namespace IngameScript
                 pingedMessageDataIn = "";
             }
             #endregion
+            Echo($"drone_message_transmission_management: {Runtime.CurrentInstructionCount - startInstructions}");
         }
         public void rc_navigation_init()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region rc_navigation_init_nav_or_mine
             if (custom_data_read == 1 && cmd_read_ack == 0)
             {
@@ -4012,9 +4081,11 @@ namespace IngameScript
                 }
             }
             #endregion
+            Echo($"rc_navigation_init: {Runtime.CurrentInstructionCount - startInstructions}");
         }
         public void Drone_Local_Status_Reporting()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region drone_status_local_report
             // Pre-calculate commonly used values to avoid repeated Math.Round calls
             double runtimePercent = Math.Round((_Runtime / game_tick_length) * 100.0, 3);
@@ -4054,10 +4125,12 @@ namespace IngameScript
             Echo($"Speed: {speed} {groundSpeed}");
 
             #endregion
+            Echo($"Drone_Local_Status_Reporting: {Runtime.CurrentInstructionCount - startInstructions}");
         }
 
         public void function_delay_management()
         {
+            int startInstructions = Runtime.CurrentInstructionCount;
             #region function_delay_management
             t_count++;
 
@@ -4078,7 +4151,10 @@ namespace IngameScript
                 no_speed_ready_dock = true;
             }
             #endregion
+            Echo($"ManageCommunications: {Runtime.CurrentInstructionCount - startInstructions}");
         }
+
+
         //end program
 
     }
