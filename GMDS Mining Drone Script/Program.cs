@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.355B";
+        string ver = "V0.356B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -448,7 +448,12 @@ namespace IngameScript
                 waypoints.Clear();
             }
             #endregion
-            item_presence_check();            
+            item_presence_check();
+            if (!setupIsComplete)
+            {
+                Echo($"Drone parts missing - exiting");
+                return;
+            }
             cargo_check();            
             damage_check();            
             power_check();            
@@ -1780,17 +1785,19 @@ namespace IngameScript
 
             if (drill_tag.Count <= 0)
             {
-                Echo($"Drills with tag: '{D_I_N}' not found.");
+                Echo($"Drills with tag: '{D_I_N}' not found.");                
                 return;
             }
             if (gyroTag.Count <= 0 || gyroTag[0] == null)
             {
                 Echo($"Gyro with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             if (rctag.Count <= 0 || rctag[0] == null)
             {
                 Echo($"Remote control with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             remoteControlActual = rctag[0];
@@ -1799,6 +1806,7 @@ namespace IngameScript
                 if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
                 {
                     Echo($"Sensor with tag: '{D_I_N}' not found.");
+                    setupIsComplete = !setupIsComplete;
                     return;
                 }
                 sensorActual = sensor_tag[0];
@@ -1813,12 +1821,14 @@ namespace IngameScript
             if (connector_tag.Count <= 0 || connector_tag[0] == null)
             {
                 Echo($"Connector with tag: '{D_C_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             connectorActual = connector_tag[0];
             if (cargo_tag.Count <= 0 || cargo_tag[0] == null)
             {
                 Echo($"Cargo containers with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             if (ORE_sense_enabled)
@@ -1832,24 +1842,28 @@ namespace IngameScript
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
             {
                 Echo($"Antenna with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             antenna_actual = antenna_tag[0];
             if (flight_path_dock_tag.Count <= 0 || flight_path_dock_tag[0] == null)
             {
                 Echo($"Docking AI task recorder with tag: '{dockTaskName}' not found. Add ' {Dock}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             ai_dck_act = flight_path_dock_tag[0];
             if (flight_path_undock_tag.Count <= 0 || flight_path_undock_tag[0] == null)
             {
                 Echo($"Undocking AI task recorder with tag: '{UndockModeTagName}' not found. Add ' {Undock}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             ai_task_undock_actual = flight_path_undock_tag[0];
             if (flight_move_tag.Count <= 0 || flight_move_tag[0] == null)
             {
                 Echo($"Flight movement with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             ai_move_actual = flight_move_tag[0];
@@ -1858,12 +1872,14 @@ namespace IngameScript
                 if (timer_block_tON_tag.Count <= 0 || timer_block_tON_tag[0] == null)
                 {
                     Echo($"Thrust ON timer block with tag: '{Thr_ON_n}' not found. Add ' {TON}' tag");
+                    setupIsComplete = !setupIsComplete;
                     return;
                 }
                 timerBlockTONActual = timer_block_tON_tag[0];
                 if (timer_block_tOFF_tag.Count <= 0 || timer_block_tOFF_tag[0] == null)
                 {
                     Echo($"Thrust OFF timer block with tag: '{Thr_OFF_N}' not found. Add ' {TOFF}' tag");
+                    setupIsComplete = !setupIsComplete;
                     return;
                 }
                 timerBlockTOFFActual = timer_block_tOFF_tag[0];
@@ -1873,6 +1889,7 @@ namespace IngameScript
                 if (timer_block_precM_tag.Count <= 0 || timer_block_precM_tag[0] == null)
                 {
                     Echo($"Precision mode timer block with tag: '{PrecisionModeTagName}' not found. Add ' {PrecM}' tag");
+                    setupIsComplete = !setupIsComplete;
                     return;
                 }
             }
@@ -1881,12 +1898,14 @@ namespace IngameScript
                 if (timer_block_undock_tag.Count <= 0 || timer_block_undock_tag[0] == null)
                 {
                     Echo($"Undock mode timer block with tag: '{UndockModeTagName}' not found. Add ' {Undock}' tag");
+                    setupIsComplete = !setupIsComplete;
                     return;
                 }
             }
             if (light_dock_tag.Count <= 0 || light_dock_tag[0] == null)
             {
                 Echo($"dock indicator light with tag: '{dockTaskName}' not found. Add ' {Dock}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             dockLightActual = light_dock_tag[0];
@@ -1894,17 +1913,20 @@ namespace IngameScript
             if (lightUndockTag.Count <= 0 || lightUndockTag[0] == null)
             {
                 Echo($"undock indicator light with tag: '{UndockModeTagName}' not found. Add ' {Undock}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             if(undockModeGroupPresent && (lightUndockTag.Count <= 0 || lightUndockTag[0] == null))
             {
                 Echo($"Add undock indicator light with tag: '{UndockModeTagName} to {UndockModeTagName} group - ensure {UndockModeTagName} group is in AI {UndockModeTagName} task recorder waypoint actions");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             undockLightActual = lightUndockTag[0];
             if (light_collision_avoid_tag.Count <= 0 || light_collision_avoid_tag[0] == null)
             {
                 Echo($"collision avoidance required indicator light with tag: '{CA_T_N}' not found. Add ' {CA}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             collisionAvoidLightActual = light_collision_avoid_tag[0];
@@ -1912,11 +1934,13 @@ namespace IngameScript
             if (lightPrecMTag.Count <= 0 || lightPrecMTag[0] == null)
             {
                 Echo($"Precision mode required indicator light with tag: '{PrecisionModeTagName}' not found. Add ' {PrecM}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             if (precisionModeGroupPresent && (lightPrecMTag.Count <= 0 || lightPrecMTag[0] == null))
             {
                 Echo($"Add precision mode indicator light with tag: '{PrecisionModeTagName} to {PrecisionModeTagName} group - ensure {PrecisionModeTagName} group is in AI {dockTaskName} task recorder waypoint actions");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             precModeLightActual = lightPrecMTag[0];
@@ -1924,18 +1948,20 @@ namespace IngameScript
             if (lightResetTag.Count <= 0 || lightResetTag[0] == null)
             {
                 Echo($"Dock reset indicator light with tag: '{ResetTagName}' not found. Add ' {Reset}' tag");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             if (resetModeGroupPresent && (lightResetTag.Count <= 0 || lightResetTag[0] == null))
             {
                 Echo($"Reset mode indicator light with tag: '{ResetTagName} to {ResetTagName} group - ensure {ResetTagName} group is in Sensor {D_I_N} detect action only");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             resetLightActual = lightResetTag[0];
 
             if (light_dmg_tag.Count <= 0 && damageReportingEnabled)
             {
-                Echo($"Damage indicator light with tag: '{damageLightTag}' not found. Add ' {dmg}' tag\"");
+                Echo($"Damage indicator light with tag: '{damageLightTag}' not found. Add ' {dmg}' tag\"");                
                 Echo("");
             }
             if (light_dmg_tag.Count > 0 && damageReportingEnabled && light_dmg_tag[0] != null)
@@ -1946,6 +1972,7 @@ namespace IngameScript
             if (battery_tag.Count <= 0 || battery_tag[0] == null)
             {
                 Echo($"Batteries with tag: '{D_I_N}' not found.");
+                setupIsComplete = !setupIsComplete;
                 return;
             }
             #endregion
@@ -2402,15 +2429,18 @@ namespace IngameScript
             if (commandRequest == 6)
             {
                 dockState = true;
+ 
             }
-            else dockState = false;
+            else
+            {
+                dockState = false;
+            }
+
             if (commandRequest == 7 && !recall && !recharge_request)
             {
                 undockState = true;
             }
             else undockState = false;
-
-
             if (commandRequest == 8 && tunnelSequenceFinished || commandRequest == 0 && connectorActual.IsConnected && tunnelSequenceFinished && !undockState && !cargoFullAchieved && cargoIsEmpty && !recharge_request)
             {
                 tunnelSequenceFinished = false;
@@ -2685,6 +2715,7 @@ namespace IngameScript
                 navState = false;
                 dockState = false;
                 droneStatusOutput = "Idle";
+                
                 undocking_stage = 0;
                 droneStatus = 0;
                 commandCommandDataRequested = "0";
@@ -3718,7 +3749,7 @@ namespace IngameScript
                 //early return if docking is disabled
                 return;
             }
-            if ((canDock) && dockingStage == 0 && !isDocked)
+            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_dck_act.GetValue<bool>(p1) && !ai_dck_act.GetValue<bool>("ActivateBehavior")) || droneStatusOutput == "Idle")))
             {
                 dockingStage = 1;
             }
@@ -3883,6 +3914,7 @@ namespace IngameScript
                 {
                     ai_dck_act.ApplyAction(ab1);
                     ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
+                    droneStatusOutput = "Docking recovery";
                 }
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_dck_act.GetValue<bool>(p1) && (ai_dck_act.GetValue<bool>("ActivateBehavior"))))
                 {
