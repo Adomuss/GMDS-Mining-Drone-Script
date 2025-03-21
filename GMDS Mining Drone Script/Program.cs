@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.357B";
+        string ver = "V0.358B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3742,7 +3742,7 @@ namespace IngameScript
         {
             if (!canDock)
             {
-                if (dockingStage > 0 && autoDock) 
+                if (dockingStage > 0) 
                 { 
                 dockingStage = 0;
                 }
