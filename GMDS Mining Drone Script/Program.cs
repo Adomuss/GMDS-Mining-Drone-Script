@@ -27,7 +27,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.353B       
+        // General Mining Drone Script v0.359B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.358B";
+        string ver = "V0.360B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2436,7 +2436,7 @@ namespace IngameScript
                 dockState = false;
             }
 
-            if (commandRequest == 7 && !recall && !recharge_request)
+            if (commandRequest == 7 && (!recall || !recharge_request))
             {
                 undockState = true;
             }
@@ -3912,12 +3912,22 @@ namespace IngameScript
 
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior"))))
                 {
+                    if (collisionSenseEnabled)
+                    {
+                        sensorActual.Enabled = !sensorActual.Enabled;
+                    }
+                    if (collisionSenseEnabled)
+                    {
+                        sensorActual.Enabled = !sensorActual.Enabled;
+                    }
                     ai_dck_act.ApplyAction(ab1);
                     ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
                     droneStatusOutput = "Docking";
+
                 }
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_dck_act.GetValue<bool>(p1) && (ai_dck_act.GetValue<bool>("ActivateBehavior"))))
                 {
+
                     if (precModeLightActual.Enabled)
                     {
                         precModeLightActual.Enabled = false;
@@ -4020,7 +4030,7 @@ namespace IngameScript
                                 hydrogen_tank_tag[i].Stockpile = true;
                             }
                         }
-                        droneStatusOutput = "Refilling";
+                        droneStatusOutput = "Recharging";
                     }
                 }
                 if (!recharge_request_tank && !ignore_Htank)
