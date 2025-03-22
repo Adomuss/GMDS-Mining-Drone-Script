@@ -2092,6 +2092,7 @@ namespace IngameScript
                 {
                     droneDamageStatus = "UNK";
                     Echo("Warning: Damage light is null in damage check");
+                    return;
                 }
                 if (damageLightActual != null)
                 {
