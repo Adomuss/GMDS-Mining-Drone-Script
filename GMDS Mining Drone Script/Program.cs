@@ -368,6 +368,7 @@ namespace IngameScript
         bool undockModeGroupPresent = false;
         bool resetModeGroupPresent = false;     
         bool switchedThrustersOff = false;
+        bool switchedThrustersOn = false;
         #endregion
 
         #region save_state_management
@@ -2586,6 +2587,7 @@ namespace IngameScript
                 {
                     Thruster_Management(true);
                     switchedThrustersOff = false;
+                    switchedThrustersOn = true;
                 }
                 undocking_stage = 1;
             }
@@ -3911,7 +3913,7 @@ namespace IngameScript
                 }
                 if (connectorActual.Status == MyShipConnectorStatus.Connected && dockingStage == 2)
                 {
-                    Thruster_Management(false);
+                    Thruster_Management(false);                    
                     dockingStage = 3;
                 }
 
@@ -4167,6 +4169,12 @@ namespace IngameScript
                 {
                     dockLightActual.Enabled = false;
                 }
+                if(!switchedThrustersOn && thrustGroupPresent)
+                {
+                    Thruster_Management(true);
+                    switchedThrustersOff = false;
+                    switchedThrustersOn = true;
+                }
             }
             if (connectorActual.IsConnected)
             {
@@ -4182,6 +4190,7 @@ namespace IngameScript
                 {
                     Thruster_Management(false);
                     switchedThrustersOff = true;
+                    switchedThrustersOn = false;
                 }
             }
             #endregion
