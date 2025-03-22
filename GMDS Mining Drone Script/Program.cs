@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.360B";
+        string ver = "V0.361B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -366,7 +366,8 @@ namespace IngameScript
         bool thrustGroupPresent = false;        
         bool precisionModeGroupPresent = false;
         bool undockModeGroupPresent = false;
-        bool resetModeGroupPresent = false;        
+        bool resetModeGroupPresent = false;     
+        bool switchedThrustersOff = false;
         #endregion
 
         #region save_state_management
@@ -2565,7 +2566,8 @@ namespace IngameScript
                 undocking_start = 0;
                 droneStatusOutput = "Undocking";                
                 dockLightActual.Enabled = false;
-                connectorActual.Enabled = false;                                                            
+                connectorActual.Enabled = false;
+                
                 if (!thrustGroupPresent)
                 {                    
                     if (timerBlockTONActual != null) 
@@ -2582,6 +2584,7 @@ namespace IngameScript
                 } else
                 {
                     Thruster_Management(true);
+                    switchedThrustersOff = false;
                 }
                 undocking_stage = 1;
             }
@@ -3752,6 +3755,7 @@ namespace IngameScript
             if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_dck_act.GetValue<bool>(p1) && !ai_dck_act.GetValue<bool>("ActivateBehavior")) && droneStatusOutput == "Idle")))
             {
                 dockingStage = 1;
+                switchedThrustersOff = false;
             }
             #region docking_management
             if (resetLightActual.Enabled && dockingStage > 0)
@@ -4070,7 +4074,7 @@ namespace IngameScript
             if (connectorActual.IsConnected && dockingReady)
             {
                 dockingReady = false;
-            }            
+            }
             #region connector_state_management
             if (connectorActual.IsConnected && ignore_Htank || connectorActual.IsConnected && !ignore_Htank)
             {
@@ -4172,6 +4176,11 @@ namespace IngameScript
                 if (undockLightActual.Enabled)
                 {
                     undockLightActual.Enabled = false;
+                }
+                if (!switchedThrustersOff && thrustGroupPresent)
+                {
+                    Thruster_Management(false);
+                    switchedThrustersOff = true;
                 }
             }
             #endregion
