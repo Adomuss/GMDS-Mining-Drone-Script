@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.361B";
+        string ver = "V0.362B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -831,7 +831,7 @@ namespace IngameScript
             {
                 precModeLightActual.Enabled = false;
             }
-            if (collisionSenseEnabled)
+            if (collisionSenseEnabled && sensorActual != null)
             {
                 sensorActual.Enabled = false;
             }
@@ -2539,9 +2539,12 @@ namespace IngameScript
                 dockingStage = 1;
                 mainNavSequence = 0;
                 collisionAvoidLightActual.Enabled = true;
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
-                    sensorActual.Enabled = true;
+                    if (!sensorActual.Enabled)
+                    {
+                        sensorActual.Enabled = true;
+                    }
                 }
                 if (dockLightActual.Enabled)
                 {
@@ -2608,9 +2611,12 @@ namespace IngameScript
             if (undocking_stage == 2 && undockLightActual.Enabled && !connectorActual.IsConnected)
             {
                 collisionAvoidLightActual.Enabled = false;
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
-                    sensorActual.Enabled = false;
+                    if (sensorActual.Enabled)
+                    {
+                        sensorActual.Enabled = false;
+                    }
                 }
                 ai_move_actual.PrecisionMode = false;
                 ai_move_actual.CollisionAvoidance = true;
@@ -2925,7 +2931,7 @@ namespace IngameScript
                     remoteControlActual.SetDockingMode(false);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 4;
-                    if (collisionSenseEnabled)
+                    if (collisionSenseEnabled && sensorActual != null)
                     {
                         if (!sensorActual.Enabled)
                         {
@@ -3022,14 +3028,13 @@ namespace IngameScript
                     remoteControlActual.SetDockingMode(true);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 4;
-                    if (collisionSenseEnabled)
+                    if (collisionSenseEnabled && sensorActual != null)
                     {
                         if (!sensorActual.Enabled)
                         {
                             sensorActual.Enabled = true;
                         }
                     }
-
                 }
                 droneStatusOutput = "Nav";
                 if (!undockLightActual.Enabled)
@@ -3115,9 +3120,12 @@ namespace IngameScript
                 {
                     collisionAvoidLightActual.Enabled = true;
                 }
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
-                    sensorActual.Enabled = true;
+                    if (!sensorActual.Enabled)
+                    {
+                        sensorActual.Enabled = true;
+                    }
                 }
                 if (!undockLightActual.Enabled)
                 {
@@ -3584,7 +3592,7 @@ namespace IngameScript
                 mainNavSequence = 0;
 
                 collisionAvoidLightActual.Enabled = true;
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (!sensorActual.Enabled)
                     {
@@ -3641,7 +3649,7 @@ namespace IngameScript
                 {
                     precModeLightActual.Enabled = false;
                 }
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (!sensorActual.Enabled)
                     {
@@ -3759,6 +3767,7 @@ namespace IngameScript
             {
                 dockingStage = 1;
                 switchedThrustersOff = false;
+
             }
             #region docking_management
             if (resetLightActual.Enabled && dockingStage > 0)
@@ -3767,6 +3776,13 @@ namespace IngameScript
                 if (resetLightActual.Enabled)
                 {
                     resetLightActual.Enabled = false;
+                }
+                if (collisionSenseEnabled && sensorActual != null && collisionAvoidLightActual != null)
+                {
+                        if (!sensorActual.Enabled && collisionAvoidLightActual.Enabled)
+                        {
+                            sensorActual.Enabled = true;                            
+                        }
                 }
                 dockingStage = 1;
                 droneStatusOutput = "Reset Docking Sequence";
@@ -3781,7 +3797,7 @@ namespace IngameScript
             }
             if (dockingStage > 0 && precModeLightActual.Enabled)
             {
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (sensorActual.Enabled)
                     {
@@ -3811,6 +3827,13 @@ namespace IngameScript
                 {
                     ai_move_actual.CollisionAvoidance = true;
                 }
+                if (collisionSenseEnabled && sensorActual != null && collisionAvoidLightActual != null)
+                {
+                    if (!sensorActual.Enabled && collisionAvoidLightActual.Enabled)
+                    {
+                        sensorActual.Enabled = true;
+                    }
+                }
             }
 
             if (dockingStage == 1)
@@ -3830,33 +3853,34 @@ namespace IngameScript
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 1)
                 {
 
-                    if (!skip_prec_mode)
+                   /* if (!skip_prec_mode)
                     {
                         if (!ai_move_actual.PrecisionMode)
                         {
                             ai_move_actual.PrecisionMode = true;
                         }
-                    }
-                    if (!ai_move_actual.CollisionAvoidance)
+                    } */
+
+                  /*  if (!ai_move_actual.CollisionAvoidance)
                     {
                         ai_move_actual.CollisionAvoidance = true;
-                    }
+                    } */
                     if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
                     {
-                        ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
-                        ai_dck_act.GetActionWithName(ab1).Apply(ai_dck_act);
-                        ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
                         if (!collisionAvoidLightActual.Enabled)
                         {
                             collisionAvoidLightActual.Enabled = true;
                         }
-                        if (collisionSenseEnabled)
+                        if (collisionSenseEnabled && sensorActual != null && collisionAvoidLightActual != null)
                         {
-                            if (!sensorActual.Enabled)
+                            if (!sensorActual.Enabled && collisionAvoidLightActual.Enabled)
                             {
                                 sensorActual.Enabled = true;
                             }
                         }
+                        ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                        ai_dck_act.GetActionWithName(ab1).Apply(ai_dck_act);
+                        ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
                     }
                     dockingStage = 2;
                     droneStatusOutput = "Docking";
@@ -3919,13 +3943,22 @@ namespace IngameScript
 
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_dck_act.GetValue<bool>(p1) && (!ai_dck_act.GetValue<bool>("ActivateBehavior"))))
                 {
-                    if (collisionSenseEnabled)
+                    if (collisionSenseEnabled && sensorActual != null)
                     {
-                        sensorActual.Enabled = !sensorActual.Enabled;
+                        if (sensorActual.Enabled)
+                        {
+                            sensorActual.Enabled = false;
+                        }
                     }
-                    if (collisionSenseEnabled)
+                    if (collisionAvoidLightActual != null && ai_move_actual != null && sensorActual != null)
                     {
-                        sensorActual.Enabled = !sensorActual.Enabled;
+                        if (collisionSenseEnabled && (collisionAvoidLightActual.Enabled || ai_move_actual.CollisionAvoidance))
+                        {
+                            if (!sensorActual.Enabled)
+                            {
+                                sensorActual.Enabled = true;
+                            }
+                        }
                     }
                     ai_dck_act.ApplyAction(ab1);
                     ai_dck_act.GetActionWithName(p1).Apply(ai_dck_act);
@@ -3934,11 +3967,11 @@ namespace IngameScript
                 }
                 if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_dck_act.GetValue<bool>(p1) && (ai_dck_act.GetValue<bool>("ActivateBehavior"))))
                 {
-
                     if (precModeLightActual.Enabled)
                     {
                         precModeLightActual.Enabled = false;
                     }
+                    dockingStage = 1;
                 }
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
@@ -4108,7 +4141,7 @@ namespace IngameScript
             if (connectorActual.IsConnected && cargoFullAchieved || connectorActual.IsConnected && !cargoIsEmpty)
             {
                 droneStatusOutput = "Docked Unloading";
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (sensorActual.Enabled)
                     {
@@ -4127,7 +4160,7 @@ namespace IngameScript
             if (connectorActual.IsConnected && recharge_request)
             {
                 droneStatusOutput = "Docked Recharging";
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (sensorActual.Enabled)
                     {
@@ -4147,7 +4180,7 @@ namespace IngameScript
             if (connectorActual.IsConnected && !undockState && !cargoFullAchieved && cargoIsEmpty && !recharge_request)
             {
                 droneStatusOutput = "Docked Idle";
-                if (collisionSenseEnabled)
+                if (collisionSenseEnabled && sensorActual != null)
                 {
                     if (sensorActual.Enabled)
                     {
