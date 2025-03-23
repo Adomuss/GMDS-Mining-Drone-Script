@@ -833,7 +833,7 @@ namespace IngameScript
             }
             if (collisionSenseEnabled)
             {
-                sensorActual.Enabled = false;
+                if(sensorActual.Enabled){ sensorActual.Enabled = false;}
             }
 
         }
@@ -2542,7 +2542,7 @@ namespace IngameScript
                 collisionAvoidLightActual.Enabled = true;
                 if (collisionSenseEnabled)
                 {
-                    sensorActual.Enabled = true;
+                    if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                 }
                 if (dockLightActual.Enabled)
                 {
@@ -2625,7 +2625,7 @@ namespace IngameScript
                 collisionAvoidLightActual.Enabled = false;
                 if (collisionSenseEnabled)
                 {
-                    sensorActual.Enabled = false;
+                    if(sensorActual.Enabled){ sensorActual.Enabled = false;}
                 }
                 ai_move_actual.PrecisionMode = false;
                 ai_move_actual.CollisionAvoidance = true;
@@ -2947,7 +2947,7 @@ namespace IngameScript
                     {
                         if (!sensorActual.Enabled)
                         {
-                            sensorActual.Enabled = true;
+                            if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                         }
                     }
                 }
@@ -3044,7 +3044,7 @@ namespace IngameScript
                     {
                         if (!sensorActual.Enabled)
                         {
-                            sensorActual.Enabled = true;
+                            if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                         }
                     }
 
@@ -3135,7 +3135,7 @@ namespace IngameScript
                 }
                 if (collisionSenseEnabled)
                 {
-                    sensorActual.Enabled = true;
+                    if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                 }
                 if (!undockLightActual.Enabled)
                 {
@@ -3606,7 +3606,7 @@ namespace IngameScript
                 {
                     if (!sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = true;
+                        if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                     }
                 }
                 if (!undockLightActual.Enabled)
@@ -3663,7 +3663,7 @@ namespace IngameScript
                 {
                     if (!sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = true;
+                        if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                     }
                 }
                 if (!undockLightActual.Enabled)
@@ -3808,7 +3808,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = false;
+                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -3877,7 +3877,7 @@ namespace IngameScript
                         {
                             if (!sensorActual.Enabled)
                             {
-                                sensorActual.Enabled = true;
+                                if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
                             }
                         }
                     }
@@ -4136,7 +4136,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = false;
+                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -4155,7 +4155,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = false;
+                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -4175,7 +4175,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        sensorActual.Enabled = false;
+                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
