@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.364B";
+        string ver = "V0.363B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -432,18 +432,12 @@ namespace IngameScript
             #region setup_code
             if (!setupIsComplete)
             {
-                ClearAllNonEmptyLists();
                 setup_function();
                 setupIsComplete = true;
                 Echo("Setup complete!");
             }
             #endregion
-            if (!setupIsComplete) {
-                Echo($"Drone parts missing - exiting");
-                ClearAllNonEmptyLists();
-                return;
-            }
-            
+            if (!setupIsComplete) return;
 
             Echo($"GMDS {ver} Running...");
 
@@ -460,7 +454,6 @@ namespace IngameScript
             if (!setupIsComplete)
             {
                 Echo($"Drone parts missing - exiting");
-                ClearAllNonEmptyLists();
                 return;
             }
             cargo_check();
@@ -840,7 +833,7 @@ namespace IngameScript
             }
             if (collisionSenseEnabled)
             {
-                if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                sensorActual.Enabled = false;
             }
 
         }
@@ -2549,7 +2542,7 @@ namespace IngameScript
                 collisionAvoidLightActual.Enabled = true;
                 if (collisionSenseEnabled)
                 {
-                    if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                    sensorActual.Enabled = true;
                 }
                 if (dockLightActual.Enabled)
                 {
@@ -2599,7 +2592,7 @@ namespace IngameScript
                         }
                     }
                 }
-                else 
+                else
                 {
                     Thruster_Management(true);
                     switchedThrustersOn = true;
@@ -2632,7 +2625,7 @@ namespace IngameScript
                 collisionAvoidLightActual.Enabled = false;
                 if (collisionSenseEnabled)
                 {
-                    if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                    sensorActual.Enabled = false;
                 }
                 ai_move_actual.PrecisionMode = false;
                 ai_move_actual.CollisionAvoidance = true;
@@ -2954,7 +2947,7 @@ namespace IngameScript
                     {
                         if (!sensorActual.Enabled)
                         {
-                            if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                            sensorActual.Enabled = true;
                         }
                     }
                 }
@@ -3051,7 +3044,7 @@ namespace IngameScript
                     {
                         if (!sensorActual.Enabled)
                         {
-                            if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                            sensorActual.Enabled = true;
                         }
                     }
 
@@ -3142,7 +3135,7 @@ namespace IngameScript
                 }
                 if (collisionSenseEnabled)
                 {
-                    if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                    sensorActual.Enabled = true;
                 }
                 if (!undockLightActual.Enabled)
                 {
@@ -3613,7 +3606,7 @@ namespace IngameScript
                 {
                     if (!sensorActual.Enabled)
                     {
-                        if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                        sensorActual.Enabled = true;
                     }
                 }
                 if (!undockLightActual.Enabled)
@@ -3670,7 +3663,7 @@ namespace IngameScript
                 {
                     if (!sensorActual.Enabled)
                     {
-                        if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                        sensorActual.Enabled = true;
                     }
                 }
                 if (!undockLightActual.Enabled)
@@ -3788,7 +3781,7 @@ namespace IngameScript
                     Thruster_Management(true);
                     switchedThrustersOn = true;
                     switchedThrustersOff = false;
-                }                
+                }
             }
             #region docking_management
             if (resetLightActual.Enabled && dockingStage > 0)
@@ -3815,7 +3808,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                        sensorActual.Enabled = false;
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -3884,7 +3877,7 @@ namespace IngameScript
                         {
                             if (!sensorActual.Enabled)
                             {
-                                if(!sensorActual.Enabled){ sensorActual.Enabled = true;}
+                                sensorActual.Enabled = true;
                             }
                         }
                     }
@@ -4143,7 +4136,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                        sensorActual.Enabled = false;
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -4162,7 +4155,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                        sensorActual.Enabled = false;
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -4182,7 +4175,7 @@ namespace IngameScript
                 {
                     if (sensorActual.Enabled)
                     {
-                        if(sensorActual.Enabled){ sensorActual.Enabled = false;}
+                        sensorActual.Enabled = false;
                     }
                 }
                 if (collisionAvoidLightActual.Enabled)
@@ -4449,42 +4442,6 @@ namespace IngameScript
             }
         }
 
-        public void ClearAllNonEmptyLists()
-        {
-            ClearNonEmptyLists<IMyRemoteControl>(rc_all, rctag);
-            ClearNonEmptyLists<IMySensorBlock>(sensor_all, sensor_tag);
-            ClearNonEmptyLists<IMyCameraBlock>(cam_all, camera_tag);
-            ClearNonEmptyLists<IMyShipConnector>(connector_all, connector_tag);
-            ClearNonEmptyLists<IMyCargoContainer>(cargo_all, cargo_tag, cargo_sense);
-            ClearNonEmptyLists<IMyRadioAntenna>(antenna_all, antenna_tag);
-            ClearNonEmptyLists<IMyPathRecorderBlock>(flight_path_all, flight_path_dock_tag, flight_path_undock_tag);
-            ClearNonEmptyLists<IMyFlightMovementBlock>(flight_move_all, flight_move_tag);
-            ClearNonEmptyLists<IMyTimerBlock>(timer_block_all, timer_block_tON_tag, timer_block_tOFF_tag,
-                                             timer_block_precM_tag, timer_block_undock_tag);
-            ClearNonEmptyLists<IMyLightingBlock>(light_all, lightUndockTag, light_dock_tag,
-                                                light_collision_avoid_tag, lightPrecMTag, lightResetTag, light_dmg_tag);
-            ClearNonEmptyLists<IMyBatteryBlock>(battery_all, battery_tag);
-            ClearNonEmptyLists<IMyGasTank>(hydrogen_tank_all, hydrogen_tank_tag);
-            ClearNonEmptyLists<IMyShipDrill>(drill_all, drill_tag);
-            ClearNonEmptyLists<IMyThrust>(thrust_all, thrust_tag);
-            ClearNonEmptyLists<IMyGyro>(gyro_all, gyroTag);
-            // Handle waypoints separately since it's a struct
-            if (waypoints != null && waypoints.Count > 0)
-            {
-                waypoints.Clear();
-            }
-        }
-
-        private void ClearNonEmptyLists<T>(params List<T>[] lists) where T : class
-        {
-            foreach (var list in lists)
-            {
-                if (list != null && list.Count > 0)
-                {
-                    list.Clear();
-                }
-            }
-        }
         //end program
 
     }
