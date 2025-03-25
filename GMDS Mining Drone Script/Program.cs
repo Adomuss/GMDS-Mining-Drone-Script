@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.366B";
+        string ver = "V0.367B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3232,10 +3232,10 @@ namespace IngameScript
                 // Check for overshoot (Z goes beyond target by too much)
                 else if (!targetDepthAchieved &&
                     rc_xyz.Z > tgt_drill_end.Z + terminiationPrecision && // Overshoot on Z-axis
-                    rc_xyz.X >= tgt_drill_end.X - terminiationPrecision * 10 &&
-                    rc_xyz.X <= tgt_drill_end.X + terminiationPrecision * 10 &&
-                    rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision * 10 &&
-                    rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision * 10 &&
+                    rc_xyz.X >= tgt_drill_end.X - terminiationPrecision * 1 &&
+                    rc_xyz.X <= tgt_drill_end.X + terminiationPrecision * 1 &&
+                    rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision * 1 &&
+                    rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision * 1 &&
                     mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
