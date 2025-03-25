@@ -369,6 +369,8 @@ namespace IngameScript
         bool resetModeGroupPresent = false;
         bool switchedThrustersOff = false;
         bool switchedThrustersOn = false;
+        bool batteryRechargeModeSet = false;
+        bool batteryAutochargeSet = false;
         #endregion
 
         #region save_state_management
@@ -2472,28 +2474,39 @@ namespace IngameScript
             #region connected_battery_recharge_check
             if (connectorActual.IsConnected && autoChargeMode && !undockState && (!recharge_request_battery || recharge_request_battery))
             {
-                for (int i = 0; i < battery_tag.Count; i++)
+                if (!batteryRechargeModeSet)
                 {
-                    if (battery_tag[i] != null)
+                    for (int i = 0; i < battery_tag.Count; i++)
                     {
-                        if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                        if (battery_tag[i] != null)
                         {
-                            battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                            if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                            {
+                                battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                            }
                         }
                     }
+                    batteryRechargeModeSet = true;
+                    batteryAutochargeSet = false;
                 }
+
             }
-            if (autoChargeMode && !recharge_request_battery && (!connectorActual.IsConnected || undockState))
+            if (((autoChargeMode && !recharge_request_battery) || !autoChargeMode && !recharge_request_battery) && (!connectorActual.IsConnected || undockState))
             {
-                for (int i = 0; i < battery_tag.Count; i++)
+                if (!batteryAutochargeSet)
                 {
-                    if (battery_tag[i] != null)
+                    for (int i = 0; i < battery_tag.Count; i++)
                     {
-                        if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                        if (battery_tag[i] != null)
                         {
-                            battery_tag[i].ChargeMode = ChargeMode.Auto;
+                            if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                            {
+                                battery_tag[i].ChargeMode = ChargeMode.Auto;
+                            }
                         }
                     }
+                    batteryRechargeModeSet = false;
+                    batteryAutochargeSet = true;
                 }
             }
             #endregion
@@ -4035,27 +4048,37 @@ namespace IngameScript
                 {
                     for (int i = 0; i < battery_tag.Count; i++)
                     {
-                        if (battery_tag[i] != null)
+                        if (!batteryRechargeModeSet)
                         {
-                            if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                            if (battery_tag[i] != null)
                             {
-                                battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                                if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
+                                {
+                                    battery_tag[i].ChargeMode = ChargeMode.Recharge;
+                                }
                             }
+                            batteryRechargeModeSet = true;
+                            batteryAutochargeSet = false;
                         }
                         droneStatusOutput = "Recharging";
                     }
                 }
                 if (!recharge_request_battery)
                 {
-                    for (int i = 0; i < battery_tag.Count; i++)
+                    if (!batteryAutochargeSet)
                     {
-                        if (battery_tag[i] != null)
+                        for (int i = 0; i < battery_tag.Count; i++)
                         {
-                            if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                            if (battery_tag[i] != null)
                             {
-                                battery_tag[i].ChargeMode = ChargeMode.Auto;
+                                if (battery_tag[i].ChargeMode != ChargeMode.Auto)
+                                {
+                                    battery_tag[i].ChargeMode = ChargeMode.Auto;
+                                }
                             }
                         }
+                        batteryRechargeModeSet = false;
+                        batteryAutochargeSet = true;
                     }
                 }
                 if (recharge_request_tank && !ignore_Htank)
