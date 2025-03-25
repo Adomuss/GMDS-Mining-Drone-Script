@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.367B";
+        string ver = "V0.368B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3186,58 +3186,60 @@ namespace IngameScript
             //initialise mining position
             if (!miningInitialised && mineState && custom_data_read == 1 && miningStage == 0 && !isAutopiloting && isUndocked)
             {
+                droneStatusOutput = "Calculating mineshaft";
                 mine_coords_adjusted = false;
                 tgt_drill_start.X = main_gps_coords.X;
                 tgt_drill_start.Z = main_gps_coords.Z;
                 tgt_drill_start.Y = main_gps_coords.Y;
-                miningInitialised = true;
+                
                 if (targetAlignmentValid)
                 {
                     directionb = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
                 }
-                if (!targetAlignmentValid)
-                {
-                    directionb = Vector3D.Normalize(new Vector3D(gravity));
+                else if (!targetAlignmentValid)
+                { 
+                    directionb = Vector3D.Normalize(new Vector3D(gravity)); 
                 }
+
                 Vector3D targetpositiont = directionb * drillSetLength;
                 tgt_drill_end.Y = Math.Round(tgt_drill_start.Y + targetpositiont.Y, 2);
                 tgt_drill_end.X = Math.Round(tgt_drill_start.X + targetpositiont.X, 2);
                 tgt_drill_end.Z = Math.Round(tgt_drill_start.Z + targetpositiont.Z, 2);
                 droneStatus = 6;
-                droneStatusOutput = "Calculating mineshaft";
+                miningInitialised = true;
             }
             // Check if depth is achieved
+            double distance_to_target = Vector3D.Distance(rc_xyz, tgt_drill_end);
+
+            // Check overshoot
+            Vector3D normalizedVector = directionb;
+            Vector3D displacement = rc_xyz - tgt_drill_start;
+            double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
+            bool hasOvershot = projectionDistance > drillSetLength + terminiationPrecision;
             if (!targetDepthAchieved &&
                 rc_xyz.X >= tgt_drill_end.X - terminiationPrecision && rc_xyz.X <= tgt_drill_end.X + terminiationPrecision &&
                 rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision && rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision &&
                 rc_xyz.Z >= tgt_drill_end.Z - terminiationPrecision && rc_xyz.Z <= tgt_drill_end.Z + terminiationPrecision &&
-                mineState && miningInitialised && isUndocked)
+                mineState && miningInitialised && isUndocked && miningStage > 0)
             {
                 targetDepthAchieved = true;
             }
-            else
-            {
-                double distance_to_target = Vector3D.Distance(rc_xyz, tgt_drill_end);
-
-                // Check overshoot
-                Vector3D normalizedVector = directionb;
-                Vector3D displacement = rc_xyz - tgt_drill_start;
-                double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
-                bool hasOvershot = projectionDistance > drillSetLength + terminiationPrecision;
-
-                if (!targetDepthAchieved && hasOvershot && mineState && miningInitialised && isUndocked)
+            else if (!targetDepthAchieved && hasOvershot && mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
                     droneStatus = 26;
                     Echo("Overshoot detected");
                 }
                 // Check depth achieved
-                else if (!targetDepthAchieved && distance_to_target <= terminiationPrecision && mineState && miningInitialised && isUndocked)
+            else if (!targetDepthAchieved && distance_to_target <= terminiationPrecision && mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
                     Echo("Target depth achieved");
-                }
             }
+            else
+            {
+                targetDepthAchieved = false;
+            }          
             //if depth is achieved set tunnel bore sequence finsished flag to true
             if (targetDepthAchieved && !tunnelSequenceFinished)
             {
@@ -3469,8 +3471,7 @@ namespace IngameScript
                 if (targetAlignmentValid)
                 {
                     directionc = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
-                }
-                if (!targetAlignmentValid)
+                } else if (!targetAlignmentValid)
                 {
                     directionc = Vector3D.Normalize(new Vector3D(gravity));
                 }
@@ -3492,7 +3493,7 @@ namespace IngameScript
                     {
                         direction = Vector3D.Normalize(new Vector3D(-(main_gps_coords - crnt_tgt_align)));
                     }
-                    if (!targetAlignmentValid)
+                    else if (!targetAlignmentValid)
                     {
                         direction = Vector3D.Normalize(new Vector3D(gravity));
                     }
