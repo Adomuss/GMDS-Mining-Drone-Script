@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.365B";
+        string ver = "V0.366B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2143,9 +2143,12 @@ namespace IngameScript
                     validBatteries++;
 
                     // Set ChargeMode in the same loop if conditions allow
-                    if (!recharge_request_battery && crntbatteryblock.ChargeMode != ChargeMode.Auto)
+                    if (connectorActual != null)
                     {
-                        crntbatteryblock.ChargeMode = ChargeMode.Auto;
+                        if (!recharge_request_battery && crntbatteryblock.ChargeMode != ChargeMode.Auto && !autoChargeMode && connectorActual.Status == MyShipConnectorStatus.Connected || connectorActual.Status != MyShipConnectorStatus.Connected && crntbatteryblock.ChargeMode != ChargeMode.Auto)
+                        {
+                            crntbatteryblock.ChargeMode = ChargeMode.Auto;
+                        }
                     }
                 }
             }
@@ -2218,16 +2221,16 @@ namespace IngameScript
             {
                 if (hydrogen_tank_tag.Count > 0)
                 {
-                    for (int i = 0; i < hydrogen_tank_tag.Count; i++)
-                    {
-                        if (hydrogen_tank_tag[i] != null)
+                        for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                         {
-                            if (hydrogen_tank_tag[i].Stockpile)
+                            if (hydrogen_tank_tag[i] != null)
                             {
-                                hydrogen_tank_tag[i].Stockpile = false;
+                                if (hydrogen_tank_tag[i].Stockpile)
+                                {
+                                    hydrogen_tank_tag[i].Stockpile = false;
+                                }
                             }
                         }
-                    }
                 }
             }
             #endregion
@@ -2472,7 +2475,7 @@ namespace IngameScript
                 dockingReady = false;
             }
             #region connected_battery_recharge_check
-            if (connectorActual.IsConnected && autoChargeMode && !undockState && (!recharge_request_battery || recharge_request_battery))
+            if (connectorActual.Status == MyShipConnectorStatus.Connected && ((autoChargeMode && !undockState) || !autoChargeMode && !undockState && recharge_request_battery))
             {
                 if (!batteryRechargeModeSet)
                 {
@@ -2491,7 +2494,7 @@ namespace IngameScript
                 }
 
             }
-            if (((autoChargeMode && !recharge_request_battery) || !autoChargeMode && !recharge_request_battery) && (!connectorActual.IsConnected || undockState))
+            if ((!autoChargeMode && !recharge_request_battery) || (!connectorActual.IsConnected || undockState))
             {
                 if (!batteryAutochargeSet)
                 {
@@ -4085,13 +4088,13 @@ namespace IngameScript
                 {
                     for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                     {
-                        if (hydrogen_tank_tag[i] != null)
-                        {
-                            if (!hydrogen_tank_tag[i].Stockpile)
+                            if (hydrogen_tank_tag[i] != null)
                             {
-                                hydrogen_tank_tag[i].Stockpile = true;
+                                if (!hydrogen_tank_tag[i].Stockpile)
+                                {
+                                    hydrogen_tank_tag[i].Stockpile = true;
+                                }
                             }
-                        }
                         droneStatusOutput = "Recharging";
                     }
                 }
