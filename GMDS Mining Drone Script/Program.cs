@@ -3206,41 +3206,36 @@ namespace IngameScript
                 droneStatus = 6;
                 droneStatusOutput = "Calculating mineshaft";
             }
-            //check if depth is achieved
-            if (!targetDepthAchieved && rc_xyz.X >= tgt_drill_end.X - terminiationPrecision && rc_xyz.X <= tgt_drill_end.X + terminiationPrecision && rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision && rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision && rc_xyz.Z >= tgt_drill_end.Z - terminiationPrecision && rc_xyz.Z <= tgt_drill_end.Z + terminiationPrecision && mineState && miningInitialised && isUndocked)
+            // Check if depth is achieved
+            if (!targetDepthAchieved &&
+                rc_xyz.X >= tgt_drill_end.X - terminiationPrecision && rc_xyz.X <= tgt_drill_end.X + terminiationPrecision &&
+                rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision && rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision &&
+                rc_xyz.Z >= tgt_drill_end.Z - terminiationPrecision && rc_xyz.Z <= tgt_drill_end.Z + terminiationPrecision &&
+                mineState && miningInitialised && isUndocked)
             {
                 targetDepthAchieved = true;
             }
             else
             {
-                double distance_to_target = Math.Sqrt(
-                    Math.Pow(rc_xyz.X - tgt_drill_end.X, 2) +
-                    Math.Pow(rc_xyz.Y - tgt_drill_end.Y, 2) +
-                    Math.Pow(rc_xyz.Z - tgt_drill_end.Z, 2)
-                );
+                double distance_to_target = Vector3D.Distance(rc_xyz, tgt_drill_end);
 
-                double z_distance = Math.Abs(rc_xyz.Z - tgt_drill_end.Z); // Z-axis distance only
+                // Check overshoot
+                Vector3D normalizedVector = directionb;
+                Vector3D displacement = rc_xyz - tgt_drill_start;
+                double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
+                bool hasOvershot = projectionDistance > drillSetLength + terminiationPrecision;
 
-                // Check if target depth is achieved within tolerance
-                if (!targetDepthAchieved &&
-                    distance_to_target <= terminiationPrecision &&
-                    mineState && miningInitialised && isUndocked)
-                {
-                    targetDepthAchieved = true;
-                    Echo("Target depth achieved");
-                }
-                // Check for overshoot (Z goes beyond target by too much)
-                else if (!targetDepthAchieved &&
-                    rc_xyz.Z > tgt_drill_end.Z + terminiationPrecision && // Overshoot on Z-axis
-                    rc_xyz.X >= tgt_drill_end.X - terminiationPrecision * 1 &&
-                    rc_xyz.X <= tgt_drill_end.X + terminiationPrecision * 1 &&
-                    rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision * 1 &&
-                    rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision * 1 &&
-                    mineState && miningInitialised && isUndocked)
+                if (!targetDepthAchieved && hasOvershot && mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
                     droneStatus = 26;
                     Echo("Overshoot detected");
+                }
+                // Check depth achieved
+                else if (!targetDepthAchieved && distance_to_target <= terminiationPrecision && mineState && miningInitialised && isUndocked)
+                {
+                    targetDepthAchieved = true;
+                    Echo("Target depth achieved");
                 }
             }
             //if depth is achieved set tunnel bore sequence finsished flag to true
