@@ -27,7 +27,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.365B       
+        // General Mining Drone Script v0.366B       
         // Adomus o7 o7 o7
         // 
         // 
