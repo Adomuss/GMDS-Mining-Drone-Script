@@ -27,7 +27,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.366B       
+        // General Mining Drone Script v0.369B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.368B";
+        string ver = "V0.369B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -119,7 +119,7 @@ namespace IngameScript
         string droneDamageStatus = "OK";
         string droneStatusOutput = "Idle";
         string recall_command = "recall";
-        double terminiationPrecision = 0.0;
+        double termnationPrecision = 0.0;
         double terminationCoefficient = 0.02;
         float GyrMlt = 2;
         string dat_in;
@@ -471,7 +471,7 @@ namespace IngameScript
             power_check();
             fuel_check();
             recharge_state_check();
-            terminiationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
+            termnationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
             check_comms_channels();
             custom_data_command_presence_check();
             command_poll();
@@ -495,6 +495,7 @@ namespace IngameScript
 
             docking_management(canDock, autoDocking);
             connector_state_management(dockingReady);
+            remote_control_position_update();
             drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual, dockingReady);
             nagivation_movement_check();
             undock_delay_check();
@@ -2078,7 +2079,11 @@ namespace IngameScript
 
         public void remote_control_position_update()
         {
-
+            if(remoteControlActual == null)
+            {
+                Echo("Remote control is null in remote_control_position_update");
+                return;
+            }
             rc_xyz = remoteControlActual.GetPosition();
 
         }
@@ -2588,7 +2593,7 @@ namespace IngameScript
             {
                 //early exit if undock not required
                 return;
-            }
+            }            
             #region undock_management
             if (undockState && !recharge_request && cargoIsEmpty && !cargoFullAchieved && !targetDepthAchieved && connectorActual.IsConnected && undocking_stage == 0 && (!thrustGroupPresent || thrustGroupPresent))
             {
@@ -3215,11 +3220,11 @@ namespace IngameScript
             Vector3D normalizedVector = directionb;
             Vector3D displacement = rc_xyz - tgt_drill_start;
             double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
-            bool hasOvershot = projectionDistance > drillSetLength + terminiationPrecision;
+            bool hasOvershot = projectionDistance > drillSetLength + termnationPrecision;
             if (!targetDepthAchieved &&
-                rc_xyz.X >= tgt_drill_end.X - terminiationPrecision && rc_xyz.X <= tgt_drill_end.X + terminiationPrecision &&
-                rc_xyz.Y >= tgt_drill_end.Y - terminiationPrecision && rc_xyz.Y <= tgt_drill_end.Y + terminiationPrecision &&
-                rc_xyz.Z >= tgt_drill_end.Z - terminiationPrecision && rc_xyz.Z <= tgt_drill_end.Z + terminiationPrecision &&
+                rc_xyz.X >= tgt_drill_end.X - termnationPrecision && rc_xyz.X <= tgt_drill_end.X + termnationPrecision &&
+                rc_xyz.Y >= tgt_drill_end.Y - termnationPrecision && rc_xyz.Y <= tgt_drill_end.Y + termnationPrecision &&
+                rc_xyz.Z >= tgt_drill_end.Z - termnationPrecision && rc_xyz.Z <= tgt_drill_end.Z + termnationPrecision &&
                 mineState && miningInitialised && isUndocked && miningStage > 0)
             {
                 targetDepthAchieved = true;
@@ -3231,7 +3236,7 @@ namespace IngameScript
                     Echo("Overshoot detected");
                 }
                 // Check depth achieved
-            else if (!targetDepthAchieved && distance_to_target <= terminiationPrecision && mineState && miningInitialised && isUndocked)
+            else if (!targetDepthAchieved && distance_to_target <= termnationPrecision && mineState && miningInitialised && isUndocked)
                 {
                     targetDepthAchieved = true;
                     Echo("Target depth achieved");
@@ -3753,7 +3758,7 @@ namespace IngameScript
             );
 
             // Correct alignment if drifted
-            if (xy_drift > terminiationPrecision * 2)
+            if (xy_drift > termnationPrecision * 2)
             {
                 Echo("XY Drift: " + xy_drift.ToString("F2") + " - Correcting");
                 // Update waypoint to the expected position to realign the drone
@@ -3784,6 +3789,7 @@ namespace IngameScript
 
         public void docking_management(bool canDock, bool autoDock)
         {
+            
             if (!canDock)
             {
                 if (dockingStage > 0)
@@ -3792,7 +3798,7 @@ namespace IngameScript
                 }
                 //early return if docking is disabled
                 return;
-            }
+            }            
             if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_dck_act.GetValue<bool>(p1) && !ai_dck_act.GetValue<bool>("ActivateBehavior")) && droneStatusOutput == "Idle")))
             {
                 dockingStage = 1;
