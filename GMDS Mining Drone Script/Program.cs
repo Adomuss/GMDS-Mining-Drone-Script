@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.369B";
+        string ver = "V0.370B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2844,7 +2844,7 @@ namespace IngameScript
         {
 
             #region drone_alignment_management
-            if (isDocked || dockingStage > 0 || !isUndocked && !isDocked || isUndocking || isDocking)
+            if (isDocked || !isUndocked && !isDocked || isUndocking || isDocking)
             {
                 can_gyroOVR = false;
             }
