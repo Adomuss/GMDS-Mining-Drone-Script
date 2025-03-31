@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.371B";
+        string ver = "V0.372B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3737,59 +3737,49 @@ namespace IngameScript
 
         private void Calculate_miningCoords()
         {
+            // Initial position assignment
             mining_gps_coords.X = mining_gps_coords_temp.X;
             mining_gps_coords.Y = mining_gps_coords_temp.Y;
             mining_gps_coords.Z = mining_gps_coords_temp.Z;
 
-            // Calculate the direction vector of the drill path
-            double dirX = tgt_drill_end.X - tgt_drill_start.X;
-            double dirY = tgt_drill_end.Y - tgt_drill_start.Y;
-            double dirZ = tgt_drill_end.Z - tgt_drill_start.Z;
+            // Calculate direction vector
+            Vector3D drillDirection = tgt_drill_end - tgt_drill_start;
+            double pathLength = drillDirection.Length();
 
-            // Calculate total length of drill path
-            double pathLength = Math.Sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-
-            // Normalize direction vector
-            double invLength = pathLength != 0 ? 1.0 / pathLength : 0;
-            dirX *= invLength;
-            dirY *= invLength;
-            dirZ *= invLength;
-
-            // Calculate progress along the drill path (not just Z)
-            double dx = rc_xyz.X - tgt_drill_start.X;
-            double dy = rc_xyz.Y - tgt_drill_start.Y;
-            double dz = rc_xyz.Z - tgt_drill_start.Z;
-
-            // Project current position onto drill path (dot product)
-            double progressAlongPath = dx * dirX + dy * dirY + dz * dirZ;
-            double fraction = pathLength != 0 ? progressAlongPath / pathLength : 0;
-
-            // Calculate expected position along the drill path
-            double expected_x = tgt_drill_start.X + dirX * progressAlongPath;
-            double expected_y = tgt_drill_start.Y + dirY * progressAlongPath;
-            double expected_z = tgt_drill_start.Z + dirZ * progressAlongPath;
-
-            // Calculate perpendicular drift (vector from expected position to current position)
-            double driftX = rc_xyz.X - expected_x;
-            double driftY = rc_xyz.Y - expected_y;
-            double driftZ = rc_xyz.Z - expected_z;
-
-            // Remove component along drill direction to get perpendicular drift only
-            double driftAlongPath = driftX * dirX + driftY * dirY + driftZ * dirZ;
-            driftX -= driftAlongPath * dirX;
-            driftY -= driftAlongPath * dirY;
-
-            // Calculate XY drift magnitude (perpendicular to drill path)
-            double xy_drift = Math.Sqrt(driftX * driftX + driftY * driftY);
-
-            // Correct alignment if drifted
-            if (xy_drift > termnationPrecision * 2)
+            // Normalize direction vector with safety check
+            if (pathLength == 0)
             {
-                Echo("XY Drift: " + xy_drift.ToString("F2") + " - Correcting");
-                // Update waypoint to the expected position to realign the drone
-                mining_gps_coords.X = expected_x;
-                mining_gps_coords.Y = expected_y;
-                // Z remains mining_gps_coords_temp.Z unless you want to adjust it
+                Echo("Error: Drill path length is zero!");
+                return;
+            }
+            drillDirection.Normalize();
+
+            // Calculate current position relative to start
+            Vector3D currentOffset = rc_xyz - tgt_drill_start;
+
+            // Project current position onto drill path
+            double progressAlongPath = Vector3D.Dot(currentOffset, drillDirection);
+            double fraction = progressAlongPath / pathLength;
+
+            // Clamp fraction to valid range [0,1] if needed
+            fraction = Math.Max(0, Math.Min(1, fraction));
+
+            // Calculate expected position
+            Vector3D expectedPos = tgt_drill_start + drillDirection * progressAlongPath;
+
+            // Calculate perpendicular drift
+            Vector3D driftVector = rc_xyz - expectedPos;
+            double driftAlongPath = Vector3D.Dot(driftVector, drillDirection);
+
+            // Get pure perpendicular drift
+            Vector3D perpendicularDrift = driftVector - (drillDirection * driftAlongPath);
+            double xyDrift = perpendicularDrift.Length(); // Using full 3D drift
+
+            // Correction logic
+            if (xyDrift > termnationPrecision * 2)
+            {
+                Echo($"Drift: {xyDrift:F2}m - Correcting");
+                mining_gps_coords = expectedPos;
             }
         }
 
