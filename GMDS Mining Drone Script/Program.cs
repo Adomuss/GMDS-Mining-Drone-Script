@@ -27,7 +27,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.369B       
+        // General Mining Drone Script v0.373B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.372B";
+        string ver = "V0.373B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2578,6 +2578,13 @@ namespace IngameScript
                     dockLightActual.Enabled = false;
                 }
             }
+            if(connectorActual != null && connectorActual.Status == MyShipConnectorStatus.Connected)
+            {
+                if(is_low_charge && !recharge_request_battery)
+                {
+                    recharge_request_battery = true;
+                }
+            }
         }
 
         public void undock_management()
@@ -2588,12 +2595,20 @@ namespace IngameScript
                 switchedThrustersOn = true;
                 switchedThrustersOff = false;
             }
-
+            if (connectorActual != null)
+            {
+                if (undockState && recharge_request && connectorActual.IsConnected && is_low_charge)
+                {
+                    undockState = false;
+                }
+            }
+        
             if (!undockState)
             {
                 //early exit if undock not required
                 return;
-            }            
+            }          
+
             #region undock_management
             if (undockState && !recharge_request && cargoIsEmpty && !cargoFullAchieved && !targetDepthAchieved && connectorActual.IsConnected && undocking_stage == 0 && (!thrustGroupPresent || thrustGroupPresent))
             {
