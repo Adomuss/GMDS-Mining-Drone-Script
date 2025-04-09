@@ -27,7 +27,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.373B       
+        // General Mining Drone Script v0.374B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -91,7 +91,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.373B";
+        string ver = "V0.374B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2584,6 +2584,10 @@ namespace IngameScript
                 {
                     recharge_request_battery = true;
                 }
+                if (is_low_tank && !recharge_request_tank && !ignore_Htank)
+                {
+                    recharge_request_tank = true;
+                }
             }
         }
 
@@ -2597,7 +2601,7 @@ namespace IngameScript
             }
             if (connectorActual != null)
             {
-                if (undockState && recharge_request && connectorActual.IsConnected && is_low_charge)
+                if (undockState && recharge_request && connectorActual.IsConnected && (is_low_charge || is_low_tank && !ignore_Htank))
                 {
                     undockState = false;
                 }
