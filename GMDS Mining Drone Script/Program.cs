@@ -1,7 +1,9 @@
 ﻿using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
+using Sandbox.Game.Screens.Terminal.Controls;
 using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
+using Sandbox.ModAPI.Interfaces.Terminal;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Collections;
@@ -27,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.378B       
+        // General Mining Drone Script v0.380B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -91,7 +93,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.378B";
+        string ver = "V0.380B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -371,6 +373,7 @@ namespace IngameScript
         bool switchedThrustersOn = false;
         bool batteryRechargeModeSet = false;
         bool batteryAutochargeSet = false;
+
         #endregion
 
         #region save_state_management
@@ -788,14 +791,22 @@ namespace IngameScript
                         {
                             if (!drl_act.UseConveyorSystem)
                             {
-                                drl_act.UseConveyorSystem = true;
+                                drl_act.UseConveyorSystem = true;                                
+                            }
+                            if (drl_act.TerrainClearingMode)
+                            {                                
+                                drl_act.TerrainClearingMode = false;
                             }
                         }
                         else
                         {
                             if (drl_act.UseConveyorSystem)
                             {
-                                drl_act.UseConveyorSystem = false;
+                                drl_act.UseConveyorSystem = false;                                
+                            }
+                            if (!drl_act.TerrainClearingMode)
+                            {
+                                drl_act.TerrainClearingMode = true;
                             }
                         }
                     }
@@ -833,7 +844,7 @@ namespace IngameScript
         {
             if (ai_task_dock_actual.GetValue<bool>(p1))
             {
-                ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
+                ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);                
             }
             if (ai_task_undock_actual.GetValue<bool>(p1))
             {
