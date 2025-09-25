@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.381B       
+        // General Mining Drone Script v0.382B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -93,7 +93,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.381B";
+        string ver = "V0.382B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
