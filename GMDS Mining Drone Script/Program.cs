@@ -1162,7 +1162,7 @@ namespace IngameScript
             D_S_C = $"[{droneTag} {drone_id_num} {Sense}]";
             damageLightTag = $"[{droneTag} {drone_id_num} {dmg}]";
             pingChannel = $"[{droneTag}] {pingChannelTag}";
-            thrustGroupTag = $"[{droneTag} {drone_id_num}] {thrusters}";
+            thrustGroupTag = $"{thrusters} [{droneTag} {drone_id_num}]";
             tx_ch = droneTag + " reply";
             rx_channel_recall_drone = D_I_N + " " + recall_command;
             Me.CustomName = $"GMDS Programmable Block {D_I_N}";
