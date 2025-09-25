@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.380B       
+        // General Mining Drone Script v0.381B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -93,7 +93,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.380B";
+        string ver = "V0.381B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3409,6 +3409,7 @@ namespace IngameScript
                     remoteControlActual.SpeedLimit = drill_speed; //initialise mining drill speed
                 }
                 Calculate_miningCoords();
+                //remoteControlActual.ClearWaypoints(); //clear any existing waypoints to safely add new mining location
                 remoteControlActual.AddWaypoint(mining_gps_coords, "mineloc");
                 droneStatus = 9;
                 droneStatusOutput = "Mining+";
@@ -3609,6 +3610,7 @@ namespace IngameScript
                     exit_gps_coords_temp.X = Math.Round(rc_xyz.X - targetposition.X, 2);
                     exit_gps_coords_temp.Y = Math.Round(rc_xyz.Y - targetposition.Y, 2);
                     exit_gps_coords_temp.Z = Math.Round(rc_xyz.Z - targetposition.Z, 2);
+                    remoteControlActual.ClearWaypoints();
                     remoteControlActual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
                     droneStatus = 18;
                     droneStatusOutput = "Exiting mineshaft";
@@ -3695,6 +3697,7 @@ namespace IngameScript
             }
             if (miningStage == 9 && wasMining && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && requestExit && miningInitialised && !exitWaypointSet && !exitSequenceComplete && stopState && !isAutopiloting && isUndocked)
             {
+                remoteControlActual.ClearWaypoints();
                 remoteControlActual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(false);
