@@ -93,7 +93,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.382B";
+        string ver = "V0.383B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3936,20 +3936,12 @@ namespace IngameScript
                 {
                     connectorActual.Enabled = false;
                 }
-                if (sensorActual != null)
-                {
-                    if (sensorActual.Enabled && collisionSenseEnabled) { sensorActual.Enabled = false; }
-                }
                     reset_ai();
                 if (resetLightActual.Enabled)
                 {
                     if(connectorActual != null)
                     {
                         connectorActual.Enabled = true;
-                    }
-                    if (sensorActual != null)
-                    {
-                        if (sensorActual.Enabled && collisionSenseEnabled) { sensorActual.Enabled = true; }
                     }
                     resetLightActual.Enabled = false;
                 }
