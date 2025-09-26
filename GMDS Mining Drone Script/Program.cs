@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.382B       
+        // General Mining Drone Script v0.383B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -3932,9 +3932,25 @@ namespace IngameScript
             #region docking_management
             if (resetLightActual.Enabled && dockingStage > 0)
             {
-                reset_ai();
+                if (connectorActual != null)
+                {
+                    connectorActual.Enabled = false;
+                }
+                if (sensorActual != null)
+                {
+                    if (sensorActual.Enabled && collisionSenseEnabled) { sensorActual.Enabled = false; }
+                }
+                    reset_ai();
                 if (resetLightActual.Enabled)
                 {
+                    if(connectorActual != null)
+                    {
+                        connectorActual.Enabled = true;
+                    }
+                    if (sensorActual != null)
+                    {
+                        if (sensorActual.Enabled && collisionSenseEnabled) { sensorActual.Enabled = true; }
+                    }
                     resetLightActual.Enabled = false;
                 }
                 dockingStage = 1;
@@ -4057,24 +4073,24 @@ namespace IngameScript
                     && !resetLightActual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
                     && no_speed_dock_delay_count < no_speed_dock_delay_limit
+                        || connectorActual.Status != MyShipConnectorStatus.Connectable
+                        && precModeLightActual.Enabled
+                        && !sensorActual.Enabled
+                        && !resetLightActual.Enabled
+                        && currentSpeed < currentSpeedNotMovingThreshold
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit
                     || connectorActual.Status != MyShipConnectorStatus.Connectable
                     && precModeLightActual.Enabled
                     && !sensorActual.Enabled
                     && !resetLightActual.Enabled
                     && currentSpeed < currentSpeedNotMovingThreshold
                     && no_speed_dock_delay_count < no_speed_dock_delay_limit
-                    || connectorActual.Status != MyShipConnectorStatus.Connectable
-                    && precModeLightActual.Enabled
-                    && !sensorActual.Enabled
-                    && !resetLightActual.Enabled
-                    && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
-                    || connectorActual.Status != MyShipConnectorStatus.Connectable
-                    && !precModeLightActual.Enabled
-                    && sensorActual.Enabled
-                    && !resetLightActual.Enabled
-                    && currentSpeed < currentSpeedNotMovingThreshold
-                    && no_speed_dock_delay_count < no_speed_dock_delay_limit
+                        || connectorActual.Status != MyShipConnectorStatus.Connectable
+                        && !precModeLightActual.Enabled
+                        && sensorActual.Enabled
+                        && !resetLightActual.Enabled
+                        && currentSpeed < currentSpeedNotMovingThreshold
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit
                                         )
                 {
                     no_speed_dock_delay_count++;
