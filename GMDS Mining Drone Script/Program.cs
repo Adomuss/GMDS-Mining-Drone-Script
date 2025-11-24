@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.383B       
+        // General Mining Drone Script v0.384B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -93,7 +93,7 @@ namespace IngameScript
         string thrusters = "Thrusters";
 
         #endregion
-        string ver = "V0.383B";
+        string ver = "V0.384B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2947,7 +2947,7 @@ namespace IngameScript
         {
 
             #region drone_alignment_management
-            if (isDocked || !isUndocked && !isDocked || isUndocking || isDocking)
+            if (isDocked || !isUndocked && !isDocked || isUndocking || isDocking || navState)
             {
                 can_gyroOVR = false;
             }
