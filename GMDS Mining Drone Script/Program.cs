@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.385B       
+        // General Mining Drone Script v0.386B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -96,9 +96,10 @@ namespace IngameScript
         string autodockCommand = "autodock";
         string collisionSenseCommand = "collision";
         string cargoSenseCommand = "cargo";
+        string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.385";
+        string ver = "V0.386";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -380,6 +381,7 @@ namespace IngameScript
         bool batteryAutochargeSet = false;
         string runargument = "";
         bool autoDocking = false;
+        bool manualSenseAssign = false;
         bool gravityPresent = false;
         MyIni _sensorInfo = new MyIni();
         #endregion
@@ -1076,169 +1078,79 @@ namespace IngameScript
 
         private void ParseAndApplyArguments(string input)
         {
-            bool autodock1 = false;
-            bool autodock2 = false;
-            bool autodock3 = false;
-            bool autodock4 = false;
-            bool autodock5 = false;
-            bool collisionsense1 = false;
-            bool collisionsense2 = false;
-            bool collisionsense3 = false;
-            bool collisionsense4 = false;
-            bool collisionsense5 = false;
-            bool cargosense1 = false;
-            bool cargosense2 = false;
-            bool cargosense3 = false;
-            bool cargosense4 = false;
-            bool cargosense5 = false;
-            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
+            // --- Step 1: Handle Empty Input (Using the simpler IsNullOrWhiteSpace check) ---
+            if (string.IsNullOrWhiteSpace(input))
             {
                 Echo("No arguments provided, using defaults.");
                 autoDocking = false;
-                collisionSenseEnabled = false;
-                cargoSenseEnabled = false;
+                collisionSenseEnabled = true;
+                cargoSenseEnabled = true;
+                manualSenseAssign = false; // Initialize the new flag here
                 droneTag = "UnassignedMiningDroneA";
                 drone_id_num = 0;
                 return;
-
             }
 
             string[] droneconfigdata = input.Split(',');
+
+            // Check if the split array is unexpectedly empty (though covered by the initial check)
             if (droneconfigdata.Length == 0)
             {
                 Echo("No arguments provided, using defaults.");
-                autoDocking = false;
-                droneTag = "UnassignedMiningDroneB";
-                drone_id_num = 0;
+                // Use a consistent set of defaults or return immediately.
                 return;
-            }
-
+            }            
             if (droneconfigdata.Length >= 1 && !string.IsNullOrWhiteSpace(droneconfigdata[0]))
             {
-                if (string.IsNullOrWhiteSpace(droneconfigdata[0]) || string.IsNullOrEmpty(droneconfigdata[0]))
-                {
-                    droneTag = "UnassignedMiningDroneC";
-                }
-                else
-                {
-                    droneTag = droneconfigdata[0].Trim();
-                }
-            }
-            if (droneconfigdata.Length >= 2 && !string.IsNullOrWhiteSpace(droneconfigdata[1]) && !string.IsNullOrEmpty(droneconfigdata[1]))
-            {
-                if (!int.TryParse(droneconfigdata[1], out drone_id_num))
-                {
-                    drone_id_num = 0;
-                }
-                else
-                {
-                    int.TryParse(droneconfigdata[1], out drone_id_num);
-                }
-
-            }
-
-
-            if (droneconfigdata.Length >= 3 && !string.IsNullOrWhiteSpace(droneconfigdata[2]) && !string.IsNullOrEmpty(droneconfigdata[2]))
-            {
-                if (droneconfigdata[2].Contains(autodockCommand))
-                {
-                    autodock1 = true;
-                }
-                if (droneconfigdata[2].Contains(cargoSenseCommand))
-                {
-                    cargosense1 = true;
-                }
-                if (droneconfigdata[2].Contains(collisionSenseCommand))
-                {
-                    collisionsense1 = true;
-                }
-            }
-            if (droneconfigdata.Length >= 4 && !string.IsNullOrWhiteSpace(droneconfigdata[3]) && !string.IsNullOrEmpty(droneconfigdata[3]))
-            {
-                if (droneconfigdata[3].Contains(autodockCommand))
-                {
-                    autodock2 = true;
-                }
-                if (droneconfigdata[3].Contains(cargoSenseCommand))
-                {
-                    cargosense2 = true;
-                }
-                if (droneconfigdata[3].Contains(collisionSenseCommand))
-                {
-                    collisionsense2 = true;
-                }
-            }
-            if (droneconfigdata.Length >= 5 && !string.IsNullOrWhiteSpace(droneconfigdata[4]) && !string.IsNullOrEmpty(droneconfigdata[4]))
-            {
-                if (droneconfigdata[4].Contains(autodockCommand))
-                {
-                    autodock3 = true;
-                }
-                if (droneconfigdata[4].Contains(cargoSenseCommand))
-                {
-                    cargosense3 = true;
-                }
-                if (droneconfigdata[4].Contains(collisionSenseCommand))
-                {
-                    collisionsense3 = true;
-                }
-            }
-            if (droneconfigdata.Length >= 6 && !string.IsNullOrWhiteSpace(droneconfigdata[5]) && !string.IsNullOrEmpty(droneconfigdata[5]))
-            {
-                if (droneconfigdata[5].Contains(autodockCommand))
-                {
-                    autodock4 = true;
-                }
-                if (droneconfigdata[5].Contains(cargoSenseCommand))
-                {
-                    cargosense4 = true;
-                }
-                if (droneconfigdata[5].Contains(collisionSenseCommand))
-                {
-                    collisionsense4 = true;
-                }
-            }
-            if (droneconfigdata.Length >= 7 && !string.IsNullOrWhiteSpace(droneconfigdata[6]) && !string.IsNullOrEmpty(droneconfigdata[6]))
-            {
-                if (droneconfigdata[6].Contains(autodockCommand))
-                {
-                    autodock5 = true;
-                }
-                if (droneconfigdata[6].Contains(cargoSenseCommand))
-                {
-                    cargosense5 = true;
-                }
-                if (droneconfigdata[6].Contains(collisionSenseCommand))
-                {
-                    collisionsense5 = true;
-                }
-            }
-            if (autodock1 || autodock2 || autodock3 || autodock4 || autodock5)
-            {
-                autoDocking = true;
+                droneTag = droneconfigdata[0].Trim();
             }
             else
             {
-                autoDocking = false;
-            }
-            if (collisionsense1 || collisionsense2 || collisionsense3 || collisionsense4 || collisionsense5)
-            {
-                collisionSenseEnabled = true;
-            }
-            else
-            {
-                collisionSenseEnabled = false;
-            }
-            if (cargosense1 || cargosense2 || cargosense3 || cargosense4 || cargosense5)
-            {
-                cargoSenseEnabled = true;
+                droneTag = "UnassignedMiningDroneC"; // Default C if argument is missing or empty
+            }            
+            if (droneconfigdata.Length >= 2)
+            {                
+                if (!int.TryParse(droneconfigdata[1].Trim(), out drone_id_num))
+                {
+                    drone_id_num = 0; // Set to default on fail
+                }
             }
             else
             {
-                cargoSenseEnabled = false;
+                drone_id_num = 0; // Default if argument is missing
+            }           
+            // Initialize flags to false (defaults)
+            autoDocking = false;
+            collisionSenseEnabled = false;
+            cargoSenseEnabled = false;
+            manualSenseAssign = false;
+
+            // Loop through all command arguments starting at index 2 (the first flag position)
+            for (int i = 2; i < droneconfigdata.Length; i++)
+            {
+                string arg = droneconfigdata[i].Trim().ToLower();
+
+                // Check for Auto Docking
+                if (arg.Contains(autodockCommand))
+                {
+                    autoDocking = true;
+                }
+                // Check for Cargo Sense
+                if (arg.Contains(cargoSenseCommand))
+                {
+                    cargoSenseEnabled = true;
+                }
+                // Check for Collision Sense
+                if (arg.Contains(collisionSenseCommand))
+                {
+                    collisionSenseEnabled = true;
+                }
+                // Check for Manual Assign (New Feature)
+                if (arg.Contains(manualAssignCommand))
+                {
+                    manualSenseAssign = true;
+                }
             }
-
-
         }
 
         void GetDroneStatus(int drnstus)
@@ -1725,62 +1637,93 @@ namespace IngameScript
             {
                 for (int i = 0; i < cargo_all.Count; i++)
                 {
-                    if (cargo_all[i].CustomName.Contains(D_I_N))
+                    if (manualSenseAssign)
+                    {
+                        if (cargo_all[i].CustomName.Contains(D_I_N))
+                        {
+                            string tv1 = "";
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmall") || cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmall"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockMedium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLarge") || cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLarge"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_all[i].CustomName = n;
+                            cargo_tag.Add(cargo_all[i]);
+                        }
+                        if (cargo_all[i].CustomName.Contains(D_S_C))
+                        {
+                            string tv1 = "";
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmall") || cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmall"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockMedium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLarge") || cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLarge"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_sense.Add(cargo_all[i]);
+                        }
+                        if (!cargo_all[i].CustomName.Contains(D_I_N) && !cargo_all[i].CustomName.Contains(D_S_C))
+                        {
+                            string tv1 = "";
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmall") || cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmall"))
+                            {
+                                tv1 = "Small ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
+                            {
+                                tv1 = "Medium ";
+                            }
+                            if (cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLarge") || cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLarge"))
+                            {
+                                tv1 = "Large ";
+                            }
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_tag.Add(cargo_all[i]);
+                        }
+                    }
+                    else
                     {
                         string tv1 = "";
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Small"))
+                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmall") || cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmall"))
                         {
                             tv1 = "Small ";
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N + " "+ D_S_C;
+                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_sense.Add(cargo_all[i]);
                         }
                         if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
                         {
                             tv1 = "Medium ";
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_tag.Add(cargo_all[i]);
                         }
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Large"))
+                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLarge") || cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLarge"))
                         {
                             tv1 = "Large ";
-                        }
-                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                        cargo_all[i].CustomName = n;
-                        cargo_tag.Add(cargo_all[i]);
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
+                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_tag.Add(cargo_all[i]);
+                        }                        
+                        
+                        
                     }
-                    if (cargo_all[i].CustomName.Contains(D_S_C))
-                    {
-                        string tv1 = "";
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Small"))
-                        {
-                            tv1 = "Small ";
-                        }
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
-                        {
-                            tv1 = "Medium ";
-                        }
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Large"))
-                        {
-                            tv1 = "Large ";
-                        }
-                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                        cargo_sense.Add(cargo_all[i]);
-                    }
-                    if (!cargo_all[i].CustomName.Contains(D_I_N) && !cargo_all[i].CustomName.Contains(D_S_C))
-                    {
-                        string tv1 = "";
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Small"))
-                        {
-                            tv1 = "Small ";
-                        }
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
-                        {
-                            tv1 = "Medium ";
-                        }
-                        if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Large"))
-                        {
-                            tv1 = "Large ";
-                        }
-                        n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                        cargo_all[i].CustomName = n + " " + D_I_N;
-                        cargo_tag.Add(cargo_all[i]);
-                    }
+
                 }
             }
             cargo_all.Clear();
