@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.386B       
+        // General Mining Drone Script v0.387B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -99,7 +99,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.386";
+        string ver = "V0.387";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1354,10 +1354,11 @@ namespace IngameScript
             }
             
         }
-        public void sensorrangemanagement(string input)
+        public void sensorrangemanagement(IMySensorBlock block)
         {
-            if(string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
+            if(string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
+                string input = "";
                 /* 
                  *        float s_llm = 4.0f;
                     float s_rlm = 4.0f;
@@ -1375,13 +1376,14 @@ namespace IngameScript
                 _sensorInfo.Set ("SensorRange", "BackExtend", s_bklm);
                 _sensorInfo.Set ("SensorRange", "FrontExtend", s_flm);
                 input = _sensorInfo.ToString();
+                block.CustomData = input;
             }
-            if (!string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input))
+            if (!string.IsNullOrEmpty(block.CustomData) && !string.IsNullOrWhiteSpace(block.CustomData))
             {
                 Echo("Sensor range data found, loading settings");
-                if (_sensorInfo.TryParse(input))
+                if (_sensorInfo.TryParse(block.CustomData))
                 {
-                    _sensorInfo.TryParse(input);
+                    _sensorInfo.TryParse(block.CustomData);
                     string senseval;
                     senseval = _sensorInfo.Get("SensorRange", "LeftExtend").ToString().Trim();
                     if (!float.TryParse(senseval, out s_llm))
@@ -1577,7 +1579,7 @@ namespace IngameScript
                 sensorActual.DetectPlayers = false;
                 sensorActual.DetectNeutral = true;
                 sensorActual.DetectOwner = true;
-                sensorrangemanagement(sensorActual.CustomData);
+                sensorrangemanagement(sensorActual);
                 sensorActual.LeftExtend = s_llm;
                 sensorActual.RightExtend = s_rlm;
                 sensorActual.BottomExtend = s_btlm;
