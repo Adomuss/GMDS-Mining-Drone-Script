@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.387B       
+        // General Mining Drone Script v0.500B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -42,7 +42,7 @@ namespace IngameScript
         //rename these for drone
         int drone_id_num = 1;
         string droneTag = "SWRM_D";
-
+        
         //ore detection
         bool cargoSenseEnabled = true;
         float cargoSenseLimit = 0.0f;
@@ -99,7 +99,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.387";
+        string ver = "V0.500B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -120,13 +120,16 @@ namespace IngameScript
         string PrecisionModeTagName = "";
         string H_T_N = "";
         string D_S_C = "";
+        string S_N_T = "";
         string damageLightTag = "";
-        string pingChannel = "";
+        string pingChannel = "";        
         string thrustGroupTag = "";
         string pingChannelTag = "ping";
+        string syncChannelTag = "sync";
         string droneDamageStatus = "OK";
         string droneStatusOutput = "Idle";
         string recall_command = "recall";
+        string secondary_tag = "";
         double termnationPrecision = 0.0;
         double terminationCoefficient = 0.02;
         float GyrMlt = 2;
@@ -151,6 +154,7 @@ namespace IngameScript
         string tx_ch = "";
         string rx_channel_recall = "";
         string rx_channel_recall_drone = "";
+        string rx_channel_sync = "";
         //logic flags
         float total_percent_cargo_used = 0.0f;
         //float ttl_PWRs;
@@ -290,6 +294,8 @@ namespace IngameScript
         List<IMyCargoContainer> cargo_sense;
         List<IMyRadioAntenna> antenna_all;
         List<IMyRadioAntenna> antenna_tag;
+        List<IMyBeacon> beacons_all;
+        List<IMyBeacon> beacons_tag;
         List<IMyPathRecorderBlock> flight_path_all;
         List<IMyPathRecorderBlock> flight_path_dock_tag;
         List<IMyPathRecorderBlock> flight_path_undock_tag;
@@ -316,6 +322,7 @@ namespace IngameScript
         List<MyWaypointInfo> waypoints;
         List<IMyThrust> thrust_all;
         List<IMyThrust> thrust_tag;
+        List<MyIGCMessage> syncMessagesBuffer;
         IMyBlockGroup precModeGroup;
         IMyBlockGroup undockModeGroup;
         IMyBlockGroup resetModeGroup;
@@ -337,7 +344,9 @@ namespace IngameScript
         string s_atmo = "Atmospheric";
         string s_hydro = "Hydrogen";
         string s_ion = "Ion";
+        string s_proto = "Prototech";
         string s_antenna = "Antenna";
+        string s_beacon = "Beacon";
         string s_camera = "Camera";
         string s_connector = "Connector";
         string s_battery = "Battery";
@@ -361,10 +370,12 @@ namespace IngameScript
         IMyBroadcastListener listn_recall;
         IMyBroadcastListener listn_recall_drone;
         IMyBroadcastListener listn_png;
+        IMyBroadcastListener listensync;
         MyIGCMessage new_msg;
         MyIGCMessage new_msg_2;
         MyIGCMessage new_msg_3;
         MyIGCMessage new_msg_4;
+        string syncDataInput;
         Vector3D rc_xyz;
         float percent_battery_power = 0.0f;
         double pcnt_gas_tank = 0.0;
@@ -384,11 +395,15 @@ namespace IngameScript
         bool manualSenseAssign = false;
         bool gravityPresent = false;
         MyIni _sensorInfo = new MyIni();
+        bool syncMessageReceived = false;
+        bool secondary_tag_changed = false;
         #endregion
         public void Save()
-        {   
+        {            
             _ini.Clear();
-            _ini.Set("configuration", "runargument", runargument);            
+            _ini.Set("configuration", "runargument", runargument);
+
+            _ini.Set("configuration", "secondary tag", secondary_tag);
             _ini.Set("commands", "c1", recall);
             _ini.Set("commands", "c2", stopState);
             _ini.Set("commands", "c3", wasMining);
@@ -464,6 +479,8 @@ namespace IngameScript
                 var str = "";
                 str = _ini.Get("configuration", "runargument").ToString().Trim();
                 runargument = str;
+                str = _ini.Get("configconfigurationutation", "secondary tag").ToString();
+                secondary_tag = str;
                 str = _ini.Get("commands", "c1").ToString().Trim();
                 bool.TryParse(str, out recall);
                 str = _ini.Get("commands", "c2").ToString().Trim();
@@ -582,12 +599,14 @@ namespace IngameScript
             if (!string.IsNullOrEmpty(argument) && !string.IsNullOrWhiteSpace(argument))
             {
                 // --- Argument takes precedence for setup and override ---
-                runargument = argument;
-                ParseAndApplyArguments(argument);
+
+                    runargument = argument;
+                    ParseAndApplyArguments(argument);
 
                 // Force a full setup if arguments changed
                 setupIsComplete = false;
-            }
+            } 
+            
 
             #region setup_code
             if (!setupIsComplete)
@@ -1337,7 +1356,12 @@ namespace IngameScript
             thrustGroupTag = $"{thrusters} [{droneTag} {drone_id_num}]";
             tx_ch = droneTag + " reply";
             rx_channel_recall_drone = D_I_N + " " + recall_command;
-            Me.CustomName = $"GMDS Programmable Block {D_I_N}";
+            rx_channel_sync = "[" + droneTag + "]" + " " + syncChannelTag;
+            S_N_T = $"[{secondary_tag}]";
+            listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
+            Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
+            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
+
         }
         public void manageFirstLoad(string input, string datacommandinput)
         {
@@ -1443,17 +1467,37 @@ namespace IngameScript
                 }
             }
         }
+
+        public void blockRenamer()
+        {
+            S_N_T = $"[{secondary_tag}]";
+            Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
+            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
+            if (antenna_actual != null)
+            {
+                antenna_actual.HudText = $"{D_I_N} {S_N_T}";
+                antenna_actual.ShowShipName = true;
+            }
+            if (beacons_tag.Count > 0)
+            {
+                if (beacons_tag[0] != null)
+                {
+                    beacons_tag[0].HudText = $"{D_I_N} {S_N_T}";
+                }
+            }
+        }
         public void setup_function()
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
             sb = new StringBuilder();
-            tx_ch = droneTag + " reply";
-            rx_channel_recall = droneTag + " " + recall_command;
+            syncMessagesBuffer = new List<MyIGCMessage>();
             if (string.IsNullOrEmpty(droneTag) || string.IsNullOrWhiteSpace(droneTag))
             {
                 Echo($"Invalid name for drone_tag {droneTag.Replace("[","[[").Replace("]","]]")}");
                 return;
             }
+            tx_ch = droneTag + " reply";
+            rx_channel_recall = droneTag + " " + recall_command;
             D_I_N = $"[{droneTag} {drone_id_num}]";
             D_C_N = $"[{droneTag} {drone_id_num}]";
             dockTaskName = $"[{droneTag} {drone_id_num} {Dock}]";
@@ -1469,7 +1513,12 @@ namespace IngameScript
             pingChannel = $"[{droneTag}] {pingChannelTag}";
             thrustGroupTag = $"[{droneTag} {drone_id_num}] {thrusters}";
             rx_channel_recall_drone = D_I_N + " " + recall_command;
-            Me.CustomName = $" GMDS Programmable Block {D_I_N}";
+            rx_channel_sync = "[" + droneTag + "]" + " " + syncChannelTag;
+            S_N_T = $"[{secondary_tag}]";
+            listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
+
+            Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
+            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
 
             //reset group presence
             thrustGroupPresent = false;
@@ -1496,6 +1545,8 @@ namespace IngameScript
                         }
                         n = s_antenna + " " + (i + 1) + " " + D_I_N;
                         antenna_all[i].CustomName = n;
+                        antenna_all[i].HudText = $"{D_I_N} {S_N_T}";
+                        antenna_all[i].ShowShipName = true;
                         antenna_tag.Add(antenna_all[i]);
                     }
                     if (!antenna_all[i].CustomName.Contains(D_I_N))
@@ -1509,6 +1560,8 @@ namespace IngameScript
                         }
                         n = s_antenna + " " + (i + 1) + " " + D_I_N;
                         antenna_all[i].CustomName = n;
+                        antenna_all[i].HudText = $"{D_I_N} {S_N_T}";
+                        antenna_all[i].ShowShipName = true;                        
                         antenna_tag.Add(antenna_all[i]);
                     }
                 }
@@ -1537,6 +1590,33 @@ namespace IngameScript
                 }
             }
             rc_all.Clear();
+
+            //getbeacons
+            beacons_all = new List<IMyBeacon>();
+            beacons_tag = new List<IMyBeacon>();
+            gts.GetBlocksOfType<IMyBeacon>(beacons_all, b => b.CubeGrid == Me.CubeGrid);
+            if (beacons_all.Count > 0)
+            {
+                for (int i = 0; i < beacons_all.Count; i++)
+                {
+                    if (beacons_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_beacon + " " + (i + 1) + " " + D_I_N;
+                        beacons_all[i].CustomName = n;
+                        beacons_all[i].HudText = $"{D_I_N} {S_N_T}";    
+                        beacons_tag.Add(beacons_all[i]);
+                    }
+                    if (!beacons_all[i].CustomName.Contains(D_I_N))
+                    {
+                        n = s_beacon + " " + (i + 1) + " " + D_I_N;
+                        beacons_all[i].CustomName = n;
+                        beacons_all[i].HudText = $"{D_I_N} {S_N_T}";
+                        beacons_tag.Add(beacons_all[i]);
+                    }
+
+                }
+            }
+            beacons_all.Clear();
             if (collisionSenseEnabled)
             {
                 sensor_all = new List<IMySensorBlock>();
@@ -1704,22 +1784,22 @@ namespace IngameScript
                         if (cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmall") || cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmall"))
                         {
                             tv1 = "Small ";
-                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N + " "+ D_S_C;
-                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N + " " + D_S_C;
+                            cargo_all[i].CustomName = n +  " " + S_N_T;
                             cargo_sense.Add(cargo_all[i]);
                         }
                         if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
                         {
                             tv1 = "Medium ";
                             n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_all[i].CustomName = n;
                             cargo_tag.Add(cargo_all[i]);
                         }
                         if (cargo_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLarge") || cargo_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLarge"))
                         {
                             tv1 = "Large ";
                             n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
-                            cargo_all[i].CustomName = n + " " + D_I_N;
+                            cargo_all[i].CustomName = n;
                             cargo_tag.Add(cargo_all[i]);
                         }                        
                         
@@ -1784,17 +1864,24 @@ namespace IngameScript
                     if (thrust_all[i].CustomName.Contains(D_I_N))
                     {
                         string tv1 = "";
-                        if (thrust_all[i].CustomName.Contains("Hydro"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("Hydrogen"))
                         {
                             tv1 = s_hydro;
                         }
-                        if (thrust_all[i].CustomName.Contains("Atmo"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("Atmospheric"))
                         {
                             tv1 = s_atmo;
                         }
-                        if (thrust_all[i].CustomName.Contains("Ion"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLargeThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLargeThrust")
+                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmallThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmallThrust")
+                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("ModularThruster")                                               
+                            )
                         {
                             tv1 = s_ion;
+                        }
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockPrototechThruster") || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockPrototechThruster"))
+                        {
+                            tv1 = s_proto;
                         }
                         n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
                         thrust_all[i].CustomName = n;
@@ -1803,17 +1890,24 @@ namespace IngameScript
                     if (!thrust_all[i].CustomName.Contains(D_I_N))
                     {
                         string tv1 = "";
-                        if (thrust_all[i].CustomName.Contains("Hydro"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("Hydrogen"))
                         {
                             tv1 = s_hydro;
                         }
-                        if (thrust_all[i].CustomName.Contains("Atmo"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("Atmospheric"))
                         {
                             tv1 = s_atmo;
                         }
-                        if (thrust_all[i].CustomName.Contains("Ion"))
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLargeThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLargeThrust")
+                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmallThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmallThrust")
+                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("ModularThruster")
+                            )
                         {
                             tv1 = s_ion;
+                        }
+                        if (thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockPrototechThruster") || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockPrototechThruster"))
+                        {
+                            tv1 = s_proto;
                         }
                         n = tv1 + " " + s_thr + " " + (i + 1) + " " + D_I_N;
                         thrust_all[i].CustomName = n;
@@ -1827,7 +1921,7 @@ namespace IngameScript
             if (thrusterGroup != null)
             {
                 thrustGroupPresent = true;
-                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);                
                 Echo($"Thruster Group {thrustGroupTag} found");
             }
             else
@@ -2120,6 +2214,7 @@ namespace IngameScript
             listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
             listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
             listn_png = IGC.RegisterBroadcastListener(pingChannel);
+            listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
             #endregion
         }
         public void item_presence_check()
@@ -2632,6 +2727,9 @@ namespace IngameScript
                 new_msg_4 = listn_recall_drone.AcceptMessage();
                 dat_in4 = new_msg_4.Data.ToString();
             }
+
+                ProcessMessages();
+
             if (dat_in != null)
             {
                 Me.CustomData = dat_in;
@@ -2679,6 +2777,64 @@ namespace IngameScript
                 }
             }
             #endregion
+
+        }
+
+        private void ProcessMessages()
+        {
+            #region check_drone_messages
+            //manage recieved communications
+            if (antenna_actual != null && antenna_tag[0] != null)
+            {
+                if (listensync.HasPendingMessage)
+                {
+                    MyIGCMessage droneMessageNew = listensync.AcceptMessage();
+                    syncMessagesBuffer.Add(droneMessageNew);
+                }
+                //process drone message list here
+                if (syncMessagesBuffer.Count > 0)
+                {
+                    syncMessageReceived = true;
+                }
+                else
+                {
+                    syncMessageReceived = false;
+                }
+
+                if (syncMessageReceived)
+                {
+                    //pull first message in the list if valid
+                    syncDataInput = syncMessagesBuffer[0].Data.ToString();
+                    ProcessDroneMessageData(syncDataInput);
+                    if (secondary_tag_changed)
+                    {
+                        blockRenamer();
+                        secondary_tag_changed = false;
+                    }
+                    if (syncMessagesBuffer.Count > 0 && syncMessageReceived)
+                    {
+                        syncMessagesBuffer.RemoveAt(0);
+                    }
+
+                }
+
+            }
+            #endregion
+        }
+
+        public void ProcessDroneMessageData(string input)
+        {
+            secondary_tag_changed = false;
+
+            if (secondary_tag != input)
+            {
+                secondary_tag = input;
+                secondary_tag_changed = true;
+            }
+            else
+            {                
+                return;
+            }
 
         }
 
