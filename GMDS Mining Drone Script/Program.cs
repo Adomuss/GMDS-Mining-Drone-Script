@@ -29,7 +29,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.500B       
+        // General Mining Drone Script v0.502B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -99,7 +99,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.501B";
+        string ver = "V0.502B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -464,6 +464,7 @@ namespace IngameScript
                 _ini.Set("customdata", "data", fail_data);
             }
             Storage = _ini.ToString();
+            _ini.Clear();
         }
 
         void LoadStorageData(string input, string datacommandinput)
@@ -1401,6 +1402,7 @@ namespace IngameScript
                 _sensorInfo.Set ("SensorRange", "FrontExtend", s_flm);
                 input = _sensorInfo.ToString();
                 block.CustomData = input;
+                _sensorInfo.Clear();
             }
             if (!string.IsNullOrEmpty(block.CustomData) && !string.IsNullOrWhiteSpace(block.CustomData))
             {
