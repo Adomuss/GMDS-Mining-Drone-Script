@@ -99,7 +99,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.500B";
+        string ver = "V0.501B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -479,7 +479,7 @@ namespace IngameScript
                 var str = "";
                 str = _ini.Get("configuration", "runargument").ToString().Trim();
                 runargument = str;
-                str = _ini.Get("configconfigurationutation", "secondary tag").ToString();
+                str = _ini.Get("configuration", "secondary tag").ToString();
                 secondary_tag = str;
                 str = _ini.Get("commands", "c1").ToString().Trim();
                 bool.TryParse(str, out recall);
