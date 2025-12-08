@@ -1,4 +1,5 @@
-﻿using Sandbox.Game.Entities;
+﻿using ProtoBuf;
+using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Screens.Terminal.Controls;
 using Sandbox.ModAPI.Ingame;
@@ -29,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.502B       
+        // General Mining Drone Script v0.503B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -99,7 +100,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.502B";
+        string ver = "V0.503B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -397,6 +398,7 @@ namespace IngameScript
         MyIni _sensorInfo = new MyIni();
         bool syncMessageReceived = false;
         bool secondary_tag_changed = false;
+        MyIni _commandData = new MyIni();
         #endregion
         public void Save()
         {            
@@ -531,13 +533,11 @@ namespace IngameScript
                 bool.TryParse(str, out reset_mining);
                 str = _ini.Get("unitstate", "u12").ToString().Trim();
                 bool.TryParse(str, out mining_nav_complete);
-                str = _ini.Get("unitstate", "u12").ToString().Trim();
-                bool.TryParse(str, out force_request_dock);
                 str = _ini.Get("unitstate", "u13").ToString().Trim();
-                bool.TryParse(str, out requestExit);
+                bool.TryParse(str, out force_request_dock);
                 str = _ini.Get("unitstate", "u14").ToString().Trim();
                 bool.TryParse(str, out exitSequenceComplete);
-                str = _ini.Get("uunitstate16", "u15").ToString().Trim();
+                str = _ini.Get("unitstate", "u15").ToString().Trim();
                 bool.TryParse(str, out exitWaypointSet);
                 str = _ini.Get("unitstate", "u16").ToString().Trim();
                 bool.TryParse(str, out tunnelSequenceFinished);
