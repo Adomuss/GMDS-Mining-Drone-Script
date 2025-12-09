@@ -99,8 +99,11 @@ namespace IngameScript
         string cargoSenseCommand = "cargo";
         string manualAssignCommand = "manual";
 
+        //MyIni _ini = new MyIni();
+        MyIni _commandIni = new MyIni();
+
         #endregion
-        string ver = "V0.503B";
+        string ver = "V0.504B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -400,6 +403,7 @@ namespace IngameScript
         bool secondary_tag_changed = false;
         MyIni _commandData = new MyIni();
         #endregion
+
         public void Save()
         {            
             _ini.Clear();
@@ -751,6 +755,53 @@ namespace IngameScript
         }
 
         void GetCustomDataCommand(string input)
+        {
+            _commandIni.Clear();
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                Echo("CustomData empty");
+                return;
+            }
+
+            // Try new INI format first
+            if (_commandIni.TryParse(input) && _commandIni.ContainsSection("GMDSJob"))
+            {
+                ParseCommandIni();
+                return;
+            }
+
+            // Fallback to old colon format
+            GetCustomDataCommand_ColonLegacy(input);
+        }
+
+        private void ParseCommandIni()
+        {
+            string tmp;
+
+            tmp = _commandIni.Get("GMDSJob", "GPSIndex").ToString().Trim();
+            gpsIndex = string.IsNullOrWhiteSpace(tmp) ? "-1" : tmp;
+
+            main_gps_coords.X = _commandIni.Get("GMDSJob", "X").ToDouble(0);
+            main_gps_coords.Y = _commandIni.Get("GMDSJob", "Y").ToDouble(0);
+            main_gps_coords.Z = _commandIni.Get("GMDSJob", "Z").ToDouble(0);
+
+            drillSetLength = _commandIni.Get("GMDSJob", "Depth").ToDouble(100);
+            ignoreDistance = _commandIni.Get("GMDSJob", "IgnoreDepth").ToDouble(0);
+
+            bool align = _commandIni.Get("Alignment", "Enabled").ToBoolean(false);
+            if (align)
+            {
+                alignmentTargetNew.X = _commandIni.Get("Alignment", "X").ToDouble(0);
+                alignmentTargetNew.Y = _commandIni.Get("Alignment", "Y").ToDouble(0);
+                alignmentTargetNew.Z = _commandIni.Get("Alignment", "Z").ToDouble(0);
+                targetAlignmentValid = true;
+            }
+            else targetAlignmentValid = false;
+
+            dataValid = true;
+        }
+
+        void GetCustomDataCommand_ColonLegacy(string input)
         {
             if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
             {
@@ -4955,9 +5006,8 @@ namespace IngameScript
         public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
 
-            string dataTransmissionOut;
-            if (antenna_actual == null) { Echo("Error: antenna is null in drone_message_transmission_management"); return; }
-            if (rc_actual == null) { Echo("Error: remote control is null in drone_message_transmission_management"); return; }
+            //string dataTransmissionOut;
+            if(antenna_actual == null || rc_actual == null || !pinged) return;
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
@@ -4966,30 +5016,39 @@ namespace IngameScript
                 t_count = 0;
             }
 
-            if (pinged)
-            {
-                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:";
-                sb.Clear().EnsureCapacity(128);
-                sb.AppendFormat(baseFormat, D_I_N,
-                    droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
-                    isDocked, isUndocked, isAutopiloting,
-                    rc_actual.IsAutoPilotEnabled,
-                    Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
-                    drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
-                    Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
-                    gpsIndex, cargoFullAchieved, recharge_request,
-                    autoDock, dockingReady
-                    );
-                dataTransmissionOut = sb.ToString();
-                IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
-                Echo("Transmission sent");
-                dataTransmissionOut = "";
-                pinged = false;
-                pingedMessageDataIn = "";
-            }
-            #endregion
+            _ini.Clear();
+            _ini.Set("GMDSDroneData", "Version", ver);
+            _ini.Set("GMDSDroneData", "DroneName", D_I_N);
+            _ini.Set("GMDSDroneData", "DamageStatus", droneDamageStatus);
+            _ini.Set("GMDSDroneData", "Status", droneStatusOutput);
+            _ini.Set("GMDSDroneData", "Docked", isDocked);
+            _ini.Set("GMDSDroneData", "Undocked", isUndocked);
+            _ini.Set("GMDSDroneData", "Autopilot", rc_actual.IsAutoPilotEnabled);
+            _ini.Set("GMDSDroneData", "X", Math.Round(rc_xyz.X, 2));
+            _ini.Set("GMDSDroneData", "Y", Math.Round(rc_xyz.Y, 2));
+            _ini.Set("GMDSDroneData", "Z", Math.Round(rc_xyz.Z, 2));
+            _ini.Set("GMDSDroneData", "DepthSet", drillSetLength);
+            _ini.Set("GMDSDroneData", "DistanceCurrent", Math.Round(distance_current, 2));
+            _ini.Set("GMDSDroneData", "DistanceRemaining", Math.Round(drillSetLength - ignoreDistance, 2));
+            _ini.Set("GMDSDroneData", "Battery", Math.Round(percent_battery_power, 2));
+            _ini.Set("GMDSDroneData", "Hydrogen", hydrogen_tank_tag.Count > 0 ? Math.Round(pcnt_gas_tank, 2) : 0);
+            _ini.Set("GMDSDroneData", "Cargo", Math.Round(total_percent_cargo_used, 2));
+            _ini.Set("GMDSDroneData", "GPSIndex", gpsIndex);
+            _ini.Set("GMDSDroneData", "CargoFull", cargoFullAchieved);
+            _ini.Set("GMDSDroneData", "Recharge", recharge_request);
+            _ini.Set("GMDSDroneData", "AutoDock", autoDock);
+            _ini.Set("GMDSDroneData", "Ready", dockingReady);
+            _ini.Set("GMDSDroneData", "TunnelComplete", tunnelSequenceFinished);
 
+            string message = _ini.ToString();
+            IGC.SendBroadcastMessage(tx_ch, message, TransmissionDistance.TransmissionDistanceMax);
+
+            Echo("INI Transmission sent");
+            pinged = false;
+            #endregion
         }
+
+
         public void rc_navigation_init()
         {
 
