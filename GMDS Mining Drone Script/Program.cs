@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.503B       
+        // General Mining Drone Script v0.504B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -43,7 +43,7 @@ namespace IngameScript
         //rename these for drone
         int drone_id_num = 1;
         string droneTag = "SWRM_D";
-        
+
         //ore detection
         bool cargoSenseEnabled = true;
         float cargoSenseLimit = 0.0f;
@@ -99,9 +99,6 @@ namespace IngameScript
         string cargoSenseCommand = "cargo";
         string manualAssignCommand = "manual";
 
-        //MyIni _ini = new MyIni();
-        MyIni _commandIni = new MyIni();
-
         #endregion
         string ver = "V0.504B";
         //drone transmission settings
@@ -126,7 +123,7 @@ namespace IngameScript
         string D_S_C = "";
         string S_N_T = "";
         string damageLightTag = "";
-        string pingChannel = "";        
+        string pingChannel = "";
         string thrustGroupTag = "";
         string pingChannelTag = "ping";
         string syncChannelTag = "sync";
@@ -402,10 +399,13 @@ namespace IngameScript
         bool syncMessageReceived = false;
         bool secondary_tag_changed = false;
         MyIni _commandData = new MyIni();
+        MyIni _customDataStore = new MyIni();
+        string gmdscategory = "GMDSJobData";
+        string jobinfo = "Jobinfo";
+        string jobdata = "";
         #endregion
-
         public void Save()
-        {            
+        {
             _ini.Clear();
             _ini.Set("configuration", "runargument", runargument);
 
@@ -482,7 +482,7 @@ namespace IngameScript
             }
             _ini.Clear();
             if (_ini.TryParse(input))
-            {                
+            {
                 var str = "";
                 str = _ini.Get("configuration", "runargument").ToString().Trim();
                 runargument = str;
@@ -582,7 +582,7 @@ namespace IngameScript
                 Vector3D.TryParse(str, out directionc);
                 str = _ini.Get("coordinates", "co13").ToString().Trim();
                 Vector3D.TryParse(str, out gravity);
-                str = _ini.Get("coordinates", "co14").ToString().Trim();                
+                str = _ini.Get("coordinates", "co14").ToString().Trim();
                 gpsIndex = str;
                 str = _ini.Get("customdata", "data").ToString().Trim();
                 if (string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str))
@@ -605,13 +605,13 @@ namespace IngameScript
             {
                 // --- Argument takes precedence for setup and override ---
 
-                    runargument = argument;
-                    ParseAndApplyArguments(argument);
+                runargument = argument;
+                ParseAndApplyArguments(argument);
 
                 // Force a full setup if arguments changed
                 setupIsComplete = false;
-            } 
-            
+            }
+
 
             #region setup_code
             if (!setupIsComplete)
@@ -754,64 +754,42 @@ namespace IngameScript
             }
         }
 
-        void GetCustomDataCommand(string input)
+        void FetchJobData(string input)
         {
-            _commandIni.Clear();
-            if (string.IsNullOrWhiteSpace(input))
+            _customDataStore.Clear();
+            if (_customDataStore.TryParse(input))
             {
-                Echo("CustomData empty");
-                return;
+                var str = "";
+                str = _customDataStore.Get(gmdscategory, jobinfo).ToString().Trim();
+                jobdata = str;
             }
-
-            // Try new INI format first
-            if (_commandIni.TryParse(input) && _commandIni.ContainsSection("GMDSJob"))
-            {
-                ParseCommandIni();
-                return;
-            }
-
-            // Fallback to old colon format
-            GetCustomDataCommand_ColonLegacy(input);
+            _customDataStore.Clear();
         }
-
-        private void ParseCommandIni()
+        void GetCustomDataCommand(string input, IMyTerminalBlock block)
         {
-            string tmp;
-
-            tmp = _commandIni.Get("GMDSJob", "GPSIndex").ToString().Trim();
-            gpsIndex = string.IsNullOrWhiteSpace(tmp) ? "-1" : tmp;
-
-            main_gps_coords.X = _commandIni.Get("GMDSJob", "X").ToDouble(0);
-            main_gps_coords.Y = _commandIni.Get("GMDSJob", "Y").ToDouble(0);
-            main_gps_coords.Z = _commandIni.Get("GMDSJob", "Z").ToDouble(0);
-
-            drillSetLength = _commandIni.Get("GMDSJob", "Depth").ToDouble(100);
-            ignoreDistance = _commandIni.Get("GMDSJob", "IgnoreDepth").ToDouble(0);
-
-            bool align = _commandIni.Get("Alignment", "Enabled").ToBoolean(false);
-            if (align)
+            // Checks if the block has CustomData AND if it's NOT already INI-formatted data
+            if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
             {
-                alignmentTargetNew.X = _commandIni.Get("Alignment", "X").ToDouble(0);
-                alignmentTargetNew.Y = _commandIni.Get("Alignment", "Y").ToDouble(0);
-                alignmentTargetNew.Z = _commandIni.Get("Alignment", "Z").ToDouble(0);
-                targetAlignmentValid = true;
+                String[] gpsCommandtest = block.CustomData.ToString().Split(':');
+
+                if (gpsCommandtest.Length > 0)
+                {
+                    StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
+                }
+                Echo("Dataconversion");
+                return;
+
             }
-            else targetAlignmentValid = false;
-
-            dataValid = true;
-        }
-
-        void GetCustomDataCommand_ColonLegacy(string input)
-        {
-            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
+            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
                 Echo("Custom Data is empty");
             }
-            String[] gpsCommandData = input.Split(':');
+            FetchJobData(block.CustomData.ToString());
+            String[] gpsCommandData = jobdata.Split(':');
             if (gpsCommandData.Length < 5)
             {
                 Echo("Custom Data is faulty");
-                input = fail_data;
+                jobdata = fail_data;
             }
             /* Custom data message structure
              * 0 = GPS Text
@@ -1170,7 +1148,7 @@ namespace IngameScript
                 Echo("No arguments provided, using defaults.");
                 // Use a consistent set of defaults or return immediately.
                 return;
-            }            
+            }
             if (droneconfigdata.Length >= 1 && !string.IsNullOrWhiteSpace(droneconfigdata[0]))
             {
                 droneTag = droneconfigdata[0].Trim();
@@ -1178,9 +1156,9 @@ namespace IngameScript
             else
             {
                 droneTag = "UnassignedMiningDroneC"; // Default C if argument is missing or empty
-            }            
+            }
             if (droneconfigdata.Length >= 2)
-            {                
+            {
                 if (!int.TryParse(droneconfigdata[1].Trim(), out drone_id_num))
                 {
                     drone_id_num = 0; // Set to default on fail
@@ -1189,7 +1167,7 @@ namespace IngameScript
             else
             {
                 drone_id_num = 0; // Default if argument is missing
-            }           
+            }
             // Initialize flags to false (defaults)
             autoDocking = false;
             collisionSenseEnabled = false;
@@ -1428,11 +1406,11 @@ namespace IngameScript
                 ParseAndApplyArguments(runargument);
                 Echo("No Storage data found, configuration loaded from arguments or defaults.");
             }
-            
+
         }
         public void sensorrangemanagement(IMySensorBlock block)
         {
-            if(string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
+            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
                 string input = "";
                 /* 
@@ -1445,12 +1423,12 @@ namespace IngameScript
                     */
                 Echo("No sensor range data found, using default.");
                 _sensorInfo.Clear();
-                _sensorInfo.Set ("SensorRange", "LeftExtend", s_llm);
-                _sensorInfo.Set ("SensorRange", "RightExtend", s_rlm);
-                _sensorInfo.Set ("SensorRange", "BottomExtend", s_btlm);
-                _sensorInfo.Set ("SensorRange", "TopExtend", s_tlm);
-                _sensorInfo.Set ("SensorRange", "BackExtend", s_bklm);
-                _sensorInfo.Set ("SensorRange", "FrontExtend", s_flm);
+                _sensorInfo.Set("SensorRange", "LeftExtend", s_llm);
+                _sensorInfo.Set("SensorRange", "RightExtend", s_rlm);
+                _sensorInfo.Set("SensorRange", "BottomExtend", s_btlm);
+                _sensorInfo.Set("SensorRange", "TopExtend", s_tlm);
+                _sensorInfo.Set("SensorRange", "BackExtend", s_bklm);
+                _sensorInfo.Set("SensorRange", "FrontExtend", s_flm);
                 input = _sensorInfo.ToString();
                 block.CustomData = input;
                 _sensorInfo.Clear();
@@ -1546,7 +1524,7 @@ namespace IngameScript
             syncMessagesBuffer = new List<MyIGCMessage>();
             if (string.IsNullOrEmpty(droneTag) || string.IsNullOrWhiteSpace(droneTag))
             {
-                Echo($"Invalid name for drone_tag {droneTag.Replace("[","[[").Replace("]","]]")}");
+                Echo($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
                 return;
             }
             tx_ch = droneTag + " reply";
@@ -1614,7 +1592,7 @@ namespace IngameScript
                         n = s_antenna + " " + (i + 1) + " " + D_I_N;
                         antenna_all[i].CustomName = n;
                         antenna_all[i].HudText = $"{D_I_N} {S_N_T}";
-                        antenna_all[i].ShowShipName = true;                        
+                        antenna_all[i].ShowShipName = true;
                         antenna_tag.Add(antenna_all[i]);
                     }
                 }
@@ -1656,7 +1634,7 @@ namespace IngameScript
                     {
                         n = s_beacon + " " + (i + 1) + " " + D_I_N;
                         beacons_all[i].CustomName = n;
-                        beacons_all[i].HudText = $"{D_I_N} {S_N_T}";    
+                        beacons_all[i].HudText = $"{D_I_N} {S_N_T}";
                         beacons_tag.Add(beacons_all[i]);
                     }
                     if (!beacons_all[i].CustomName.Contains(D_I_N))
@@ -1696,7 +1674,7 @@ namespace IngameScript
                 sensor_all.Clear();
                 if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
                 {
-                    Echo($"Sensor with tag: '{D_I_N.Replace("[", "[[").Replace("]","]]")}' not found.");
+                    Echo($"Sensor with tag: '{D_I_N.Replace("[", "[[").Replace("]", "]]")}' not found.");
                     return;
                 }
                 sensorActual = sensor_tag[0];
@@ -1838,7 +1816,7 @@ namespace IngameScript
                         {
                             tv1 = "Small ";
                             n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N + " " + D_S_C;
-                            cargo_all[i].CustomName = n +  " " + S_N_T;
+                            cargo_all[i].CustomName = n + " " + S_N_T;
                             cargo_sense.Add(cargo_all[i]);
                         }
                         if (cargo_all[i].BlockDefinition.SubtypeId.Contains("Medium"))
@@ -1854,9 +1832,9 @@ namespace IngameScript
                             n = tv1 + s_cargo + " " + (i + 1) + " " + D_I_N;
                             cargo_all[i].CustomName = n;
                             cargo_tag.Add(cargo_all[i]);
-                        }                        
-                        
-                        
+                        }
+
+
                     }
 
                 }
@@ -1927,7 +1905,7 @@ namespace IngameScript
                         }
                         if (thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockLargeThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockLargeThrust")
                             || thrust_all[i].BlockDefinition.SubtypeId.Contains("SmallBlockSmallThrust") || thrust_all[i].BlockDefinition.SubtypeId.Contains("LargeBlockSmallThrust")
-                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("ModularThruster")                                               
+                            || thrust_all[i].BlockDefinition.SubtypeId.Contains("ModularThruster")
                             )
                         {
                             tv1 = s_ion;
@@ -1974,7 +1952,7 @@ namespace IngameScript
             if (thrusterGroup != null)
             {
                 thrustGroupPresent = true;
-                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);                
+                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 Echo($"Thruster Group {thrustGroupTag} found");
             }
             else
@@ -2255,14 +2233,14 @@ namespace IngameScript
             }
             gyro_all.Clear();
             waypoints = new List<MyWaypointInfo>();
-           /* if (Storage != "" && Storage != null)
-            {
-                LoadStorageData();
-                Storage = "";
-            } */ //should be handled in main program
+            /* if (Storage != "" && Storage != null)
+             {
+                 LoadStorageData();
+                 Storage = "";
+             } */ //should be handled in main program
 
-                #region setup_broadcast_channels
-                rx_ch = D_I_N;
+            #region setup_broadcast_channels
+            rx_ch = D_I_N;
             listn = IGC.RegisterBroadcastListener(rx_ch);
             listn_recall = IGC.RegisterBroadcastListener(rx_channel_recall);
             listn_recall_drone = IGC.RegisterBroadcastListener(rx_channel_recall_drone);
@@ -2272,7 +2250,7 @@ namespace IngameScript
         }
         public void item_presence_check()
         {
-            string D_S_C_Clone = D_S_C.Replace("[","[[").Replace("]","]]");
+            string D_S_C_Clone = D_S_C.Replace("[", "[[").Replace("]", "]]");
             string D_I_N_Clone = D_I_N.Replace("[", "[[").Replace("]", "]]");
             string D_C_N_Clone = D_C_N.Replace("[", "[[").Replace("]", "]]");
             string dockTaskName_Clone = dockTaskName.Replace("[", "[[").Replace("]", "]]");
@@ -2781,11 +2759,12 @@ namespace IngameScript
                 dat_in4 = new_msg_4.Data.ToString();
             }
 
-                ProcessMessages();
+            ProcessMessages();
 
             if (dat_in != null)
             {
-                Me.CustomData = dat_in;
+                StoreRawInput(dat_in, Me, gmdscategory, jobinfo);
+                //Me.CustomData = dat_in;
             }
             if (dat_in2 != null)
             {
@@ -2885,7 +2864,7 @@ namespace IngameScript
                 secondary_tag_changed = true;
             }
             else
-            {                
+            {
                 return;
             }
 
@@ -2926,7 +2905,7 @@ namespace IngameScript
                 }
                 if (custom_data_read == 0)
                 {
-                    GetCustomDataCommand(Me.CustomData);
+                    GetCustomDataCommand(Me.CustomData.ToString(), Me);
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -2952,7 +2931,7 @@ namespace IngameScript
 
                 if (custom_data_read == 0)
                 {
-                    GetCustomDataCommand(Me.CustomData);
+                    GetCustomDataCommand(Me.CustomData, Me);
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -3583,7 +3562,7 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 mainNavSequence = 2;
-                GetCustomDataCommand(Me.CustomData);
+                GetCustomDataCommand(Me.CustomData, Me);
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
@@ -5006,8 +4985,9 @@ namespace IngameScript
         public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
 
-            //string dataTransmissionOut;
-            if(antenna_actual == null || rc_actual == null || !pinged) return;
+            string dataTransmissionOut;
+            if (antenna_actual == null) { Echo("Error: antenna is null in drone_message_transmission_management"); return; }
+            if (rc_actual == null) { Echo("Error: remote control is null in drone_message_transmission_management"); return; }
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
@@ -5016,39 +4996,30 @@ namespace IngameScript
                 t_count = 0;
             }
 
-            _ini.Clear();
-            _ini.Set("GMDSDroneData", "Version", ver);
-            _ini.Set("GMDSDroneData", "DroneName", D_I_N);
-            _ini.Set("GMDSDroneData", "DamageStatus", droneDamageStatus);
-            _ini.Set("GMDSDroneData", "Status", droneStatusOutput);
-            _ini.Set("GMDSDroneData", "Docked", isDocked);
-            _ini.Set("GMDSDroneData", "Undocked", isUndocked);
-            _ini.Set("GMDSDroneData", "Autopilot", rc_actual.IsAutoPilotEnabled);
-            _ini.Set("GMDSDroneData", "X", Math.Round(rc_xyz.X, 2));
-            _ini.Set("GMDSDroneData", "Y", Math.Round(rc_xyz.Y, 2));
-            _ini.Set("GMDSDroneData", "Z", Math.Round(rc_xyz.Z, 2));
-            _ini.Set("GMDSDroneData", "DepthSet", drillSetLength);
-            _ini.Set("GMDSDroneData", "DistanceCurrent", Math.Round(distance_current, 2));
-            _ini.Set("GMDSDroneData", "DistanceRemaining", Math.Round(drillSetLength - ignoreDistance, 2));
-            _ini.Set("GMDSDroneData", "Battery", Math.Round(percent_battery_power, 2));
-            _ini.Set("GMDSDroneData", "Hydrogen", hydrogen_tank_tag.Count > 0 ? Math.Round(pcnt_gas_tank, 2) : 0);
-            _ini.Set("GMDSDroneData", "Cargo", Math.Round(total_percent_cargo_used, 2));
-            _ini.Set("GMDSDroneData", "GPSIndex", gpsIndex);
-            _ini.Set("GMDSDroneData", "CargoFull", cargoFullAchieved);
-            _ini.Set("GMDSDroneData", "Recharge", recharge_request);
-            _ini.Set("GMDSDroneData", "AutoDock", autoDock);
-            _ini.Set("GMDSDroneData", "Ready", dockingReady);
-            _ini.Set("GMDSDroneData", "TunnelComplete", tunnelSequenceFinished);
-
-            string message = _ini.ToString();
-            IGC.SendBroadcastMessage(tx_ch, message, TransmissionDistance.TransmissionDistanceMax);
-
-            Echo("INI Transmission sent");
-            pinged = false;
+            if (pinged)
+            {
+                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:";
+                sb.Clear().EnsureCapacity(128);
+                sb.AppendFormat(baseFormat, D_I_N,
+                    droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
+                    isDocked, isUndocked, isAutopiloting,
+                    rc_actual.IsAutoPilotEnabled,
+                    Math.Round(rc_xyz.X, 2), Math.Round(rc_xyz.Y, 2), Math.Round(rc_xyz.Z, 2),
+                    drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
+                    Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
+                    gpsIndex, cargoFullAchieved, recharge_request,
+                    autoDock, dockingReady
+                    );
+                dataTransmissionOut = sb.ToString();
+                IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
+                Echo("Transmission sent");
+                dataTransmissionOut = "";
+                pinged = false;
+                pingedMessageDataIn = "";
+            }
             #endregion
+
         }
-
-
         public void rc_navigation_init()
         {
 
@@ -5101,7 +5072,7 @@ namespace IngameScript
 
             // Core status report
             Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction}");
-            Echo($"Drone ID: {D_I_N.Replace("[","[[").Replace("]","]]")} # {droneDamageStatus}");
+            Echo($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {droneStatusOutput}");
             Echo($"Distance ID: {miningInitialised}");
@@ -5193,6 +5164,17 @@ namespace IngameScript
                 Echo($"Thrusters not found in {thrusterGroup.Name}. Please add thrusters");
                 return;
             }
+        }
+
+        public void StoreRawInput(string inputString, IMyTerminalBlock block, string INI_SECTION = "GMDCJobData", string INI_KEY = "Jobinfo")
+        {
+            var iniBuilder = new MyIni();
+            // 1. Correct MyIni.Set() usage: (Section, Key, Value)
+            iniBuilder.Set(INI_SECTION, INI_KEY, inputString);
+
+            // Save to the Programmable Block's CustomData
+            block.CustomData = iniBuilder.ToString();
+            Echo($"Raw input stored successfully in [{INI_SECTION}] {INI_KEY}.");
         }
 
         public void ClearAllNonEmptyLists()
