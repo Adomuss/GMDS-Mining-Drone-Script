@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.504B       
+        // General Mining Drone Script v0.505B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -78,7 +78,7 @@ namespace IngameScript
         double nav_prec = 0.5;
         double nav_prec2 = 1.2;
         double mine_prec = 0.5;
-
+        double terrainclearoffset = 9.0;
 
         //statics
         bool udock_conf = true;
@@ -100,7 +100,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
 
         #endregion
-        string ver = "V0.504B";
+        string ver = "V0.505B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -403,6 +403,7 @@ namespace IngameScript
         string gmdscategory = "GMDSJobData";
         string jobinfo = "Jobinfo";
         string jobdata = "";
+        bool terrainclearEnable = false;
         #endregion
         public void Save()
         {
@@ -461,6 +462,9 @@ namespace IngameScript
             _ini.Set("coordinates", "co12", directionc.ToString().Trim());
             _ini.Set("coordinates", "co13", gravity.ToString().Trim());
             _ini.Set("coordinates", "co14", gpsIndex.ToString().Trim());
+
+            _ini.Set("coordinates", "drillterrainenabled", terrainclearEnable.ToString().Trim());
+            _ini.Set("coordinates", "drillterrainoffset", terrainclearoffset.ToString().Trim());
             if (dataValid)
             {
                 _ini.Set("customdata", "data", Me.CustomData);
@@ -592,6 +596,17 @@ namespace IngameScript
                 else
                 {
                     datacommandinput = str;
+                }
+
+                str = _ini.Get("customdata", "drillterrainenabled").ToString().Trim();
+                if(!bool.TryParse(str, out terrainclearEnable))
+                {
+                    terrainclearEnable = false;
+                }
+                str = _ini.Get("customdata", "drillterrainoffset").ToString().Trim();
+                if (!double.TryParse(str, out terrainclearoffset))
+                {
+                    terrainclearoffset = 9.0;
                 }
             }
 
@@ -973,7 +988,7 @@ namespace IngameScript
         }
 
 
-        void StDrlOnOff(bool DrilOnOf, bool UConv)
+        void StDrlOnOff(bool DrilOnOf, bool UConv, bool terrainClear = false)
         {
 
             if (drill_tag.Count <= 0)
@@ -1002,16 +1017,29 @@ namespace IngameScript
                         {
                             drl_act.Enabled = false;
                         }
+                        if (terrainClear)
+                        {
+                            if (!drl_act.TerrainClearingMode)
+                            {
+                                drl_act.TerrainClearingMode = true;
+
+                            }
+                        }
+                        else
+                        {
+                            if (drl_act.TerrainClearingMode)
+                            {
+                                drl_act.TerrainClearingMode = false;
+                            }
+                        }
+
                         if (UConv)
                         {
                             if (!drl_act.UseConveyorSystem)
                             {
                                 drl_act.UseConveyorSystem = true;
                             }
-                            if (drl_act.TerrainClearingMode)
-                            {
-                                drl_act.TerrainClearingMode = false;
-                            }
+
                         }
                         else
                         {
@@ -1019,10 +1047,7 @@ namespace IngameScript
                             {
                                 drl_act.UseConveyorSystem = false;
                             }
-                            if (!drl_act.TerrainClearingMode)
-                            {
-                                drl_act.TerrainClearingMode = true;
-                            }
+
                         }
                     }
                 }
@@ -3931,14 +3956,14 @@ namespace IngameScript
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
 
-                StDrlOnOff(true, cnvyrsON);
+                StDrlOnOff(true, cnvyrsON,terrainclearEnable);
                 droneStatus = 8;
                 droneStatusOutput = "Mining";
             }
             if (miningStage == 1 && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked && mine_coords_adjusted) // scan coordinate position to ground
             {
 
-                StDrlOnOff(false, cnvyrsON);
+                StDrlOnOff(false, cnvyrsON, terrainclearEnable);
                 droneStatus = 8;
                 droneStatusOutput = "Initiating RTB"; //tDA Bug - TDA was being removed early
             }
@@ -4097,6 +4122,7 @@ namespace IngameScript
                 droneStatusOutput = "Mining";
             }
             distance_current = (remoteControlActual.GetPosition() - tgt_drill_end).Length();
+            //manage converyor operation
             if (distance_current <= drillSetLength - ignoreDistance || connectorActual.IsConnected || sens_convOPN)
             {
                 cnvyrsON = true;
@@ -4104,6 +4130,16 @@ namespace IngameScript
             else
             {
                 cnvyrsON = false;
+            }
+            //manage terrain clearing mode
+            if(distance_current <= drillSetLength - ignoreDistance + terrainclearoffset || connectorActual.IsConnected || sens_convOPN)
+            {
+                terrainclearEnable = false;
+                
+            }
+            else
+            {
+                terrainclearEnable = true;
             }
             if (miningStage == 6 && !exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
@@ -4540,7 +4576,7 @@ namespace IngameScript
                 {
                     connectorActual.Enabled = true;
                 }
-                StDrlOnOff(false, cnvyrsON);
+                StDrlOnOff(false, cnvyrsON,false);
                 if (!undockLightActual.Enabled)
                 {
                     if (!connectorActual.IsConnected && connectorActual.Status != MyShipConnectorStatus.Connectable)
@@ -4632,7 +4668,7 @@ namespace IngameScript
                     no_speed_dock_delay_count++;
                     dock_delay_time = Math.Round(((double)no_speed_dock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 }
-                StDrlOnOff(false, cnvyrsON);
+                StDrlOnOff(false, cnvyrsON, false);
 
                 if (connectorActual.Status == MyShipConnectorStatus.Connectable && dockingStage == 2)
                 {
@@ -4703,7 +4739,7 @@ namespace IngameScript
             if (dockingStage == 3 && isDocked)
             {
                 no_speed_dock_delay_count = 0;
-                StDrlOnOff(false, cnvyrsON);
+                StDrlOnOff(false, cnvyrsON, false);
                 if (!thrustGroupPresent)
                 {
                     if (timerBlockTOFFActual != null)
@@ -5174,7 +5210,7 @@ namespace IngameScript
 
             // Save to the Programmable Block's CustomData
             block.CustomData = iniBuilder.ToString();
-            Echo($"Raw input stored successfully in [{INI_SECTION}] {INI_KEY}.");
+            //Echo($"Raw input stored successfully in [{INI_SECTION}] {INI_KEY}.");
         }
 
         public void ClearAllNonEmptyLists()
