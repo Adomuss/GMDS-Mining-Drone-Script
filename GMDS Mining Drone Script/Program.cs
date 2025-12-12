@@ -80,6 +80,8 @@ namespace IngameScript
         double mine_prec = 0.5;
         double terrainclearoffset = 9.0;
 
+        #endregion
+
         //statics
         bool udock_conf = true;
         bool skip_prec_mode = true;
@@ -98,8 +100,9 @@ namespace IngameScript
         string collisionSenseCommand = "collision";
         string cargoSenseCommand = "cargo";
         string manualAssignCommand = "manual";
+        string terrainClearCommand = "keepterrain";
 
-        #endregion
+
         string ver = "V0.505B";
         //drone transmission settings
         int transmit_time_limit = 5;
@@ -404,6 +407,8 @@ namespace IngameScript
         string jobinfo = "Jobinfo";
         string jobdata = "";
         bool terrainclearEnable = false;
+        bool terrainKeepMode = false;
+        
         #endregion
         public void Save()
         {
@@ -465,6 +470,7 @@ namespace IngameScript
 
             _ini.Set("coordinates", "drillterrainenabled", terrainclearEnable.ToString().Trim());
             _ini.Set("coordinates", "drillterrainoffset", terrainclearoffset.ToString().Trim());
+            _ini.Set("coordinates", "keepterrain", terrainKeepMode.ToString().Trim());
             if (dataValid)
             {
                 _ini.Set("customdata", "data", Me.CustomData);
@@ -607,6 +613,11 @@ namespace IngameScript
                 if (!double.TryParse(str, out terrainclearoffset))
                 {
                     terrainclearoffset = 9.0;
+                }
+                str = _ini.Get("coordinates", "keepterrain").ToString().Trim();
+                if (!bool.TryParse(str, out terrainKeepMode))
+                {
+                    terrainKeepMode = false;
                 }
             }
 
@@ -1162,6 +1173,8 @@ namespace IngameScript
                 manualSenseAssign = false; // Initialize the new flag here
                 droneTag = "UnassignedMiningDroneA";
                 drone_id_num = 0;
+                terrainclearoffset = 9.0;
+                terrainKeepMode = false;
                 return;
             }
 
@@ -1182,7 +1195,7 @@ namespace IngameScript
             {
                 droneTag = "UnassignedMiningDroneC"; // Default C if argument is missing or empty
             }
-            if (droneconfigdata.Length >= 2)
+            if (droneconfigdata.Length >= 2 && !string.IsNullOrWhiteSpace(droneconfigdata[1]))
             {
                 if (!int.TryParse(droneconfigdata[1].Trim(), out drone_id_num))
                 {
@@ -1193,14 +1206,26 @@ namespace IngameScript
             {
                 drone_id_num = 0; // Default if argument is missing
             }
+            if (droneconfigdata.Length >= 3 && !string.IsNullOrWhiteSpace(droneconfigdata[2]))
+            {
+                if (!double.TryParse(droneconfigdata[3].Trim(), out terrainclearoffset))
+                {
+                    terrainclearoffset = 9.0; // Set to default on fail
+                }
+            }
+            else
+            {
+                terrainclearoffset = 9.0; // Default if argument is missing
+            }
             // Initialize flags to false (defaults)
             autoDocking = false;
             collisionSenseEnabled = false;
             cargoSenseEnabled = false;
-            manualSenseAssign = false;
+            manualSenseAssign = false;   
+            terrainKeepMode = false;
 
             // Loop through all command arguments starting at index 2 (the first flag position)
-            for (int i = 2; i < droneconfigdata.Length; i++)
+            for (int i = 3; i < droneconfigdata.Length; i++)
             {
                 string arg = droneconfigdata[i].Trim().ToLower();
 
@@ -1223,6 +1248,11 @@ namespace IngameScript
                 if (arg.Contains(manualAssignCommand))
                 {
                     manualSenseAssign = true;
+                }
+                // Check for terrain saving mode (disable terrainclear)
+                if (arg.Contains(terrainClearCommand))
+                {
+                    terrainKeepMode = true;
                 }
             }
         }
@@ -4132,7 +4162,7 @@ namespace IngameScript
                 cnvyrsON = false;
             }
             //manage terrain clearing mode
-            if(distance_current <= drillSetLength - ignoreDistance + terrainclearoffset || connectorActual.IsConnected || sens_convOPN)
+            if(distance_current <= drillSetLength - ignoreDistance + terrainclearoffset || connectorActual.IsConnected || sens_convOPN || terrainKeepMode)
             {
                 terrainclearEnable = false;
                 
