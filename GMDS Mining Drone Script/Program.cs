@@ -80,7 +80,7 @@ namespace IngameScript
         double mine_prec = 0.5;
         double terrainclearoffset = 9.0;
 
-        #endregion
+        
 
         //statics
         bool udock_conf = true;
@@ -102,6 +102,7 @@ namespace IngameScript
         string manualAssignCommand = "manual";
         string terrainClearCommand = "keepterrain";
 
+        #endregion
 
         string ver = "V0.505B";
         //drone transmission settings
@@ -1018,7 +1019,7 @@ namespace IngameScript
                     {
                         drl_act = drill_tag[i];
                     }
-                    if (drl_act != null)
+                    if (drill_tag[i] != null)
                     {
                         if (DrilOnOf && !drl_act.Enabled)
                         {
@@ -1208,7 +1209,7 @@ namespace IngameScript
             }
             if (droneconfigdata.Length >= 3 && !string.IsNullOrWhiteSpace(droneconfigdata[2]))
             {
-                if (!double.TryParse(droneconfigdata[3].Trim(), out terrainclearoffset))
+                if (!double.TryParse(droneconfigdata[2].Trim(), out terrainclearoffset))
                 {
                     terrainclearoffset = 9.0; // Set to default on fail
                 }
@@ -1225,7 +1226,7 @@ namespace IngameScript
             terrainKeepMode = false;
 
             // Loop through all command arguments starting at index 2 (the first flag position)
-            for (int i = 3; i < droneconfigdata.Length; i++)
+            for (int i = 2; i < droneconfigdata.Length; i++)
             {
                 string arg = droneconfigdata[i].Trim().ToLower();
 
@@ -4606,7 +4607,7 @@ namespace IngameScript
                 {
                     connectorActual.Enabled = true;
                 }
-                StDrlOnOff(false, cnvyrsON,false);
+                StDrlOnOff(false, cnvyrsON);
                 if (!undockLightActual.Enabled)
                 {
                     if (!connectorActual.IsConnected && connectorActual.Status != MyShipConnectorStatus.Connectable)
@@ -4698,7 +4699,7 @@ namespace IngameScript
                     no_speed_dock_delay_count++;
                     dock_delay_time = Math.Round(((double)no_speed_dock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                 }
-                StDrlOnOff(false, cnvyrsON, false);
+                StDrlOnOff(false, cnvyrsON);
 
                 if (connectorActual.Status == MyShipConnectorStatus.Connectable && dockingStage == 2)
                 {
@@ -4769,7 +4770,7 @@ namespace IngameScript
             if (dockingStage == 3 && isDocked)
             {
                 no_speed_dock_delay_count = 0;
-                StDrlOnOff(false, cnvyrsON, false);
+                StDrlOnOff(false, cnvyrsON);
                 if (!thrustGroupPresent)
                 {
                     if (timerBlockTOFFActual != null)
