@@ -1218,47 +1218,52 @@ namespace IngameScript
             {
                 terrainclearoffset = 9.0; // Default if argument is missing
             }
-            // Initialize flags to false (defaults)
-            autoDocking = false;
+
+            if (droneconfigdata.Length > 2) //protect against index < 2
+            {
+                // Initialize flags to false (defaults)
+                autoDocking = false;
             collisionSenseEnabled = false;
             cargoSenseEnabled = false;
-            manualSenseAssign = false;   
+            manualSenseAssign = false;
             terrainKeepMode = false;
 
-            // Loop through all command arguments starting at index 2 (the first flag position)
-            for (int i = 2; i < droneconfigdata.Length; i++)
-            {
-                string arg = droneconfigdata[i].Trim().ToLower();
 
-                // Check for Auto Docking
-                if (arg.Contains(autodockCommand))
+                // Loop through all command arguments starting at index 2 (the first flag position) // do i need to test incorrect indexing on argument parse
+                for (int i = 2; i < droneconfigdata.Length; i++)
                 {
-                    autoDocking = true;
-                }
-                // Check for Cargo Sense
-                if (arg.Contains(cargoSenseCommand))
-                {
-                    cargoSenseEnabled = true;
-                }
-                // Check for Collision Sense
-                if (arg.Contains(collisionSenseCommand))
-                {
-                    collisionSenseEnabled = true;
-                }
-                // Check for Manual Assign (New Feature)
-                if (arg.Contains(manualAssignCommand))
-                {
-                    manualSenseAssign = true;
-                }
-                // Check for terrain saving mode (disable terrainclear)
-                if (arg.Contains(terrainClearCommand))
-                {
-                    terrainKeepMode = true;
+                    string arg = droneconfigdata[i].Trim().ToLower();
+
+                    // Check for Auto Docking
+                    if (arg.Contains(autodockCommand))
+                    {
+                        autoDocking = true;
+                    }
+                    // Check for Cargo Sense
+                    if (arg.Contains(cargoSenseCommand))
+                    {
+                        cargoSenseEnabled = true;
+                    }
+                    // Check for Collision Sense
+                    if (arg.Contains(collisionSenseCommand))
+                    {
+                        collisionSenseEnabled = true;
+                    }
+                    // Check for Manual Assign (New Feature)
+                    if (arg.Contains(manualAssignCommand))
+                    {
+                        manualSenseAssign = true;
+                    }
+                    // Check for terrain saving mode (disable terrainclear)
+                    if (arg.Contains(terrainClearCommand))
+                    {
+                        terrainKeepMode = true;
+                    }
                 }
             }
         }
 
-        void GetDroneStatus(int drnstus)
+            void GetDroneStatus(int drnstus)
         {
             #region void_drone_status_output
             if (drnstus == 0)
