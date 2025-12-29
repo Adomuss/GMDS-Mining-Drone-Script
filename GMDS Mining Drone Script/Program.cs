@@ -104,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.505B";
+        string ver = "V0.506B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -282,8 +282,11 @@ namespace IngameScript
         bool navinst = false;
         double distance_current = 0;
         bool nav_act = false;
+        string abg = "ActivateBehavior";
         string ab0 = "ActivateBehavior_Off";
         string ab1 = "ActivateBehavior_On";
+        string ca = "CollisionAvoidance";
+        string dm = "DockingMode";
         //string cc = "Connectable";
         string p1 = "ID_PLAY_CHECKBOX";
         List<IMyRemoteControl> rc_all;
@@ -1100,7 +1103,7 @@ namespace IngameScript
                 {
                     ai_move_actual.Enabled = true;
                 }
-                if (ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_move_actual.GetValue<bool>(abg))
                 {
                     ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
                 }
@@ -1116,7 +1119,7 @@ namespace IngameScript
                 {
                     ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
                 }
-                if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_dock_actual.GetValue<bool>(abg))
                 {
                     ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
                 }
@@ -1132,7 +1135,7 @@ namespace IngameScript
                 {
                     ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
                 }
-                if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_undock_actual.GetValue<bool>(abg))
                 {
                     ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
                 }
@@ -3193,15 +3196,15 @@ namespace IngameScript
                     {
                         ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
                     }
-                    if (ai_move_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
+                    if (ai_move_actual.GetValue<bool>(abg) && (stopState || dockState))
                     {
                         ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
                     }
-                    if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
+                    if (ai_task_dock_actual.GetValue<bool>(abg) && (stopState || dockState))
                     {
                         ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
                     }
-                    if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
+                    if (ai_task_undock_actual.GetValue<bool>(abg) && (stopState || dockState))
                     {
                         ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
                     }
@@ -3276,11 +3279,11 @@ namespace IngameScript
                 ai_move_actual.PrecisionMode = true;
                 ai_move_actual.CollisionAvoidance = false;
 
-                if (!ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                if (!ai_move_actual.GetValue<bool>(abg))
                 {
                     ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                 }
-                if (!ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                if (!ai_task_undock_actual.GetValue<bool>(abg))
                 {
                     ai_task_undock_actual.GetActionWithName(ab1).Apply(ai_task_undock_actual);
                 }
@@ -3396,10 +3399,19 @@ namespace IngameScript
                 add_nav_Waypoint_mn = false;
                 if (!wasMining)
                 {
-                    remoteControlActual.SetCollisionAvoidance(false);
-                    remoteControlActual.SetDockingMode(false);
-                    remoteControlActual.SetAutoPilotEnabled(false);
-                    remoteControlActual.ClearWaypoints();
+                        if (remoteControlActual.GetValue<bool>(ca))
+                        {
+                            remoteControlActual.SetCollisionAvoidance(false);
+                        }
+                        if (remoteControlActual.GetValue<bool>(dm))
+                        {
+                            remoteControlActual.SetDockingMode(false);
+                        }
+                        if (remoteControlActual.IsAutoPilotEnabled)
+                        {
+                            remoteControlActual.SetAutoPilotEnabled(false);
+                        }
+                        remoteControlActual.ClearWaypoints();
                     miningInitialised = false;
                     add_mine_waypoint = false;
                 }
@@ -3412,15 +3424,15 @@ namespace IngameScript
                 {
                     ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
                 }
-                if (ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_move_actual.GetValue<bool>(abg))
                 {
                     ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
                 }
-                if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_dock_actual.GetValue<bool>(abg))
                 {
                     ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
                 }
-                if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_undock_actual.GetValue<bool>(abg))
                 {
                     ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
                 }
@@ -3643,8 +3655,14 @@ namespace IngameScript
 
                 if (commandRequest == 1)
                 {
-                    remoteControlActual.SetCollisionAvoidance(true);
-                    remoteControlActual.SetDockingMode(false);
+                    if (!remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(true);
+                    }
+                    if (remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(false);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 1;
                     reset_ai();
@@ -3652,12 +3670,25 @@ namespace IngameScript
                     {
                         resetLightActual.Enabled = false;
                     }
+                    if (collisionSenseEnabled)
+                    {
+                        if (sensorActual != null)
+                        {
+                            if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
+                        }
+                    }
 
                 }
                 if (commandRequest == 2)
                 {
-                    remoteControlActual.SetCollisionAvoidance(false);
-                    remoteControlActual.SetDockingMode(false);
+                    if (remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(false);
+                    }
+                    if (remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(false);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 2;
                     reset_ai();
@@ -3665,26 +3696,49 @@ namespace IngameScript
                     {
                         resetLightActual.Enabled = false;
                     }
+                    if (collisionSenseEnabled)
+                    {
+                        if (sensorActual != null)
+                        {
+                            if (sensorActual.Enabled) { sensorActual.Enabled = false; }
+                        }
+                    }
                 }
                 if (commandRequest == 3)
                 {
-                    remoteControlActual.SetCollisionAvoidance(false);
-                    remoteControlActual.SetDockingMode(true);
+                    if (remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(false);
+                    }
+                    if (!remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(true);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
+                    if (collisionSenseEnabled)
+                    {
+                        if (sensorActual != null)
+                        {
+                            if (sensorActual.Enabled) { sensorActual.Enabled = false; }
+                        }
+                    }
                 }
                 if (commandRequest == 4)
                 {
-                    remoteControlActual.SetCollisionAvoidance(true);
-                    remoteControlActual.SetDockingMode(false);
+                    if (!remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(true);
+                    }
+                    if (remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(false);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 4;
                     if (collisionSenseEnabled)
                     {
-                        if (!sensorActual.Enabled)
-                        {
-                            if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
-                        }
+                        if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
                     }
                 }
                 droneStatusOutput = "Nav";
@@ -3707,6 +3761,10 @@ namespace IngameScript
                 if (resetLightActual.Enabled)
                 {
                     resetLightActual.Enabled = false;
+                }
+                if (collisionSenseEnabled)
+                {
+                    if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
                 }
             }
 
@@ -3741,8 +3799,14 @@ namespace IngameScript
                 remoteControlActual.SpeedLimit = nav_speed;
                 if (commandRequest == 1)
                 {
-                    remoteControlActual.SetCollisionAvoidance(true);
-                    remoteControlActual.SetDockingMode(false);
+                    if (!remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(true);
+                    }
+                    if (remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(false);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 1;
                     reset_ai();
@@ -3750,11 +3814,21 @@ namespace IngameScript
                     {
                         resetLightActual.Enabled = false;
                     }
+                    if (collisionSenseEnabled)
+                    {
+                        if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
+                    }
                 }
                 if (commandRequest == 2)
                 {
-                    remoteControlActual.SetCollisionAvoidance(false);
-                    remoteControlActual.SetDockingMode(false);
+                    if (remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(false);
+                    }
+                    if (remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(false);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 2;
                     reset_ai();
@@ -3762,26 +3836,43 @@ namespace IngameScript
                     {
                         resetLightActual.Enabled = false;
                     }
+                    if (collisionSenseEnabled)
+                    {
+                        if (sensorActual.Enabled) { sensorActual.Enabled = false; }
+                    }
                 }
                 if (commandRequest == 3)
                 {
-                    remoteControlActual.SetCollisionAvoidance(false);
-                    remoteControlActual.SetDockingMode(true);
+                    if (remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(false);
+                    }
+                    if (!remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(true);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
+                    if (collisionSenseEnabled)
+                    {
+                        if (sensorActual.Enabled) { sensorActual.Enabled = false; }
+                    }
                 }
                 if (commandRequest == 4)
                 {
-                    remoteControlActual.SetCollisionAvoidance(true);
-                    remoteControlActual.SetDockingMode(true);
+                    if (!remoteControlActual.GetValue<bool>(ca))
+                    {
+                        remoteControlActual.SetCollisionAvoidance(true);
+                    }
+                    if (!remoteControlActual.GetValue<bool>(dm))
+                    {
+                        remoteControlActual.SetDockingMode(true);
+                    }
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 4;
                     if (collisionSenseEnabled)
                     {
-                        if (!sensorActual.Enabled)
-                        {
-                            if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
-                        }
+                        if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
                     }
 
                 }
@@ -3800,9 +3891,18 @@ namespace IngameScript
                 mainNavSequence = 4;
                 main_nav_complete = true;
                 add_nav_Waypoint_mn = false;
-                remoteControlActual.SetCollisionAvoidance(true);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (!remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(true);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 droneStatus = 5;
                 droneStatusOutput = "Nav End";
@@ -3823,9 +3923,18 @@ namespace IngameScript
                 mainNavSequence = 4;
                 main_nav_complete = true;
                 add_nav_Waypoint_mn = false;
-                remoteControlActual.SetCollisionAvoidance(true);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (!remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(true);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 droneStatus = 5;
                 droneStatusOutput = "Nav End";
@@ -3846,9 +3955,18 @@ namespace IngameScript
                 mainNavSequence = 0;
                 main_nav_complete = true;
                 add_nav_Waypoint_mn = false;
-                remoteControlActual.SetCollisionAvoidance(true);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (!remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(true);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
@@ -4021,9 +4139,14 @@ namespace IngameScript
             if (miningStage == 3 && add_mine_waypoint && !targetDepthAchieved && mineState && miningInitialised && !isAutopiloting && isUndocked)
             {
                 miningStage = 4;
-
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(true);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (!remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(true);
+                }
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
                 droneStatus = 10;
                 droneStatusOutput = "Mining++";
@@ -4062,9 +4185,18 @@ namespace IngameScript
             {
                 miningStage = 5;
                 mining_nav_complete = true;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(true);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (!remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(true);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 droneStatus = 12;
                 droneStatusOutput = "Mining++++";
             }
@@ -4072,9 +4204,18 @@ namespace IngameScript
             if (miningStage == 4 && mining_nav_complete && add_mine_waypoint && !targetDepthAchieved && !remoteControlActual.IsAutoPilotEnabled && mineState && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 5;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(true);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (!remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(true);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 mining_nav_complete = true;
                 droneStatus = 12;
                 droneStatusOutput = "Mining+++";
@@ -4088,9 +4229,18 @@ namespace IngameScript
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.ClearWaypoints();
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 droneStatus = 13;
                 droneStatusOutput = "Terminating mining";
             }
@@ -4101,9 +4251,18 @@ namespace IngameScript
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 droneStatus = 13;
                 droneStatusOutput = "Terminating mining";
@@ -4118,9 +4277,18 @@ namespace IngameScript
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.ClearWaypoints();
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 droneStatus = 14;
                 droneStatusOutput = "Terminating mining";
             }
@@ -4130,9 +4298,18 @@ namespace IngameScript
                 requestExit = true;
                 Last_Coords_Term = main_gps_coords;
                 remoteControlActual.SpeedLimit = exit_speed;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
@@ -4147,9 +4324,18 @@ namespace IngameScript
                 {
                     remoteControlActual.SpeedLimit = exit_speed; //initialise mining exit speed
                 }
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
-                remoteControlActual.SetAutoPilotEnabled(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
+                if (remoteControlActual.IsAutoPilotEnabled)
+                {
+                    remoteControlActual.SetAutoPilotEnabled(false);
+                }
                 remoteControlActual.ClearWaypoints();
                 mine_coords_adjusted = false;
                 add_mine_waypoint = false;
@@ -4235,16 +4421,28 @@ namespace IngameScript
             if (miningStage == 8 && exitWaypointAdjusted && !exitSequenceComplete && wasMining && miningInitialised && requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 9;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
                 droneStatus = 18;
                 droneStatusOutput = "Exiting mineshaft";
             }
             if (miningStage == 9 && exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && rc_xyz != tgt_drill_exit && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
                 droneStatus = 18;
                 droneStatusOutput = "Exiting mineshaft";
@@ -4255,8 +4453,14 @@ namespace IngameScript
             }
             if (miningStage == 9 && exitWaypointSet && !exitSequenceComplete && wasMining && miningInitialised && requestExit && rc_xyz != tgt_drill_exit && !remoteControlActual.IsAutoPilotEnabled && !isAutopiloting && isUndocked)
             {
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
                 droneStatus = 18;
                 droneStatusOutput = "Exiting mineshaft reloading WP";
@@ -4284,8 +4488,14 @@ namespace IngameScript
                 miningStage = 10;
                 exitSequenceComplete = true;
                 exitWaypointSet = true;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(false);
                 droneStatus = 19;
                 droneStatusOutput = "Exit Clear";
@@ -4295,8 +4505,14 @@ namespace IngameScript
                 miningStage = 10;
                 exitSequenceComplete = true;
                 exitWaypointSet = true;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(false);
                 droneStatus = 19;
                 droneStatusOutput = "Exit Clear";
@@ -4305,8 +4521,14 @@ namespace IngameScript
             {
                 miningStage = 7;
                 exitWaypointAdjusted = false;
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(false);
                 droneStatus = 19;
                 droneStatusOutput = "Getting next WP";
@@ -4315,8 +4537,14 @@ namespace IngameScript
             {
                 remoteControlActual.ClearWaypoints();
                 remoteControlActual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
-                remoteControlActual.SetCollisionAvoidance(false);
-                remoteControlActual.SetDockingMode(false);
+                if (remoteControlActual.GetValue<bool>(ca))
+                {
+                    remoteControlActual.SetCollisionAvoidance(false);
+                }
+                if (remoteControlActual.GetValue<bool>(dm))
+                {
+                    remoteControlActual.SetDockingMode(false);
+                }
                 remoteControlActual.SetAutoPilotEnabled(!navinst);
                 droneStatusOutput = "Exiting mineshaft";
 
@@ -4347,11 +4575,13 @@ namespace IngameScript
                 }
                 droneStatus = 21;
                 mainNavSequence = 0;
-
-                collisionAvoidLightActual.Enabled = true;
+                if (collisionAvoidLightActual != null)
+                {
+                    collisionAvoidLightActual.Enabled = true;
+                }
                 if (collisionSenseEnabled)
                 {
-                    if (!sensorActual.Enabled)
+                    if (sensorActual != null)
                     {
                         if (!sensorActual.Enabled) { sensorActual.Enabled = true; }
                     }
@@ -4535,7 +4765,7 @@ namespace IngameScript
                 //early return if docking is disabled
                 return;
             }
-            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>("ActivateBehavior")) && droneStatusOutput == "Idle")))
+            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>(abg)) && droneStatusOutput == "Idle")))
             {
                 dockingStage = 1;
                 if (!switchedThrustersOn)
@@ -4636,11 +4866,11 @@ namespace IngameScript
                     }
                     if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
                     {
-                        if (!ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                        if (!ai_move_actual.GetValue<bool>(abg))
                         {
                             ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                         }
-                        if (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                        if (!ai_task_dock_actual.GetValue<bool>(abg))
                         {
                             ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
                         }
@@ -4720,7 +4950,7 @@ namespace IngameScript
                     dockingStage = 3;
                 }
 
-                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
+                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abg))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
                 {
                     if (collisionSenseEnabled)
                     {
@@ -4730,7 +4960,7 @@ namespace IngameScript
                     {
                         sensorActual.Enabled = !sensorActual.Enabled;
                     }
-                    if (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                    if (!ai_task_dock_actual.GetValue<bool>(abg))
                     {
                         ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
                     }
@@ -4744,7 +4974,7 @@ namespace IngameScript
                     droneStatusOutput = "Docking";
                 }
 
-                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))))
+                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>(abg))))
                 {
 
                     if (precModeLightActual.Enabled)
@@ -4755,7 +4985,7 @@ namespace IngameScript
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
                 //get terminal properties
-                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior") || (ai_task_dock_actual.GetValue<bool>("ActivateBehavior")))))
+                if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abg) || (ai_task_dock_actual.GetValue<bool>(abg)))))
                 {
 
                     if (!resetLightActual.Enabled)
