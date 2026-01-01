@@ -599,7 +599,7 @@ namespace IngameScript
                 str = _ini.Get("coordinates", "drillterrainenabled").ToString().Trim();
                 if(!bool.TryParse(str, out terrainclearEnable))
                 {
-                    terrainclearEnable = true;
+                    terrainclearEnable = false;
                 }                
                 str = _ini.Get("coordinates", "keepterrain").ToString().Trim();
                 if(!bool.TryParse(str,out terrainKeepMode))
