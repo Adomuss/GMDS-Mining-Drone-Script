@@ -475,11 +475,11 @@ namespace IngameScript
             _ini.Set("coordinates", "keepterrain", terrainKeepMode.ToString().Trim());
             if (dataValid)
             {
-                _ini.Set("customdata", "data", Me.CustomData);
+                _ini.Set(gmdscategory, jobinfo, jobdata);
             }
             else
             {
-                _ini.Set("customdata", "data", fail_data);
+                _ini.Set(gmdscategory, jobinfo, fail_data);
             }
             Storage = _ini.ToString();
             _ini.Clear();
@@ -596,30 +596,26 @@ namespace IngameScript
                 Vector3D.TryParse(str, out gravity);
                 str = _ini.Get("coordinates", "co14").ToString().Trim();
                 gpsIndex = str;
-                str = _ini.Get("customdata", "data").ToString().Trim();
-                if (string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str))
+                str = _ini.Get("coordinates", "drillterrainenabled").ToString().Trim();
+                if(!bool.TryParse(str, out terrainclearEnable))
                 {
-                    datacommandinput = fail_data;
-                }
-                else
-                {
-                    datacommandinput = str;
-                }
-
-                str = _ini.Get("customdata", "drillterrainenabled").ToString().Trim();
-                if (!bool.TryParse(str, out terrainclearEnable))
-                {
-                    terrainclearEnable = false;
-                }
-                str = _ini.Get("customdata", "drillterrainoffset").ToString().Trim();
-                if (!double.TryParse(str, out terrainclearoffset))
-                {
-                    terrainclearoffset = 9.0;
-                }
+                    terrainclearEnable = true;
+                }                
                 str = _ini.Get("coordinates", "keepterrain").ToString().Trim();
-                if (!bool.TryParse(str, out terrainKeepMode))
+                if(!bool.TryParse(str,out terrainKeepMode))
                 {
                     terrainKeepMode = false;
+                }                
+
+                str = _ini.Get("coordinates", "drillterrainoffset").ToString().Trim();
+                if (!double.TryParse(str, out terrainclearoffset)) 
+                {
+                    terrainclearoffset = 9.0;
+                }                         
+                str = _ini.Get(gmdscategory, jobinfo).ToString().Trim();
+                if (!string.IsNullOrWhiteSpace(str))
+                {
+                    jobdata = str;
                 }
             }
 
@@ -673,7 +669,7 @@ namespace IngameScript
             recharge_state_check();
             terminationPrecisionUpdate();
             check_comms_channels();
-            custom_data_command_presence_check(Me.CustomData);
+            custom_data_command_presence_check(jobdata);
             command_poll();
             drone_operating_state_mng();
             connected_battery_recharge_check(dockingReady);
@@ -796,6 +792,7 @@ namespace IngameScript
         }
         void FetchConfigData (string input)
         {
+            
             _customDataStore.Clear();
             if (_customDataStore.TryParse(input))
             {
@@ -928,7 +925,7 @@ namespace IngameScript
             }
             else
             {
-                StoreRawInput(Me.CustomData, Me, gmdscategory, jobinfo);
+                StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
             }
             _customDataStore.Clear();
         }
@@ -937,22 +934,25 @@ namespace IngameScript
             // Checks if the block has CustomData AND if it's NOT already INI-formatted data
             if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
             {
-                String[] gpsCommandtest = block.CustomData.ToString().Split(':');
-
-                if (gpsCommandtest.Length > 0)
+                _customDataStore.Clear();
+                if (!_customDataStore.TryParse(Me.CustomData))
                 {
-                    StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
-                }
-                Echo("Dataconversion");
-                return;
+                    String[] gpsCommandtest = block.CustomData.ToString().Split(':');
 
+                    if (gpsCommandtest.Length > 0)
+                    {
+                        StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
+                    }
+                    Echo("Dataconversion");                   
+                }
             }
             if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
                 Echo("Custom Data is empty");
+                return;
             }
-            FetchJobData(block.CustomData.ToString());
-            FetchConfigData(block.CustomData.ToString());
+            FetchJobData(block.CustomData.ToString().Trim());
+            //FetchConfigData(block.CustomData.ToString().Trim());
             String[] gpsCommandData = jobdata.Split(':');
             if (gpsCommandData.Length < 5)
             {
@@ -1599,16 +1599,17 @@ namespace IngameScript
         {
             if (!string.IsNullOrWhiteSpace(input) && !string.IsNullOrEmpty(input))
             {
-                FetchConfigData(Me.CustomData);
+                FetchJobData(Me.CustomData.ToString().Trim());
+                //FetchConfigData(Me.CustomData.ToString().Trim());
                 LoadStorageData(input, datacommandinput);
                 ParseAndApplyArguments(runargument);
-                StoreRawInput(Me.CustomData, Me, gmdscategory, jobinfo);
+                StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
                 Echo("Configuration loaded from Storage.");
             }
             else
             {
                 ParseAndApplyArguments(runargument);
-                StoreRawInput(Me.CustomData, Me, gmdscategory, jobinfo);
+                StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
                 Echo("No Storage data found, configuration loaded from arguments or defaults.");
             }
 
@@ -2976,6 +2977,7 @@ namespace IngameScript
 
             if (dat_in != null)
             {
+                //FetchConfigData(Me.CustomData);
                 StoreRawInput(dat_in, Me, gmdscategory, jobinfo);
                 //Me.CustomData = dat_in;
             }
@@ -5563,7 +5565,7 @@ namespace IngameScript
             double groundSpeed = Math.Round(currentSpeed, 2);
 
             // Core status report
-            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction}");
+            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {nav_speed}");
             Echo($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {droneStatusOutput}");
@@ -5663,7 +5665,7 @@ namespace IngameScript
             var iniBuilder = new MyIni();
             // 1. Correct MyIni.Set() usage: (Section, Key, Value)
             iniBuilder.Set(INI_SECTION, INI_KEY, inputString);
-            iniBuilder.Set(INI_SECTION, "droneTagname", droneTag);
+            /*iniBuilder.Set(INI_SECTION, "droneTagname", droneTag);
             iniBuilder.Set(INI_SECTION, "droneidnum", drone_id_num);            
             iniBuilder.Set(INI_SECTION, "collisionSenseEnabled", collisionSenseEnabled);
             iniBuilder.Set(INI_SECTION, "cargoSenseEnabled", cargoSenseEnabled);
@@ -5686,7 +5688,8 @@ namespace IngameScript
             iniBuilder.Set(INI_SECTION, "bat_CHGlow", bat_CHGlow);
             iniBuilder.Set(INI_SECTION, "drill_speed", drill_speed);
             iniBuilder.Set(INI_SECTION, "nav_speed", nav_speed);
-            iniBuilder.Set(INI_SECTION, "exit_speed", exit_speed);
+            iniBuilder.Set(INI_SECTION, "exit_speed", exit_speed); */
+
 
             // Save to the Programmable Block's CustomData
             block.CustomData = iniBuilder.ToString();
