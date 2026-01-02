@@ -3848,7 +3848,7 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 mainNavSequence = 2;
-                GetCustomDataCommand(Me.CustomData, Me);
+                //GetCustomDataCommand(Me.CustomData, Me);
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
