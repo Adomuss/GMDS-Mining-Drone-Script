@@ -5664,13 +5664,10 @@ namespace IngameScript
             if (no_speed_dock_delay_count >= no_speed_dock_delay_limit)
             {
                 no_speed_ready_dock = true;
-                if (precModeLightActual != null)
-                {
                     if (!precMflip)
                     {
                         precMflip = true;
                     }
-                }
             }
             #endregion
 
