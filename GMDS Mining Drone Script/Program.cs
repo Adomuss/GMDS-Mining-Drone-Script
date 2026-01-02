@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.506B       
+        // General Mining Drone Script v0.507B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -410,9 +410,6 @@ namespace IngameScript
         string jobdata = "";
         bool terrainclearEnable = false;
         bool terrainKeepMode = false;
-        string _lastData = "";
-        string _oldCustomData = "";
-
 
         #endregion
         public void Save()
@@ -494,7 +491,7 @@ namespace IngameScript
             {
                 Echo("No Storage data found.");
                 //return;
-            }            
+            }
             _ini.Clear();
             if (_ini.TryParse(input))
             {
@@ -600,21 +597,21 @@ namespace IngameScript
                 str = _ini.Get("coordinates", "co14").ToString().Trim();
                 gpsIndex = str;
                 str = _ini.Get("coordinates", "drillterrainenabled").ToString().Trim();
-                if(!bool.TryParse(str, out terrainclearEnable))
+                if (!bool.TryParse(str, out terrainclearEnable))
                 {
                     terrainclearEnable = false;
-                }                
+                }
                 str = _ini.Get("coordinates", "keepterrain").ToString().Trim();
-                if(!bool.TryParse(str,out terrainKeepMode))
+                if (!bool.TryParse(str, out terrainKeepMode))
                 {
                     terrainKeepMode = false;
-                }                
+                }
 
                 str = _ini.Get("coordinates", "drillterrainoffset").ToString().Trim();
-                if (!double.TryParse(str, out terrainclearoffset)) 
+                if (!double.TryParse(str, out terrainclearoffset))
                 {
                     terrainclearoffset = 9.0;
-                }                         
+                }
                 str = _ini.Get(gmdscategory, jobinfo).ToString().Trim();
                 if (!string.IsNullOrWhiteSpace(str))
                 {
@@ -671,9 +668,9 @@ namespace IngameScript
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
-            check_comms_channels();            
-            command_poll();
+            check_comms_channels();
             custom_data_command_presence_check(jobdata);
+            command_poll();
             drone_operating_state_mng();
             connected_battery_recharge_check(dockingReady);
             DockingStateCheck();
@@ -793,9 +790,9 @@ namespace IngameScript
             }
             _customDataStore.Clear();
         }
-        void FetchConfigData (string input)
+        void FetchConfigData(string input)
         {
-            
+
             _customDataStore.Clear();
             if (_customDataStore.TryParse(input))
             {
@@ -946,7 +943,7 @@ namespace IngameScript
                     {
                         StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
                     }
-                    Echo("Dataconversion");                   
+                    Echo("Dataconversion");
                 }
             }
             if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
@@ -2633,7 +2630,7 @@ namespace IngameScript
                 setupIsComplete = !setupIsComplete;
                 return;
             }
-                collisionAvoidLightActual = light_collision_avoid_tag[0];
+            collisionAvoidLightActual = light_collision_avoid_tag[0];
 
             if (lightPrecMTag.Count <= 0 || lightPrecMTag[0] == null)
             {
@@ -3088,79 +3085,40 @@ namespace IngameScript
 
         public void custom_data_command_presence_check(string input)
         {
-            if(input == _lastData)
-            {
-                return;
-            }
             if (!string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input) && input != fail_data)
             {
                 dataValid = true;
-                dataInvalid = false;
-                _lastData = input;
             }
-            else if (input == fail_data)
+            else dataValid = false;
+
+            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input) || input == fail_data)
             {
-                dataValid = false;
                 dataInvalid = true;
+                if (input != fail_data)
+                {
+                    input = fail_data;
+                }
             }
-            else
-            {
-                dataValid = false;
-                dataInvalid = true;
-                input = fail_data;
-            }
+            else dataInvalid = false;
         }
 
         public void command_poll()
         {
-           
-
-            // 1. Fetch Me.CustomData ONCE per tick. API calls are expensive.
-            string currentData = Me.CustomData;
-
-            // 2. Consolidate logic: Both branches (valid/invalid) are identical.
-            // Use an 'else' to prevent unnecessary if-checks.
-            if (custom_data_read == 1)
-            {
-                cmd_rqold = commandRequest;
-                _oldCustomData = currentData;
-                custom_data_read = 0;
-                //droneStatus = 25;
-            }
-            else // replaces custom_data_read == 0
-            {
-                // 3. String comparison is faster than re-parsing every tick.
-                if (_oldCustomData != currentData)
-                {
-                    GetCustomDataCommand(currentData, Me);
-                }
-
-                custom_data_read = 1;
-
-                // 4. Simplified assignment saves CPU cycles.
-                commandChanged = (commandRequest != cmd_rqold);
-                //droneStatus = 24;
-            }
 
             #region command_read
-            /*
-            string _currentCustomData = "";
+
+
             if (dataValid)
             {
                 if (custom_data_read == 1)
                 {
                     cmd_rqold = commandRequest;
-                    _oldCustomData = Me.CustomData;
                     custom_data_read = 0;
-                    droneStatus = 25;
+                    //droneStatus = 25;
                 }
                 if (custom_data_read == 0)
                 {
-                    _currentCustomData = Me.CustomData;
-                    if (_oldCustomData != _currentCustomData)
-                    {
-                        GetCustomDataCommand(Me.CustomData, Me);
-                    }
+                    GetCustomDataCommand(Me.CustomData.ToString(), Me);
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -3170,7 +3128,7 @@ namespace IngameScript
                     {
                         commandChanged = false;
                     }
-                    droneStatus = 24;
+                    //droneStatus = 24;
                 }
             }
 
@@ -3180,18 +3138,13 @@ namespace IngameScript
                 if (custom_data_read == 1)
                 {
                     cmd_rqold = commandRequest;
-                    _oldCustomData = Me.CustomData;
                     custom_data_read = 0;
-                    droneStatus = 25;
+                    //droneStatus = 25;
                 }
 
                 if (custom_data_read == 0)
                 {
-                    _currentCustomData = Me.CustomData;
-                    if (_oldCustomData != _currentCustomData)
-                    {
-                        GetCustomDataCommand(Me.CustomData, Me);
-                    }
+                    GetCustomDataCommand(Me.CustomData, Me);
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -3202,12 +3155,10 @@ namespace IngameScript
                     {
                         commandChanged = false;
                     }
-                    droneStatus = 24;
+                    //droneStatus = 24;
                 }
             }
-            */
             #endregion
-
 
         }
 
@@ -3446,7 +3397,7 @@ namespace IngameScript
                     if (dockLightActual != null)
                     {
                         dockLightActual.Enabled = false;
-                    }                    
+                    }
                     connectorActual.Enabled = false;
 
 
@@ -3897,7 +3848,7 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 mainNavSequence = 2;
-                //GetCustomDataCommand(Me.CustomData, Me);
+                GetCustomDataCommand(Me.CustomData, Me);
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
@@ -4002,7 +3953,7 @@ namespace IngameScript
                 }
             }
 
-//            GetSpeed();
+            //            GetSpeed();
 
             if (spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 4 || spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 1)
             {
@@ -5032,7 +4983,7 @@ namespace IngameScript
                         if (ai_move_actual != null)
                         {
                             if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
-                            {                                
+                            {
                                 if (!ai_move_actual.GetValue<bool>("ActivateBehavior"))
                                 {
                                     ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
@@ -5131,7 +5082,8 @@ namespace IngameScript
                         dockingStage = 3;
                     }
                 }
-                if(connectorActual != null && ai_task_dock_actual != null && precModeLightActual != null) {
+                if (connectorActual != null && ai_task_dock_actual != null && precModeLightActual != null)
+                {
                     if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
                     {
                         if (collisionSenseEnabled)
@@ -5333,7 +5285,7 @@ namespace IngameScript
 
         public void connector_state_management(bool dockingReady)
         {
-            if(connectorActual == null)
+            if (connectorActual == null)
             {
                 dockingReady = false;
                 return;
