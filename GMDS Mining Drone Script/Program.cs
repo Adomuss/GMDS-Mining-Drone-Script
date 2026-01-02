@@ -410,6 +410,9 @@ namespace IngameScript
         string jobdata = "";
         bool terrainclearEnable = false;
         bool terrainKeepMode = false;
+        string _lastData = "";
+        string _oldCustomData = "";
+
 
         #endregion
         public void Save()
@@ -3085,40 +3088,79 @@ namespace IngameScript
 
         public void custom_data_command_presence_check(string input)
         {
+            if(input == _lastData)
+            {
+                return;
+            }
             if (!string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input) && input != fail_data)
             {
                 dataValid = true;
+                dataInvalid = false;
+                _lastData = input;
             }
-            else dataValid = false;
-
-            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input) || input == fail_data)
+            else if (input == fail_data)
             {
+                dataValid = false;
                 dataInvalid = true;
-                if (input != fail_data)
-                {
-                    input = fail_data;
-                }
             }
-            else dataInvalid = false;
+            else
+            {
+                dataValid = false;
+                dataInvalid = true;
+                input = fail_data;
+            }
         }
 
         public void command_poll()
         {
+           
+
+            // 1. Fetch Me.CustomData ONCE per tick. API calls are expensive.
+            string currentData = Me.CustomData;
+
+            // 2. Consolidate logic: Both branches (valid/invalid) are identical.
+            // Use an 'else' to prevent unnecessary if-checks.
+            if (custom_data_read == 1)
+            {
+                cmd_rqold = commandRequest;
+                _oldCustomData = currentData;
+                custom_data_read = 0;
+                droneStatus = 25;
+            }
+            else // replaces custom_data_read == 0
+            {
+                // 3. String comparison is faster than re-parsing every tick.
+                if (_oldCustomData != currentData)
+                {
+                    GetCustomDataCommand(currentData, Me);
+                }
+
+                custom_data_read = 1;
+
+                // 4. Simplified assignment saves CPU cycles.
+                commandChanged = (commandRequest != cmd_rqold);
+                droneStatus = 24;
+            }
 
             #region command_read
-
-
+            /*
+            string _currentCustomData = "";
             if (dataValid)
             {
                 if (custom_data_read == 1)
                 {
                     cmd_rqold = commandRequest;
+                    _oldCustomData = Me.CustomData;
                     custom_data_read = 0;
                     droneStatus = 25;
                 }
                 if (custom_data_read == 0)
                 {
-                    GetCustomDataCommand(Me.CustomData.ToString(), Me);
+                    _currentCustomData = Me.CustomData;
+                    if (_oldCustomData != _currentCustomData)
+                    {
+                        GetCustomDataCommand(Me.CustomData, Me);
+                    }
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -3138,13 +3180,18 @@ namespace IngameScript
                 if (custom_data_read == 1)
                 {
                     cmd_rqold = commandRequest;
+                    _oldCustomData = Me.CustomData;
                     custom_data_read = 0;
                     droneStatus = 25;
                 }
 
                 if (custom_data_read == 0)
                 {
-                    GetCustomDataCommand(Me.CustomData, Me);
+                    _currentCustomData = Me.CustomData;
+                    if (_oldCustomData != _currentCustomData)
+                    {
+                        GetCustomDataCommand(Me.CustomData, Me);
+                    }
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
@@ -3158,7 +3205,9 @@ namespace IngameScript
                     droneStatus = 24;
                 }
             }
+            */
             #endregion
+
 
         }
 
@@ -3848,7 +3897,7 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 mainNavSequence = 2;
-                GetCustomDataCommand(Me.CustomData, Me);
+                //GetCustomDataCommand(Me.CustomData, Me);
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
