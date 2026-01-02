@@ -104,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.506B";
+        string ver = "V0.507B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -671,9 +671,9 @@ namespace IngameScript
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
-            check_comms_channels();
-            custom_data_command_presence_check(jobdata);
+            check_comms_channels();            
             command_poll();
+            custom_data_command_presence_check(jobdata);
             drone_operating_state_mng();
             connected_battery_recharge_check(dockingReady);
             DockingStateCheck();
@@ -3125,7 +3125,7 @@ namespace IngameScript
                 cmd_rqold = commandRequest;
                 _oldCustomData = currentData;
                 custom_data_read = 0;
-                droneStatus = 25;
+                //droneStatus = 25;
             }
             else // replaces custom_data_read == 0
             {
@@ -3139,7 +3139,7 @@ namespace IngameScript
 
                 // 4. Simplified assignment saves CPU cycles.
                 commandChanged = (commandRequest != cmd_rqold);
-                droneStatus = 24;
+                //droneStatus = 24;
             }
 
             #region command_read
