@@ -104,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.507B";
+        string ver = "V0.508B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -410,6 +410,8 @@ namespace IngameScript
         string jobdata = "";
         bool terrainclearEnable = false;
         bool terrainKeepMode = false;
+        bool precMflip = false;
+        bool precMflipped = false;
 
         #endregion
         public void Save()
@@ -5114,13 +5116,24 @@ namespace IngameScript
                     {
                         if (precModeLightActual != null)
                         {
-                            if (precModeLightActual.Enabled)
+                            if (precMflip)
                             {
-                                precModeLightActual.Enabled = false;
+                                if (precModeLightActual.Enabled && !precMflipped)
+                                {
+                                    precModeLightActual.Enabled = false;
+                                    precMflipped = true;
+                                }
+                                if (!precModeLightActual.Enabled && !precMflipped)
+                                {
+                                    precModeLightActual.Enabled = true;
+                                    precMflipped = true;
+                                }
+
                             }
                         }
                     }
                 }
+
 
                 // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
                 //get terminal properties
@@ -5137,15 +5150,41 @@ namespace IngameScript
                         }
                         if (precModeLightActual != null)
                         {
-                            if (precModeLightActual.Enabled)
+                            if (precMflip)
                             {
-                                precModeLightActual.Enabled = false;
+                                if (precModeLightActual.Enabled && !precMflipped)
+                                {
+                                    precModeLightActual.Enabled = false;
+                                    precMflipped = true;
+                                }
+                                if (!precModeLightActual.Enabled && !precMflipped)
+                                {
+                                    precModeLightActual.Enabled = true;
+                                    precMflipped = true;
+                                }
+                                
                             }
                         }
                     }
                 }
 
 
+            }
+
+            if (precMflip && dockingStage == 2)
+            {
+                if (precModeLightActual.Enabled && precMflipped)
+                {
+                    precModeLightActual.Enabled = false;
+                    precMflipped = false;
+                    precMflip = false;
+                }
+                if (!precModeLightActual.Enabled && precMflipped)
+                {
+                    precModeLightActual.Enabled = true;
+                    precMflipped = false;
+                    precMflip = false;
+                }
             }
 
 
@@ -5618,6 +5657,13 @@ namespace IngameScript
             if (no_speed_dock_delay_count >= no_speed_dock_delay_limit)
             {
                 no_speed_ready_dock = true;
+                if (precModeLightActual != null)
+                {
+                    if (!precMflip)
+                    {
+                        precMflip = true;
+                    }
+                }
             }
             #endregion
 
