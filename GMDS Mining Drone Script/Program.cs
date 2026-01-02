@@ -5118,14 +5118,14 @@ namespace IngameScript
                         {
                             if (precMflip)
                             {
-                                if (precModeLightActual.Enabled && !precMflipped)
+                                if (ai_move_actual.PrecisionMode && !precMflipped)
                                 {
-                                    precModeLightActual.Enabled = false;
+                                    ai_move_actual.PrecisionMode = false;
                                     precMflipped = true;
                                 }
-                                if (!precModeLightActual.Enabled && !precMflipped)
+                                if (!ai_move_actual.PrecisionMode && !precMflipped)
                                 {
-                                    precModeLightActual.Enabled = true;
+                                    ai_move_actual.PrecisionMode = true;
                                     precMflipped = true;
                                 }
 
@@ -5148,42 +5148,47 @@ namespace IngameScript
                                 resetLightActual.Enabled = true;
                             }
                         }
-                        if (precModeLightActual != null)
+
+                        if (precMflip)
                         {
-                            if (precMflip)
+                            if (ai_move_actual != null)
                             {
-                                if (precModeLightActual.Enabled && !precMflipped)
+                                if (ai_move_actual.PrecisionMode && !precMflipped)
                                 {
-                                    precModeLightActual.Enabled = false;
+                                    ai_move_actual.PrecisionMode = false;
                                     precMflipped = true;
                                 }
-                                if (!precModeLightActual.Enabled && !precMflipped)
+                                if (!ai_move_actual.PrecisionMode && !precMflipped)
                                 {
-                                    precModeLightActual.Enabled = true;
+                                    ai_move_actual.PrecisionMode = true;
                                     precMflipped = true;
                                 }
-                                
                             }
+
                         }
+                        
                     }
                 }
 
 
             }
-
+            
             if (precMflip && dockingStage == 2)
             {
-                if (precModeLightActual.Enabled && precMflipped)
+                if (ai_move_actual != null)
                 {
-                    precModeLightActual.Enabled = false;
-                    precMflipped = false;
-                    precMflip = false;
-                }
-                if (!precModeLightActual.Enabled && precMflipped)
-                {
-                    precModeLightActual.Enabled = true;
-                    precMflipped = false;
-                    precMflip = false;
+                    if (ai_move_actual.PrecisionMode && precMflipped)
+                    {
+                        ai_move_actual.PrecisionMode = false;
+                        precMflipped = false;
+                        precMflip = false;
+                    }
+                    if (!ai_move_actual.PrecisionMode && precMflipped)
+                    {
+                        ai_move_actual.PrecisionMode = true;
+                        precMflipped = false;
+                        precMflip = false;
+                    }
                 }
             }
 
