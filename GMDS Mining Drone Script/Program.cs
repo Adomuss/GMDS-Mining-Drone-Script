@@ -5114,9 +5114,10 @@ namespace IngameScript
                 {
                     if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))))
                     {
-                        if (precModeLightActual != null)
+
+                        if (precMflip)
                         {
-                            if (precMflip)
+                            if (ai_move_actual != null)
                             {
                                 if (ai_move_actual.PrecisionMode && !precMflipped)
                                 {
@@ -5128,9 +5129,10 @@ namespace IngameScript
                                     ai_move_actual.PrecisionMode = true;
                                     precMflipped = true;
                                 }
-
                             }
+
                         }
+                        
                     }
                 }
 
