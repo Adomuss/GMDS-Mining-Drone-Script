@@ -104,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.508B";
+        string ver = "V0.509B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -412,6 +412,11 @@ namespace IngameScript
         bool terrainKeepMode = false;
         bool precMflip = false;
         bool precMflipped = false;
+        string _recievedMessage;
+        bool _updatedJob = false;
+
+
+
 
         #endregion
         public void Save()
@@ -928,6 +933,7 @@ namespace IngameScript
             else
             {
                 StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
+                _updatedJob = true;
             }
             _customDataStore.Clear();
         }
@@ -944,6 +950,7 @@ namespace IngameScript
                     if (gpsCommandtest.Length > 0)
                     {
                         StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
+                        _updatedJob = true;
                     }
                     Echo("Dataconversion");
                 }
@@ -1606,12 +1613,14 @@ namespace IngameScript
                 LoadStorageData(input, datacommandinput);
                 ParseAndApplyArguments(runargument);
                 StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
+                _updatedJob = true;
                 Echo("Configuration loaded from Storage.");
             }
             else
             {
                 ParseAndApplyArguments(runargument);
                 StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
+                _updatedJob = true;
                 Echo("No Storage data found, configuration loaded from arguments or defaults.");
             }
 
@@ -2958,6 +2967,7 @@ namespace IngameScript
             {
                 new_msg = listn.AcceptMessage();
                 dat_in = new_msg.Data.ToString();
+                _recievedMessage = dat_in;
             }
             if (listn_recall.HasPendingMessage)
             {
@@ -2979,8 +2989,12 @@ namespace IngameScript
 
             if (dat_in != null)
             {
-                //FetchConfigData(Me.CustomData);
-                StoreRawInput(dat_in, Me, gmdscategory, jobinfo);
+                if (_recievedMessage != jobdata)
+                {
+                    //FetchConfigData(Me.CustomData);
+                    StoreRawInput(dat_in, Me, gmdscategory, jobinfo);
+                    _updatedJob = true;
+                }
                 //Me.CustomData = dat_in;
             }
             if (dat_in2 != null)
@@ -3108,9 +3122,7 @@ namespace IngameScript
         {
 
             #region command_read
-
-
-            if (dataValid)
+            if (dataValid || dataInvalid)
             {
                 if (custom_data_read == 1)
                 {
@@ -3120,39 +3132,16 @@ namespace IngameScript
                 }
                 if (custom_data_read == 0)
                 {
-                    GetCustomDataCommand(Me.CustomData.ToString(), Me);
+                    if (_updatedJob)
+                    {
+                        GetCustomDataCommand(Me.CustomData.ToString(), Me);
+                        _updatedJob = false;
+                    }
                     custom_data_read = 1;
                     if (commandRequest != cmd_rqold)
                     {
                         commandChanged = true;
                     }
-                    if (commandRequest == cmd_rqold)
-                    {
-                        commandChanged = false;
-                    }
-                    //droneStatus = 24;
-                }
-            }
-
-
-            if (dataInvalid)
-            {
-                if (custom_data_read == 1)
-                {
-                    cmd_rqold = commandRequest;
-                    custom_data_read = 0;
-                    //droneStatus = 25;
-                }
-
-                if (custom_data_read == 0)
-                {
-                    GetCustomDataCommand(Me.CustomData, Me);
-                    custom_data_read = 1;
-                    if (commandRequest != cmd_rqold)
-                    {
-                        commandChanged = true;
-                    }
-
                     if (commandRequest == cmd_rqold)
                     {
                         commandChanged = false;
@@ -3850,7 +3839,6 @@ namespace IngameScript
                 add_nav_Waypoint_mn = true;
                 main_nav_complete = false;
                 mainNavSequence = 2;
-                //GetCustomDataCommand(Me.CustomData, Me);
                 remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
                 droneStatus = 1;
                 droneStatusOutput = "Nav";
@@ -5784,6 +5772,7 @@ namespace IngameScript
             }
         }
         //end program
+        
 
     }
 }
