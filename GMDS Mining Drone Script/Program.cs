@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.507B       
+        // General Mining Drone Script v0.510B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -104,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.509B";
+        string ver = "V0.510B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -282,10 +282,13 @@ namespace IngameScript
         bool navinst = false;
         double distance_current = 0;
         bool nav_act = false;
+        string abr = "ActivateBehavior";
         string ab0 = "ActivateBehavior_Off";
         string ab1 = "ActivateBehavior_On";
         //string cc = "Connectable";
         string p1 = "ID_PLAY_CHECKBOX";
+        string pon = "ID_PLAY_CHECKBOX_On";
+        string poff = "ID_PLAY_CHECKBOX_Off";
         List<IMyRemoteControl> rc_all;
         List<IMyRemoteControl> rctag;
         List<IMySensorBlock> sensor_all;
@@ -1250,7 +1253,7 @@ namespace IngameScript
                 {
                     ai_move_actual.Enabled = true;
                 }
-                if (ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_move_actual.GetValue<bool>(abr))
                 {
                     ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
                 }
@@ -1264,9 +1267,9 @@ namespace IngameScript
                 }
                 if (ai_task_dock_actual.GetValue<bool>(p1))
                 {
-                    ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
+                    ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
                 }
-                if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_dock_actual.GetValue<bool>(abr))
                 {
                     ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
                 }
@@ -1280,9 +1283,9 @@ namespace IngameScript
                 }
                 if (ai_task_undock_actual.GetValue<bool>(p1))
                 {
-                    ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
+                    ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
                 }
-                if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                if (ai_task_undock_actual.GetValue<bool>(abr))
                 {
                     ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
                 }
@@ -2169,7 +2172,8 @@ namespace IngameScript
             if (thrusterGroup != null)
             {
                 thrustGroupPresent = true;
-                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 Echo($"Thruster Group {thrustGroupTag} found");
             }
             else
@@ -3335,26 +3339,27 @@ namespace IngameScript
                 {
                     if (ai_task_dock_actual.GetValue<bool>(p1) && (stopState || dockState))
                     {
-                        ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
-                    }
-                    if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
-                    {
-                        ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
-                    }
-                    if (ai_move_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
-                    {
-                        ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-                    }
-                    if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
-                    {
-                        ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
-                    }
-                    if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior") && (stopState || dockState))
-                    {
-                        ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
-                    }
-                }
+                        ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
 
+                        if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
+                        {
+                            ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
+                        }
+                        if (ai_move_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+                        }
+                        if (ai_task_dock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
+                        }
+                        if (ai_task_undock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
+                        }
+                    }
+
+                }
             }
         }
 
@@ -3434,20 +3439,20 @@ namespace IngameScript
                         ai_move_actual.PrecisionMode = true;
                         ai_move_actual.CollisionAvoidance = false;
 
-                        if (!ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                        if (!ai_move_actual.GetValue<bool>(abr))
                         {
                             ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                         }
                     }
                     if (ai_task_undock_actual != null)
                     {
-                        if (!ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                        if (!ai_task_undock_actual.GetValue<bool>(abr))
                         {
                             ai_task_undock_actual.GetActionWithName(ab1).Apply(ai_task_undock_actual);
                         }
                         if (!ai_task_undock_actual.GetValue<bool>(p1))
                         {
-                            ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
+                            ai_task_undock_actual.GetActionWithName(pon).Apply(ai_task_undock_actual);
                         }
                     }
                     undocking_stage = 2;
@@ -3607,9 +3612,9 @@ namespace IngameScript
                 {
                     if (ai_task_dock_actual.GetValue<bool>(p1))
                     {
-                        ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
+                        ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
                     }
-                    if (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                    if (ai_task_dock_actual.GetValue<bool>(abr))
                     {
                         ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
                     }
@@ -3618,16 +3623,16 @@ namespace IngameScript
                 {
                     if (ai_task_undock_actual.GetValue<bool>(p1))
                     {
-                        ai_task_undock_actual.GetActionWithName(p1).Apply(ai_task_undock_actual);
+                        ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
                     }
-                    if (ai_task_undock_actual.GetValue<bool>("ActivateBehavior"))
+                    if (ai_task_undock_actual.GetValue<bool>(abr))
                     {
                         ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
                     }
                 }
                 if (ai_move_actual != null)
                 {
-                    if (ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                    if (ai_move_actual.GetValue<bool>(abr))
                     {
                         ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
                     }
@@ -4195,6 +4200,7 @@ namespace IngameScript
             // Check overshoot
             Vector3D normalizedVector = directionb;
             Vector3D displacement = rc_xyz - tgt_drill_start;
+
             double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
             bool hasOvershot = projectionDistance > drillSetLength + termnationPrecision;
             if (!targetDepthAchieved &&
@@ -4471,6 +4477,7 @@ namespace IngameScript
                 }
                 Vector3D targetpositione = directionc * drill_el;
                 Vector3D targetpositione_temp = directionc * req_dist;
+                
                 tgt_drill_exit.Y = Math.Round(tgt_drill_start.Y - targetpositione.Y, 2);
                 tgt_drill_exit.X = Math.Round(tgt_drill_start.X - targetpositione.X, 2);
                 tgt_drill_exit.Z = Math.Round(tgt_drill_start.Z - targetpositione.Z, 2);
@@ -4491,10 +4498,13 @@ namespace IngameScript
                     {
                         direction = Vector3D.Normalize(new Vector3D(gravity));
                     }
+
                     Vector3D targetposition = direction * req_dist;
-                    exit_gps_coords_temp.X = Math.Round(rc_xyz.X - targetposition.X, 2);
-                    exit_gps_coords_temp.Y = Math.Round(rc_xyz.Y - targetposition.Y, 2);
-                    exit_gps_coords_temp.Z = Math.Round(rc_xyz.Z - targetposition.Z, 2);
+
+                        exit_gps_coords_temp.X = Math.Round(rc_xyz.X - targetposition.X, 2);
+                        exit_gps_coords_temp.Y = Math.Round(rc_xyz.Y - targetposition.Y, 2);
+                        exit_gps_coords_temp.Z = Math.Round(rc_xyz.Z - targetposition.Z, 2);
+
                     remoteControlActual.ClearWaypoints();
                     remoteControlActual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
                     droneStatus = 18;
@@ -4830,7 +4840,7 @@ namespace IngameScript
                 //early return if docking is disabled
                 return;
             }
-            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>("ActivateBehavior")) && droneStatusOutput == "Idle")))
+            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>(abr)) && droneStatusOutput == "Idle")))
             {
                 dockingStage = 1;
                 if (!switchedThrustersOn)
@@ -4974,19 +4984,19 @@ namespace IngameScript
                         {
                             if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
                             {
-                                if (!ai_move_actual.GetValue<bool>("ActivateBehavior"))
+                                if (!ai_move_actual.GetValue<bool>(abr))
                                 {
                                     ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                                 }
                                 if (ai_task_dock_actual != null)
                                 {
-                                    if (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                                    if (!ai_task_dock_actual.GetValue<bool>(abr))
                                     {
                                         ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
                                     }
                                     if (!ai_task_dock_actual.GetValue<bool>(p1))
                                     {
-                                        ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
+                                        ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
                                     }
                                 }
                                 if (collisionAvoidLightActual != null)
@@ -5020,10 +5030,8 @@ namespace IngameScript
             }
             if (dockingStage == 2)
             {
-                if (ai_move_actual != null)
-                {
-                    IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
-                }
+                IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
+
                 if (resetLightActual != null && connectorActual != null && sensorActual != null && precModeLightActual != null)
                 {
                     if (connectorActual.Status != MyShipConnectorStatus.Connectable
@@ -5056,6 +5064,14 @@ namespace IngameScript
                         dock_delay_time = Math.Round(((double)no_speed_dock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
                     }
                 }
+                if (ai_move_actual != null)
+                {
+                    
+                    if (!ai_move_actual.GetValue<bool>(abr))
+                    {
+                        ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                    }
+                }
                 StDrlOnOff(false, cnvyrsON);
                 if (connectorActual != null)
                 {
@@ -5074,16 +5090,26 @@ namespace IngameScript
                 }
                 if (connectorActual != null && ai_task_dock_actual != null && precModeLightActual != null)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
+                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
                     {
                         if (collisionSenseEnabled)
                         {
                             if (sensorActual != null)
                             {
-                                sensorActual.Enabled = !sensorActual.Enabled;
+                                if (!sensorActual.Enabled)
+                                {
+                                    sensorActual.Enabled = !sensorActual.Enabled;
+                                }
                             }
                         }
-                        if (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))
+                        if (ai_move_actual != null)
+                        {
+                            if (!ai_move_actual.GetValue<bool>(abr))
+                            {
+                                ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                            }
+                        }
+                        if (!ai_task_dock_actual.GetValue<bool>(abr))
                         {
                             ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
                         }
@@ -5091,17 +5117,22 @@ namespace IngameScript
                         if (!ai_task_dock_actual.GetValue<bool>(p1))
                         {
                             //ai_task_dock_actual.ApplyAction(p1);
-                            ai_task_dock_actual.GetActionWithName(p1).Apply(ai_task_dock_actual);
+                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
                         }
 
                         droneStatusOutput = "Docking";
                     }
+
                 }
 
                 if (connectorActual != null && ai_task_dock_actual != null)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>("ActivateBehavior"))))
+                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>(abr))))
                     {
+                        if (precModeLightActual != null)
+                        {
+                            precModeLightActual.Enabled = false;
+                        }
 
                         if (precMflip)
                         {
@@ -5120,7 +5151,17 @@ namespace IngameScript
                             }
 
                         }
-                        
+                        if (!ai_task_dock_actual.GetValue<bool>(abr))
+                        {
+                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                        }
+
+                        if (!ai_task_dock_actual.GetValue<bool>(p1))
+                        {
+                            //ai_task_dock_actual.ApplyAction(p1);
+                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
+                        }
+
                     }
                 }
 
@@ -5129,14 +5170,18 @@ namespace IngameScript
                 //get terminal properties
                 if (connectorActual != null && ai_task_dock_actual != null)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>("ActivateBehavior") || (ai_task_dock_actual.GetValue<bool>("ActivateBehavior")))))
-                    {
+                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr) || (ai_task_dock_actual.GetValue<bool>(abr)))))
+                    {                        
                         if (resetLightActual != null)
                         {
                             if (!resetLightActual.Enabled)
                             {
                                 resetLightActual.Enabled = true;
                             }
+                        }
+                        if (precModeLightActual != null)
+                        {
+                            precModeLightActual.Enabled = false;
                         }
 
                         if (precMflip)
@@ -5155,8 +5200,8 @@ namespace IngameScript
                                 }
                             }
 
-                        }
-                        
+                        }                        
+
                     }
                 }
 
@@ -5665,11 +5710,13 @@ namespace IngameScript
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
             thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
+            gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             if (thrusterGroup != null)
             {
                 thrustGroupPresent = true;
                 thrust_tag.Clear();
-                thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             }
             else
             {
