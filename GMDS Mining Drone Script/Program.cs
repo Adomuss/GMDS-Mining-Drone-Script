@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.513B       
+        // General Mining Drone Script v0.514B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -105,11 +105,12 @@ namespace IngameScript
         string exitSpeedCommand = "exitspeed";
         string navSpeedCommand = "navspeed";
         string drillSpeedCommand = "drillspeed";
+        string terrainDistanceCommand = "terraincleardistance";
 
 
         #endregion
 
-        string ver = "V0.513B";
+        string ver = "V0.514B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1369,17 +1370,6 @@ namespace IngameScript
             {
                 drone_id_num = 0; // Default if argument is missing
             }
-            if (droneconfigdata.Length >= 3 && !string.IsNullOrWhiteSpace(droneconfigdata[2]))
-            {
-                if (!double.TryParse(droneconfigdata[2].Trim(), out terrainclearoffset))
-                {
-                    terrainclearoffset = 9.0; // Set to default on fail
-                }
-            }
-            else
-            {
-                terrainclearoffset = 9.0; // Default if argument is missing
-            }
 
             if (droneconfigdata.Length > 2) //protect against index < 2
             {
@@ -1389,6 +1379,7 @@ namespace IngameScript
                 cargoSenseEnabled = false;
                 manualSenseAssign = false;
                 terrainKeepMode = false;
+                terrainclearoffset = 9.0;
 
 
                 // Loop through all command arguments starting at index 2 (the first flag position) // do i need to test incorrect indexing on argument parse
@@ -1420,6 +1411,32 @@ namespace IngameScript
                     if (arg.Contains(terrainClearCommand))
                     {
                         terrainKeepMode = true;
+                    }
+                    // Check for terrain clear distance command
+                    if (arg.Contains(terrainDistanceCommand))
+                    {
+
+                        string temparg = arg;
+                        if (!string.IsNullOrWhiteSpace(temparg))
+                        {
+                            String[] terraindistance = temparg.Split(':');
+                            if (terraindistance.Length > 0)
+                            {
+                                if (terraindistance[0].Contains(terrainClearCommand))
+                                {
+                                    if (terraindistance.Length > 1)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(terraindistance[1]))
+                                        {
+                                            if (!double.TryParse(terraindistance[1], out terrainclearoffset))
+                                            {
+                                                terrainclearoffset = 9.0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     // Check for exit distance command
                     if (arg.Contains(exitDistanceCommand))
