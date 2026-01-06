@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.511B       
+        // General Mining Drone Script v0.513B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -101,11 +101,15 @@ namespace IngameScript
         string cargoSenseCommand = "cargo";
         string manualAssignCommand = "manual";
         string terrainClearCommand = "keepterrain";
-        string exitDistanceCommand = "egress";
+        string exitDistanceCommand = "exitdistance";
+        string exitSpeedCommand = "exitspeed";
+        string navSpeedCommand = "navspeed";
+        string drillSpeedCommand = "drillspeed";
+
 
         #endregion
 
-        string ver = "V0.512B";
+        string ver = "V0.513B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1331,6 +1335,9 @@ namespace IngameScript
                 terrainclearoffset = 9.0;
                 terrainKeepMode = false;
                 drill_el = 20.0;
+                exit_speed = 1.0f;
+                nav_speed = 5.0f;
+                drill_speed = 1.0f;
                 return;
             }
 
@@ -1414,7 +1421,7 @@ namespace IngameScript
                     {
                         terrainKeepMode = true;
                     }
-                    // Check for terrain saving mode (disable terrainclear)
+                    // Check for exit distance command
                     if (arg.Contains(exitDistanceCommand))
                     {
                         
@@ -1433,6 +1440,84 @@ namespace IngameScript
                                             if (!double.TryParse(tempexitdistance[1], out drill_el))
                                             {
                                                 drill_el = 20.0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Check for exit speed command
+                    if (arg.Contains(exitSpeedCommand))
+                    {
+
+                        string temparg = arg;
+                        if (!string.IsNullOrWhiteSpace(temparg))
+                        {
+                            String[] tempexitspeed = temparg.Split(':');
+                            if (tempexitspeed.Length > 0)
+                            {
+                                if (tempexitspeed[0].Contains(exitSpeedCommand))
+                                {
+                                    if (tempexitspeed.Length > 1)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(tempexitspeed[1]))
+                                        {
+                                            if (!float.TryParse(tempexitspeed[1], out exit_speed))
+                                            {
+                                                exit_speed = 1.0f;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Check for nav speed command
+                    if (arg.Contains(navSpeedCommand))
+                    {
+
+                        string temparg = arg;
+                        if (!string.IsNullOrWhiteSpace(temparg))
+                        {
+                            String[] navspeedtemp = temparg.Split(':');
+                            if (navspeedtemp.Length > 0)
+                            {
+                                if (navspeedtemp[0].Contains(navSpeedCommand))
+                                {
+                                    if (navspeedtemp.Length > 1)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(navspeedtemp[1]))
+                                        {
+                                            if (!float.TryParse(navspeedtemp[1], out nav_speed))
+                                            {
+                                                nav_speed = 1.0f;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Check for drill speed command
+                    if (arg.Contains(drillSpeedCommand))
+                    {
+
+                        string temparg = arg;
+                        if (!string.IsNullOrWhiteSpace(temparg))
+                        {
+                            String[] drillspeedtemp = temparg.Split(':');
+                            if (drillspeedtemp.Length > 0)
+                            {
+                                if (drillspeedtemp[0].Contains(drillSpeedCommand))
+                                {
+                                    if (drillspeedtemp.Length > 1)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(drillspeedtemp[1]))
+                                        {
+                                            if (!float.TryParse(drillspeedtemp[1], out drill_speed))
+                                            {
+                                                drill_speed = 1.0f;
                                             }
                                         }
                                     }
@@ -1595,7 +1680,7 @@ namespace IngameScript
                     if (temp_id_name == "" || temp_id_name == null)
                     {
                         temp_id_name = droneTag;
-                        Echo($"Resorting to default drone tag.{droneTag}");
+                        Echo($"Resorting to default drone tag.{droneTag.Replace("[", "[[").Replace("]", "]]")}");
                     }
                 }
             }
@@ -1604,14 +1689,14 @@ namespace IngameScript
             {
                 temp_id_num = drone_id_num;
                 temp_id_name = droneTag;
-                Echo($"Resorting to default config. {temp_id_name} {temp_id_num}");
+                Echo($"Resorting to default config. {temp_id_name.Replace("[", "[[").Replace("]", "]]")} {temp_id_num}");
             }
 
             if (antenna_all[index] != null)
             {
                 antenna_all[index].CustomData = $"{drone_id_num}:{droneTag}";
             }
-            Echo($"Drone info: {drone_id_num}:{droneTag}");
+            Echo($"Drone info: {drone_id_num}:{droneTag.Replace("[", "[[").Replace("]", "]]")}");
             D_I_N = $"[{droneTag} {drone_id_num}]";
             D_C_N = $"[{droneTag} {drone_id_num}]";
             dockTaskName = $"[{droneTag} {drone_id_num} {Dock}]";
@@ -1632,8 +1717,11 @@ namespace IngameScript
             S_N_T = $"[{secondary_tag}]";
             listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
             Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
-            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
-
+            if (!Me.CubeGrid.CustomName.Contains(D_I_N))
+            {
+                var n = Me.CubeGrid.CustomName;
+                Me.CubeGrid.CustomName = n + ($" - {D_I_N}");
+            }
         }
         public void manageFirstLoad(string input, string datacommandinput)
         {
@@ -1751,7 +1839,11 @@ namespace IngameScript
         {
             S_N_T = $"[{secondary_tag}]";
             Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
-            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
+            if (!Me.CubeGrid.CustomName.Contains(D_I_N))
+            {
+                var n = Me.CubeGrid.CustomName;
+                Me.CubeGrid.CustomName = n + ($" - {D_I_N}");
+            }
             if (antenna_actual != null)
             {
                 antenna_actual.HudText = $"{D_I_N} {S_N_T}";
@@ -1797,7 +1889,11 @@ namespace IngameScript
             listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
 
             Me.CustomName = $"GMDS Programmable Block {D_I_N} {S_N_T}";
-            Me.CubeGrid.CustomName = $"Mining Drone {D_I_N}";
+            if (!Me.CubeGrid.CustomName.Contains(D_I_N))
+            {
+                var n = Me.CubeGrid.CustomName;
+                Me.CubeGrid.CustomName = n + ($" - {D_I_N}");
+            }
 
             //reset group presence
             thrustGroupPresent = false;
@@ -2258,36 +2354,36 @@ namespace IngameScript
             if (precModeGroup != null)
             {
                 precisionModeGroupPresent = true;
-                Echo($"Precision mode group {PrecisionModeTagName} found");
+                Echo($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 precisionModeGroupPresent = false;
-                Echo($"Precision mode group {PrecisionModeTagName} not found");
+                Echo($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
             undockModeGroup = gts.GetBlockGroupWithName(UndockModeTagName);
             if (undockModeGroup != null)
             {
                 undockModeGroupPresent = true;
-                Echo($"Undock mode group {UndockModeTagName} found");
+                Echo($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 undockModeGroupPresent = false;
-                Echo($"Undock mode group {UndockModeTagName} not found");
+                Echo($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
             resetModeGroup = gts.GetBlockGroupWithName(ResetTagName);
             if (resetModeGroup != null)
             {
                 resetModeGroupPresent = true;
-                Echo($"Reset mode group {ResetTagName} found");
+                Echo($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 resetModeGroupPresent = false;
-                Echo($"Reset mode group {ResetTagName} not found");
+                Echo($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
 
@@ -3445,6 +3541,13 @@ namespace IngameScript
                         switchedThrustersOn = true;
                         switchedThrustersOff = false;
                     }
+                    if (ai_move_actual != null)
+                    {
+                        if (ai_move_actual.SpeedLimit != nav_speed)
+                        {
+                            ai_move_actual.SpeedLimit = nav_speed;
+                        }
+                    }
                     undocking_stage = 1;
                 }
             }
@@ -3466,7 +3569,10 @@ namespace IngameScript
                     {
                         ai_move_actual.PrecisionMode = true;
                         ai_move_actual.CollisionAvoidance = false;
-
+                        if (ai_move_actual.SpeedLimit != nav_speed)
+                        {
+                            ai_move_actual.SpeedLimit = nav_speed;
+                        }
                         if (!ai_move_actual.GetValue<bool>(abr))
                         {
                             ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
@@ -3510,6 +3616,10 @@ namespace IngameScript
                 {
                     ai_move_actual.PrecisionMode = false;
                     ai_move_actual.CollisionAvoidance = true;
+                    if (ai_move_actual.SpeedLimit != nav_speed)
+                    {
+                        ai_move_actual.SpeedLimit = nav_speed;
+                    }
                 }
                 if (connectorActual != null)
                 {
@@ -4877,6 +4987,13 @@ namespace IngameScript
                     switchedThrustersOn = true;
                     switchedThrustersOff = false;
                 }
+                if(ai_move_actual != null)
+                {
+                    if(ai_move_actual.SpeedLimit != nav_speed)
+                    {
+                        ai_move_actual.SpeedLimit = nav_speed;
+                    }
+                }
             }
             #region docking_management
             if (resetLightActual != null)
@@ -5007,6 +5124,10 @@ namespace IngameScript
                             {
                                 ai_move_actual.CollisionAvoidance = true;
                             }
+                                if (ai_move_actual.SpeedLimit != nav_speed)
+                                {
+                                    ai_move_actual.SpeedLimit = nav_speed;
+                                }
                         }
                         if (ai_move_actual != null)
                         {
@@ -5094,7 +5215,10 @@ namespace IngameScript
                 }
                 if (ai_move_actual != null)
                 {
-                    
+                    if (ai_move_actual.SpeedLimit != nav_speed)
+                    {
+                        ai_move_actual.SpeedLimit = nav_speed;
+                    }
                     if (!ai_move_actual.GetValue<bool>(abr))
                     {
                         ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
@@ -5770,7 +5894,7 @@ namespace IngameScript
             }
             else
             {
-                Echo($"Thrusters not found in {thrusterGroup.Name}. Please add thrusters");
+                Echo($"Thrusters not found in {thrusterGroup.Name.Replace("[", "[[").Replace("]", "]]")}. Please add thrusters");
                 return;
             }
         }
