@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.510B       
+        // General Mining Drone Script v0.511B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -101,10 +101,11 @@ namespace IngameScript
         string cargoSenseCommand = "cargo";
         string manualAssignCommand = "manual";
         string terrainClearCommand = "keepterrain";
+        string exitDistanceCommand = "egress";
 
         #endregion
 
-        string ver = "V0.510B";
+        string ver = "V0.512B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1329,6 +1330,7 @@ namespace IngameScript
                 drone_id_num = 0;
                 terrainclearoffset = 9.0;
                 terrainKeepMode = false;
+                drill_el = 20.0;
                 return;
             }
 
@@ -1411,6 +1413,32 @@ namespace IngameScript
                     if (arg.Contains(terrainClearCommand))
                     {
                         terrainKeepMode = true;
+                    }
+                    // Check for terrain saving mode (disable terrainclear)
+                    if (arg.Contains(exitDistanceCommand))
+                    {
+                        
+                        string temparg = arg;
+                        if (!string.IsNullOrWhiteSpace(temparg))
+                        {
+                            String[] tempexitdistance = temparg.Split(':');
+                            if (tempexitdistance.Length > 0)
+                            {
+                                if (tempexitdistance[0].Contains(exitDistanceCommand))
+                                {
+                                    if (tempexitdistance.Length > 1)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(tempexitdistance[1]))
+                                        {
+                                            if (!double.TryParse(tempexitdistance[1], out drill_el))
+                                            {
+                                                drill_el = 20.0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1762,7 +1790,7 @@ namespace IngameScript
             D_S_C = $"[{droneTag} {drone_id_num} {Sense}]";
             damageLightTag = $"[{droneTag} {drone_id_num} {dmg}]";
             pingChannel = $"[{droneTag}] {pingChannelTag}";
-            thrustGroupTag = $"[{droneTag} {drone_id_num}] {thrusters}";
+            thrustGroupTag = $"{thrusters} [{droneTag} {drone_id_num}]";
             rx_channel_recall_drone = D_I_N + " " + recall_command;
             rx_channel_sync = "[" + droneTag + "]" + " " + syncChannelTag;
             S_N_T = $"[{secondary_tag}]";
@@ -2174,12 +2202,12 @@ namespace IngameScript
                 thrustGroupPresent = true;
                 //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
-                Echo($"Thruster Group {thrustGroupTag} found");
+                Echo($"Thruster Group {thrustGroupTag.Replace("[","[[").Replace("]","]]")} found");
             }
             else
             {
                 thrustGroupPresent = false;
-                Echo($"Thruster Group {thrustGroupTag} not found");
+                Echo($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} not found");
             }
             timer_block_all = new List<IMyTimerBlock>();
             timer_block_tON_tag = new List<IMyTimerBlock>();
@@ -2496,7 +2524,7 @@ namespace IngameScript
             #region presence_check            
             if (thrust_tag.Count <= 0 && thrustGroupPresent)
             {
-                Echo($"Please add thrusters to '{thrustGroupTag}'");
+                Echo($"Please add thrusters to '{thrustGroupTag.Replace("[", "[[").Replace("]", "]]")}'");
             }
 
             if (drill_tag.Count <= 0)
@@ -5658,7 +5686,7 @@ namespace IngameScript
                 Echo($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
             }
             Echo($"Mine distance: {mineDistance}m  Mine Start: {(drillSetLength - ignoreDistance)}m");
-            Echo($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining}");
+            Echo($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining} - Ed: {drill_el}");
             Echo($"Nav: {navState} - Stage: {mainNavSequence}");
             Echo($"Dock: {isDocked} - Stage: {dockingStage} DR: {dockingReady}");
             Echo($"Undock: {isUndocked} - Stage: {undocking_stage}");
@@ -5710,6 +5738,7 @@ namespace IngameScript
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
             thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
+            thrust_tag.Clear();
             gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             if (thrusterGroup != null)
             {
