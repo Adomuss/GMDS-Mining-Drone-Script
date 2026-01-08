@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.514B       
+        // General Mining Drone Script v0.515B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.514B";
+        string ver = "V0.515B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2308,12 +2308,15 @@ namespace IngameScript
                 }
             }
             thrust_all.Clear();
-            thrust_tag.Clear();
+            
             thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
-            if (thrusterGroup != null)
+
+            if (thrust_tag.Count > 0)
             {
+                
                 thrustGroupPresent = true;
                 //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
+                thrust_tag.Clear();
                 gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 Echo($"Thruster Group {thrustGroupTag.Replace("[","[[").Replace("]","]]")} found");
             }
@@ -2637,7 +2640,9 @@ namespace IngameScript
             #region presence_check            
             if (thrust_tag.Count <= 0 && thrustGroupPresent)
             {
-                Echo($"Please add thrusters to '{thrustGroupTag.Replace("[", "[[").Replace("]", "]]")}'");
+                Echo($"Please add thrusters to grid");
+                return;
+
             }
 
             if (drill_tag.Count <= 0)
@@ -5881,12 +5886,9 @@ namespace IngameScript
             thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
             thrust_tag.Clear();
             gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
-            if (thrusterGroup != null)
+            if (thrust_tag.Count > 0)
             {
                 thrustGroupPresent = true;
-                thrust_tag.Clear();
-                //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
-                gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             }
             else
             {
