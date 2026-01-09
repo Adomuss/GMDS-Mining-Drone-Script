@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.516B       
+        // General Mining Drone Script v0.517B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.516B";
+        string ver = "V0.517B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -405,6 +405,8 @@ namespace IngameScript
         bool switchedThrustersOn = false;
         bool batteryRechargeModeSet = false;
         bool batteryAutochargeSet = false;
+        bool tankRechargeModeSet = false;
+        bool tankAutochargeSet = false;
         string runargument = "";
         bool autoDocking = false;
         bool manualSenseAssign = false;
@@ -2831,7 +2833,7 @@ namespace IngameScript
                 damageLightActual = light_dmg_tag[0];
             }
 
-            if (battery_tag.Count <= 0 || battery_tag[0] == null)
+            if (battery_tag.Count <= 0)
             {
                 Echo($"Batteries with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
@@ -2999,13 +3001,13 @@ namespace IngameScript
                     validBatteries++;
 
                     // Set ChargeMode in the same loop if conditions allow
-                    if (connectorActual != null)
+                  /*   if (connectorActual != null)
                     {
                         if (!recharge_request_battery && crntbatteryblock.ChargeMode != ChargeMode.Auto && !autoChargeMode && connectorActual.Status == MyShipConnectorStatus.Connected || connectorActual.Status != MyShipConnectorStatus.Connected && crntbatteryblock.ChargeMode != ChargeMode.Auto)
                         {
                             crntbatteryblock.ChargeMode = ChargeMode.Auto;
                         }
-                    }
+                    } */
                 }
             }
 
@@ -3075,18 +3077,11 @@ namespace IngameScript
             }
             if (!recharge_request_tank && !ignore_Htank)
             {
-                if (hydrogen_tank_tag.Count > 0)
+                if (!tankAutochargeSet)
                 {
-                    for (int i = 0; i < hydrogen_tank_tag.Count; i++)
-                    {
-                        if (hydrogen_tank_tag[i] != null)
-                        {
-                            if (hydrogen_tank_tag[i].Stockpile)
-                            {
-                                hydrogen_tank_tag[i].Stockpile = false;
-                            }
-                        }
-                    }
+                    tankupdate(false);
+                    tankAutochargeSet = true;
+                    tankRechargeModeSet = false;
                 }
             }
             #endregion
@@ -3376,16 +3371,7 @@ namespace IngameScript
                 {
                     if (!batteryRechargeModeSet)
                     {
-                        for (int i = 0; i < battery_tag.Count; i++)
-                        {
-                            if (battery_tag[i] != null)
-                            {
-                                if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
-                                {
-                                    battery_tag[i].ChargeMode = ChargeMode.Recharge;
-                                }
-                            }
-                        }
+                        batteryupdate(ChargeMode.Recharge);
                         batteryRechargeModeSet = true;
                         batteryAutochargeSet = false;
                     }
@@ -3396,16 +3382,7 @@ namespace IngameScript
             {
                 if (!batteryAutochargeSet)
                 {
-                    for (int i = 0; i < battery_tag.Count; i++)
-                    {
-                        if (battery_tag[i] != null)
-                        {
-                            if (battery_tag[i].ChargeMode != ChargeMode.Auto)
-                            {
-                                battery_tag[i].ChargeMode = ChargeMode.Auto;
-                            }
-                        }
-                    }
+                    batteryupdate(ChargeMode.Auto);
                     batteryRechargeModeSet = false;
                     batteryAutochargeSet = true;
                 }
@@ -5457,13 +5434,7 @@ namespace IngameScript
                     {
                         if (!batteryRechargeModeSet)
                         {
-                            if (battery_tag[i] != null)
-                            {
-                                if (battery_tag[i].ChargeMode != ChargeMode.Recharge)
-                                {
-                                    battery_tag[i].ChargeMode = ChargeMode.Recharge;
-                                }
-                            }
+                            batteryupdate(ChargeMode.Recharge);
                             batteryRechargeModeSet = true;
                             batteryAutochargeSet = false;
                         }
@@ -5474,45 +5445,29 @@ namespace IngameScript
                 {
                     if (!batteryAutochargeSet)
                     {
-                        for (int i = 0; i < battery_tag.Count; i++)
-                        {
-                            if (battery_tag[i] != null)
-                            {
-                                if (battery_tag[i].ChargeMode != ChargeMode.Auto)
-                                {
-                                    battery_tag[i].ChargeMode = ChargeMode.Auto;
-                                }
-                            }
-                        }
+                        batteryupdate(ChargeMode.Auto);
                         batteryRechargeModeSet = false;
                         batteryAutochargeSet = true;
                     }
                 }
                 if (recharge_request_tank && !ignore_Htank)
                 {
-                    for (int i = 0; i < hydrogen_tank_tag.Count; i++)
+                    if (!tankRechargeModeSet)
                     {
-                        if (hydrogen_tank_tag[i] != null)
-                        {
-                            if (!hydrogen_tank_tag[i].Stockpile)
-                            {
-                                hydrogen_tank_tag[i].Stockpile = true;
-                            }
-                        }
-                        droneStatusOutput = "Recharging";
+                        tankupdate(true);
+                        tankAutochargeSet = false;
+                        tankRechargeModeSet = true;
                     }
+                    droneStatusOutput = "Recharging";
+
                 }
                 if (!recharge_request_tank && !ignore_Htank)
                 {
-                    for (int i = 0; i < hydrogen_tank_tag.Count; i++)
+                    if (!tankAutochargeSet)
                     {
-                        if (hydrogen_tank_tag[i] != null)
-                        {
-                            if (hydrogen_tank_tag[i].Stockpile)
-                            {
-                                hydrogen_tank_tag[i].Stockpile = false;
-                            }
-                        }
+                        tankupdate(false);
+                        tankAutochargeSet = true;
+                        tankRechargeModeSet = false;
                     }
                 }
                 if (!recharge_request)
@@ -5550,28 +5505,21 @@ namespace IngameScript
             #region connector_state_management
             if (connectorActual.IsConnected && ignore_Htank || connectorActual.IsConnected && !ignore_Htank)
             {
-                for (int i = 0; i < hydrogen_tank_tag.Count; i++)
+                if (!tankRechargeModeSet)
                 {
-                    if (hydrogen_tank_tag[i] != null)
-                    {
-                        if (!hydrogen_tank_tag[i].Stockpile)
-                        {
-                            hydrogen_tank_tag[i].Stockpile = true;
-                        }
-                    }
+                    tankupdate(true);
+                    tankAutochargeSet = false;
+                    tankRechargeModeSet = true;
                 }
+            
             }
             if (!connectorActual.IsConnected && ignore_Htank)
             {
-                for (int i = 0; i < hydrogen_tank_tag.Count; i++)
+                if (!tankAutochargeSet)
                 {
-                    if (hydrogen_tank_tag[i] != null)
-                    {
-                        if (hydrogen_tank_tag[i].Stockpile)
-                        {
-                            hydrogen_tank_tag[i].Stockpile = false;
-                        }
-                    }
+                    tankupdate(false);
+                    tankAutochargeSet = true;
+                    tankRechargeModeSet = false;
                 }
             }
             if (connectorActual.IsConnected && cargoFullAchieved || connectorActual.IsConnected && !cargoIsEmpty)
@@ -5919,6 +5867,40 @@ namespace IngameScript
                 }
                 return;
 
+            }
+        }
+
+        void batteryupdate(ChargeMode chargetype)
+        {
+            if (battery_tag.Count > 0)
+            {
+                for (int i = 0; i < battery_tag.Count; i++)
+                {
+                    if (battery_tag[i] != null)
+                    {
+                        if (battery_tag[i].ChargeMode != chargetype)
+                        {
+                            battery_tag[i].ChargeMode = chargetype;
+                        }
+                    }
+                }
+            }
+        }
+
+        void tankupdate(bool stockpilemode)
+        {
+            if (hydrogen_tank_tag.Count > 0)
+            {
+                for (int i = 0; i < hydrogen_tank_tag.Count; i++)
+                {
+                    if (hydrogen_tank_tag[i] != null)
+                    {
+                        if (hydrogen_tank_tag[i].Stockpile != stockpilemode)
+                        {
+                            hydrogen_tank_tag[i].Stockpile = stockpilemode;
+                        }
+                    }
+                }
             }
         }
 
