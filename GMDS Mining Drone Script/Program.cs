@@ -30,7 +30,7 @@ namespace IngameScript
     {
         // R e a d m e
         // -----------
-        // General Mining Drone Script v0.515B       
+        // General Mining Drone Script v0.516B       
         // Adomus o7 o7 o7
         // 
         // 
@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.515B";
+        string ver = "V0.516B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -5913,8 +5913,12 @@ namespace IngameScript
             }
             else
             {
-                Echo($"Thrusters not found in {thrusterGroup.Name.Replace("[", "[[").Replace("]", "]]")}. Please add thrusters");
+                if (thrusterGroup != null)
+                {
+                    Echo($"Thrusters not found in {thrusterGroup.Name.Replace("[", "[[").Replace("]", "]]")}. Please add thrusters");
+                }
                 return;
+
             }
         }
 
