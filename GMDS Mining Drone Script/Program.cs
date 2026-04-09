@@ -937,32 +937,29 @@ namespace IngameScript
 
         void GetCustomDataCommand(string input, IMyTerminalBlock block)
         {
-            string rawData = block.CustomData; // Cache once
-
-            // 1. Format Conversion & Early Exit
-            if (!string.IsNullOrEmpty(rawData) && !rawData.Contains(gmdscategory))
+            // Checks if the block has CustomData AND if it's NOT already INI-formatted data
+            if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
             {
                 _customDataStore.Clear();
-                if (!_customDataStore.TryParse(rawData))
-                { // Use cached string
-                    if (rawData.Contains(":"))
-                    { // Simple check instead of full split
-                        StoreRawInput(rawData, block, gmdscategory, jobinfo);
+                if (!_customDataStore.TryParse(Me.CustomData))
+                {
+                    String[] gpsCommandtest = block.CustomData.ToString().Split(':');
+
+                    if (gpsCommandtest.Length > 0)
+                    {
+                        StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
                         _updatedJob = true;
                     }
                     Echo("Dataconversion");
-                    return;
                 }
             }
-
-            if (string.IsNullOrWhiteSpace(rawData))
+            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
                 Echo("Custom Data is empty");
                 return;
             }
-
             // 2. Fetch and Initial Split
-            FetchJobData(rawData.Trim());
+            FetchJobData(block.CustomData);
             string[] gpsData = jobdata.Split(':');
             int len = gpsData.Length;
 
@@ -987,6 +984,7 @@ namespace IngameScript
 
             // 4. Distance and Extras (Indices 8-10)
             ignoreDistance = ParseDouble(gpsData, 8, 0.0);
+            commandDataIgnoreDistance = gpsData[8];
             commandData8 = (len > 9) ? gpsData[9] ?? "" : "";
             commandData9 = (len > 10) ? gpsData[10] ?? "" : "";
 
