@@ -366,7 +366,7 @@ namespace IngameScript
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
-        string temp_id_name;
+        //string temp_id_name;
         int temp_id_num;
         double response_time = 0.0;
         double undock_delay_time = 0.0;
@@ -1745,15 +1745,15 @@ namespace IngameScript
 
                 if (temp_id[1] != null)
                 {
-                    temp_id_name = temp_id[1];
+                    //temp_id_name = temp_id[1];
                     load_tag = true;
                     if (load_tag)
                     {
-                        droneTag = temp_id_name;
+                        droneTag = temp_id[1];
                     }
-                    if (temp_id_name == "" || temp_id_name == null)
+                    if (temp_id[1] == "" || temp_id[1] == null)
                     {
-                        temp_id_name = droneTag;
+                        //temp_id_name = droneTag;
                         Echo($"Resorting to default drone tag.{droneTag.Replace("[", "[[").Replace("]", "]]")}");
                     }
                 }
@@ -1763,8 +1763,8 @@ namespace IngameScript
             if (temp_id.Length == 0)
             {
                 temp_id_num = drone_id_num;
-                temp_id_name = droneTag;
-                Echo($"Resorting to default config. {temp_id_name.Replace("[", "[[").Replace("]", "]]")} {temp_id_num}");
+                //temp_id_name = droneTag;
+                Echo($"Resorting to default config. {droneTag.Replace("[", "[[").Replace("]", "]]")} {temp_id_num}");
             }
 
             if (antenna_all[index] != null)
