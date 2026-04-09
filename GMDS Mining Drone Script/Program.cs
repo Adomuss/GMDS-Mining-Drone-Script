@@ -1742,9 +1742,7 @@ namespace IngameScript
                         }
                     }
                 }
-            }
-            if (temp_id.Length > 1)
-            {
+
                 if (temp_id[1] != null)
                 {
                     temp_id_name = temp_id[1];
@@ -1760,6 +1758,7 @@ namespace IngameScript
                     }
                 }
             }
+
 
             if (temp_id.Length == 0)
             {
