@@ -155,7 +155,7 @@ namespace IngameScript
         bool mode_set = false;
         string drnst;
         string commandCommandDataRequested = "0";
-        string commandDataDistance = "10.0";
+        //string commandDataDistance = "10.0";
         double ignoreDistance = 0.0;
         double alignmentTargetX = 0.0;
         double alignmentTargetY = 0.0;
@@ -231,9 +231,9 @@ namespace IngameScript
         string commandDataIgnoreDistance = "";
         //string commandData8 = "";
         //string commandData9 = "";
-        string commandDataAlignX = "";
-        string commandDataAlignY = "";
-        string commandDataAlignZ = "";
+        //string commandDataAlignX = "";
+        //string commandDataAlignY = "";
+        //string commandDataAlignZ = "";
         string gpsIndex = "";
         int cmd_read_ack = 0;
         int mainNavSequence = 0;
@@ -981,7 +981,6 @@ namespace IngameScript
 
             commandRequest = ParseInt(gpsData, 6, 0);
             drillSetLength = ParseDouble(gpsData, 7, 1.0);
-
             // 4. Distance and Extras (Indices 8-10)
             ignoreDistance = ParseDouble(gpsData, 8, 0.0);
             commandDataIgnoreDistance = gpsData[8];
@@ -1064,11 +1063,11 @@ namespace IngameScript
                     commandRequest = 0;
                 }
 
-                commandDataDistance = gpsCommandData[7];
-                if (!Double.TryParse(commandDataDistance, out drillSetLength))
-                {
-                    drillSetLength = 1.0;
-                }
+                //commandDataDistance = gpsCommandData[7];
+                //if (!Double.TryParse(commandDataDistance, out drillSetLength))
+                //{
+                 //   drillSetLength = 1.0;
+                //}
 
             }
 
@@ -1123,23 +1122,23 @@ namespace IngameScript
             {
                 if (gpsCommandData[11] == null || gpsCommandData[11] == "")
                 {
-                    commandDataAlignX = "";
+                  //  commandDataAlignX = "";
                     commandDataPresent_11 = false;
                 }
                 else
                 {
-                    commandDataAlignX = gpsCommandData[11];
+                   // commandDataAlignX = gpsCommandData[11];
 
-                    if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
-                    {
-                        alignmentTargetX = 0.0;
-                        commandDataPresent_11 = false;
+                  //  if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
+                  //  {
+                  //      alignmentTargetX = 0.0;
+                  //      commandDataPresent_11 = false;
 
-                    }
-                    else
-                    {
-                        commandDataPresent_11 = true;
-                    }
+                 //   }
+                  //  else
+                  //  {
+                 //       commandDataPresent_11 = true;
+                 //   }
                 }
             }
 
@@ -1147,23 +1146,23 @@ namespace IngameScript
             {
                 if (gpsCommandData[12] == null || gpsCommandData[12] == "")
                 {
-                    commandDataAlignY = "";
+                  //  commandDataAlignY = "";
                     commandDataPresent_12 = false;
                 }
                 else
                 {
-                    commandDataAlignY = gpsCommandData[12];
+                  //  commandDataAlignY = gpsCommandData[12];
 
-                    if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
-                    {
-                        alignmentTargetY = 0.0;
-                        commandDataPresent_12 = false;
+                 //   if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
+                  //  {
+                    //    alignmentTargetY = 0.0;
+                    //    commandDataPresent_12 = false;
 
-                    }
-                    else
-                    {
-                        commandDataPresent_12 = true;
-                    }
+                  //  }
+                  //  else
+                 //   {
+                 //       commandDataPresent_12 = true;
+                 //   }
                 }
             }
 
@@ -1171,22 +1170,23 @@ namespace IngameScript
             {
                 if (gpsCommandData[13] == null || gpsCommandData[13] == "")
                 {
-                    commandDataAlignZ = "";
-                    commandDataPresent_13 = false;
+                    // commandDataAlignZ = "";
+                    //  commandDataPresent_13 = false;
                 }
                 else
                 {
-                    commandDataAlignZ = gpsCommandData[13].ToString();
+                    //   commandDataAlignZ = gpsCommandData[13].ToString();
 
-                    if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
+                    //  if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
                     {
-                        alignmentTargetZ = 0.0;
-                        commandDataPresent_13 = false;
+                        //      alignmentTargetZ = 0.0;
+                        //     commandDataPresent_13 = false;
 
-                    }
-                    else
-                    {
-                        commandDataPresent_13 = true;
+                        //  }
+                        // else
+                        // {
+                        //      commandDataPresent_13 = true;
+                        //  }
                     }
                 }
             }
