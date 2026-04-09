@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.517B";
+        string ver = "V0.518B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -243,18 +243,11 @@ namespace IngameScript
         IMyCameraBlock camera_actual;
         IMyShipConnector connectorActual;
         IMyRadioAntenna antenna_actual;
-        IMyTimerBlock timerBlockTONActual;
-        IMyTimerBlock timerBlockTOFFActual;
-        IMyPathRecorderBlock ai_task_dock_actual;
-        IMyPathRecorderBlock ai_task_undock_actual;
+        IMyTimerBlock timerBlockTONActual, timerBlockTOFFActual;        
+        IMyPathRecorderBlock ai_task_dock_actual, ai_task_undock_actual;       
         IMyFlightMovementBlock ai_move_actual;
         IMyBatteryBlock crntbatteryblock;
-        IMyLightingBlock dockLightActual;
-        IMyLightingBlock undockLightActual;
-        IMyLightingBlock collisionAvoidLightActual;
-        IMyLightingBlock precModeLightActual;
-        IMyLightingBlock resetLightActual;
-        IMyLightingBlock damageLightActual;
+        IMyLightingBlock dockLightActual, undockLightActual, collisionAvoidLightActual, precModeLightActual, resetLightActual, damageLightActual;
         IMySensorBlock sensorActual;
         IMyGasTank crnthyrdogentank;
         Vector3D main_gps_coords;
@@ -381,15 +374,8 @@ namespace IngameScript
         double navigation_reset_delay_time = 0.0;
         string fail_data = "---:-1:0:0:0:0:0:0:0:";
         double spd;
-        IMyBroadcastListener listn;
-        IMyBroadcastListener listn_recall;
-        IMyBroadcastListener listn_recall_drone;
-        IMyBroadcastListener listn_png;
-        IMyBroadcastListener listensync;
-        MyIGCMessage new_msg;
-        MyIGCMessage new_msg_2;
-        MyIGCMessage new_msg_3;
-        MyIGCMessage new_msg_4;
+        IMyBroadcastListener listn, listn_recall, listn_recall_drone, listn_png, listensync;
+        MyIGCMessage new_msg, new_msg_2, new_msg_3, new_msg_4;
         string syncDataInput;
         Vector3D rc_xyz;
         float percent_battery_power = 0.0f;
@@ -948,7 +934,80 @@ namespace IngameScript
             }
             _customDataStore.Clear();
         }
+
         void GetCustomDataCommand(string input, IMyTerminalBlock block)
+        {
+            string rawData = block.CustomData; // Cache once
+
+            // 1. Format Conversion & Early Exit
+            if (!string.IsNullOrEmpty(rawData) && !rawData.Contains(gmdscategory))
+            {
+                _customDataStore.Clear();
+                if (!_customDataStore.TryParse(rawData))
+                { // Use cached string
+                    if (rawData.Contains(":"))
+                    { // Simple check instead of full split
+                        StoreRawInput(rawData, block, gmdscategory, jobinfo);
+                        _updatedJob = true;
+                    }
+                    Echo("Dataconversion");
+                    return;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(rawData))
+            {
+                Echo("Custom Data is empty");
+                return;
+            }
+
+            // 2. Fetch and Initial Split
+            FetchJobData(rawData.Trim());
+            string[] gpsData = jobdata.Split(':');
+            int len = gpsData.Length;
+
+            if (len < 5)
+            {
+                Echo("Custom Data is faulty");
+                jobdata = fail_data;
+                return;
+            }
+
+            // 3. Main Target Parsing (Indices 1-7)
+            gpsIndex = gpsData[1];
+
+            // Direct Vector3D creation with parsing
+            double mx = ParseDouble(gpsData, 2, 0.0);
+            double my = ParseDouble(gpsData, 3, 0.0);
+            double mz = ParseDouble(gpsData, 4, 0.0);
+            main_gps_coords = new Vector3D(mx, my, mz);
+
+            commandRequest = ParseInt(gpsData, 6, 0);
+            drillSetLength = ParseDouble(gpsData, 7, 1.0);
+
+            // 4. Distance and Extras (Indices 8-10)
+            ignoreDistance = ParseDouble(gpsData, 8, 0.0);
+            commandData8 = (len > 9) ? gpsData[9] ?? "" : "";
+            commandData9 = (len > 10) ? gpsData[10] ?? "" : "";
+
+            // 5. Alignment Logic (Indices 11-13)
+            // We use the new helper to set both the value and the 'present' bool at once
+            alignmentTargetX = ParseAndValidate(gpsData, 11, out commandDataPresent_11);
+            alignmentTargetY = ParseAndValidate(gpsData, 12, out commandDataPresent_12);
+            alignmentTargetZ = ParseAndValidate(gpsData, 13, out commandDataPresent_13);
+
+            if (commandDataPresent_11 && commandDataPresent_12 && commandDataPresent_13)
+            {
+                targetAlignmentValid = true;
+                alignmentTargetNew = new Vector3D(alignmentTargetX, alignmentTargetY, alignmentTargetZ);
+            }
+            else
+            {
+                targetAlignmentValid = false;
+            }
+        }
+
+        void GetCustomDataCommandOld(string input, IMyTerminalBlock block)
         {
             // Checks if the block has CustomData AND if it's NOT already INI-formatted data
             if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
@@ -5976,8 +6035,34 @@ namespace IngameScript
                 }
             }
         }
+
+        double ParseDouble(string[] data, int index, double defaultValue)
+        {
+            double result;
+            if (index < data.Length && double.TryParse(data[index], out result)) return result;
+            return defaultValue;
+        }
+
+        int ParseInt(string[] data, int index, int defaultValue)
+        {
+            int result;
+            if (index < data.Length && int.TryParse(data[index], out result)) return result;
+            return defaultValue;
+        }
+
+        double ParseAndValidate(string[] data, int index, out bool present)
+        {
+            double result;
+            if (index < data.Length && !string.IsNullOrEmpty(data[index]) && double.TryParse(data[index], out result))
+            {
+                present = true;
+                return result;
+            }
+            present = false;
+            return 0.0;
+        }
         //end program
-        
+
 
     }
 }
