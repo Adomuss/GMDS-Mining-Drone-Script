@@ -28,12 +28,6 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
-        // R e a d m e
-        // -----------
-        // General Mining Drone Script v0.517B       
-        // Adomus o7 o7 o7
-        // 
-        // 
         #region mdk preserve
         public Program()
         {
@@ -110,7 +104,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.518B";
+        string ver = "V0.519B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -246,24 +240,13 @@ namespace IngameScript
         IMyTimerBlock timerBlockTONActual, timerBlockTOFFActual;        
         IMyPathRecorderBlock ai_task_dock_actual, ai_task_undock_actual;       
         IMyFlightMovementBlock ai_move_actual;
-        IMyBatteryBlock crntbatteryblock;
+        //IMyBatteryBlock crntbatteryblock;
         IMyLightingBlock dockLightActual, undockLightActual, collisionAvoidLightActual, precModeLightActual, resetLightActual, damageLightActual;
         IMySensorBlock sensorActual;
-        IMyGasTank crnthyrdogentank;
-        Vector3D main_gps_coords;
-        Vector3D mining_gps_coords;
-        Vector3D mining_gps_coords_temp;
-        Vector3D tgt_drill_start;
-        Vector3D tgt_drill_end;
-        Vector3D tgt_drill_exit;
-        Vector3D exit_gps_coords_temp;
+        //IMyGasTank crnthyrdogentank;
+        Vector3D main_gps_coords, mining_gps_coords, mining_gps_coords_temp, tgt_drill_start, tgt_drill_end, tgt_drill_exit, exit_gps_coords_temp;
         //Vector3D Last_Coords_Term;
-        Vector3D crnt_tgt_align;
-        Vector3D alignmentTargetNew;
-        Vector3D directionb;
-        Vector3D direction;
-        Vector3D directionc;
-        Vector3D gravity;
+        Vector3D crnt_tgt_align, alignmentTargetNew, directionb, direction, directionc, gravity;
         bool navigation_reset_delay = false;
         bool miningInitialised = false;
         bool exitWaypointSet = false;
@@ -288,55 +271,26 @@ namespace IngameScript
         string p1 = "ID_PLAY_CHECKBOX";
         string pon = "ID_PLAY_CHECKBOX_On";
         string poff = "ID_PLAY_CHECKBOX_Off";
-        List<IMyRemoteControl> rc_all;
-        List<IMyRemoteControl> rctag;
-        List<IMySensorBlock> sensor_all;
-        List<IMySensorBlock> sensor_tag;
-        List<IMyCameraBlock> cam_all;
-        List<IMyCameraBlock> camera_tag;
-        List<IMyShipConnector> connector_all;
-        List<IMyShipConnector> connector_tag;
-        List<IMyCargoContainer> cargo_all;
-        List<IMyCargoContainer> cargo_tag;
-        List<IMyCargoContainer> cargo_sense;
-        List<IMyRadioAntenna> antenna_all;
-        List<IMyRadioAntenna> antenna_tag;
-        List<IMyBeacon> beacons_all;
-        List<IMyBeacon> beacons_tag;
-        List<IMyPathRecorderBlock> flight_path_all;
-        List<IMyPathRecorderBlock> flight_path_dock_tag;
-        List<IMyPathRecorderBlock> flight_path_undock_tag;
-        List<IMyFlightMovementBlock> flight_move_all;
-        List<IMyFlightMovementBlock> flight_move_tag;
-        List<IMyTimerBlock> timer_block_all;
-        List<IMyTimerBlock> timer_block_tON_tag;
-        List<IMyTimerBlock> timer_block_tOFF_tag;
-        List<IMyTimerBlock> timer_block_precM_tag;
-        List<IMyTimerBlock> timer_block_undock_tag;
-        List<IMyLightingBlock> light_all;
-        List<IMyLightingBlock> lightUndockTag;
-        List<IMyLightingBlock> light_dock_tag;
-        List<IMyLightingBlock> light_collision_avoid_tag;
-        List<IMyLightingBlock> lightPrecMTag;
-        List<IMyLightingBlock> lightResetTag;
-        List<IMyLightingBlock> light_dmg_tag;
-        List<IMyBatteryBlock> battery_all;
-        List<IMyBatteryBlock> battery_tag;
-        List<IMyGasTank> hydrogen_tank_all;
-        List<IMyGasTank> hydrogen_tank_tag;
-        List<IMyShipDrill> drill_all;
-        List<IMyShipDrill> drill_tag;
+        List<IMyRemoteControl> rc_all, rctag;
+        List<IMySensorBlock> sensor_all, sensor_tag;
+        List<IMyCameraBlock> cam_all, camera_tag;
+        List<IMyShipConnector> connector_all, connector_tag;
+        List<IMyCargoContainer> cargo_all, cargo_tag, cargo_sense;
+        List<IMyRadioAntenna> antenna_all, antenna_tag;
+        List<IMyBeacon> beacons_all, beacons_tag;
+        List<IMyPathRecorderBlock> flight_path_all, flight_path_dock_tag, flight_path_undock_tag;
+        List<IMyFlightMovementBlock> flight_move_all, flight_move_tag;
+        List<IMyTimerBlock> timer_block_all, timer_block_tON_tag, timer_block_tOFF_tag, timer_block_precM_tag, timer_block_undock_tag;
+        List<IMyLightingBlock> light_all, lightUndockTag, light_dock_tag, light_collision_avoid_tag, lightPrecMTag, lightResetTag, light_dmg_tag;
+        List<IMyBatteryBlock> battery_all, battery_tag;
+        List<IMyGasTank> hydrogen_tank_all, hydrogen_tank_tag;
+        List<IMyShipDrill> drill_all, drill_tag;
         List<MyWaypointInfo> waypoints;
-        List<IMyThrust> thrust_all;
-        List<IMyThrust> thrust_tag;
+        List<IMyThrust> thrust_all, thrust_tag;
         List<MyIGCMessage> syncMessagesBuffer;
-        IMyBlockGroup precModeGroup;
-        IMyBlockGroup undockModeGroup;
-        IMyBlockGroup resetModeGroup;
-        IMyBlockGroup thrusterGroup;
+        IMyBlockGroup precModeGroup, undockModeGroup, resetModeGroup, thrusterGroup;
         IMyGyro gyroActual;
-        List<IMyGyro> gyro_all;
-        List<IMyGyro> gyroTag;
+        List<IMyGyro> gyro_all, gyroTag;
         IMyShipDrill drl_act;
         StringBuilder sb;
         MyIni _ini = new MyIni();
@@ -669,6 +623,7 @@ namespace IngameScript
             damage_check();
             power_check();
             fuel_check();
+            remote_control_position_update();
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
@@ -685,7 +640,7 @@ namespace IngameScript
             gravity_alignment_mng();
             check_ai_gravity_setting();
             drone_alignment_management();
-            rc_navigation_init();
+            rc_navigation_init();            
             if (navState)
             {
                 navigation_management();
@@ -696,8 +651,7 @@ namespace IngameScript
             }
 
             docking_management(canDock, autoDocking);
-            connector_state_management(dockingReady);
-            remote_control_position_update();
+            connector_state_management(dockingReady);            
             drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual, dockingReady);
             nagivation_movement_check();
             undock_delay_check();
@@ -935,7 +889,7 @@ namespace IngameScript
             _customDataStore.Clear();
         }
 
-        void GetCustomDataCommand(string input, IMyTerminalBlock block)
+        void GetCustomDataCommand(IMyTerminalBlock block)
         {
             // Checks if the block has CustomData AND if it's NOT already INI-formatted data
             if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
@@ -3050,9 +3004,8 @@ namespace IngameScript
             {
                 if (battery_tag[i] != null)
                 {
-                    crntbatteryblock = battery_tag[i];
-                    ttl_sPWR += crntbatteryblock.CurrentStoredPower;
-                    ttl_mPWR += crntbatteryblock.MaxStoredPower;
+                    ttl_sPWR += battery_tag[i].CurrentStoredPower;
+                    ttl_mPWR += battery_tag[i].MaxStoredPower;
                     //ttl_PWRc += crntbatteryblock.CurrentOutput;
                     validBatteries++;
 
@@ -3088,9 +3041,6 @@ namespace IngameScript
         {
 
             #region fuel_check
-            if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
-            {
-            }
             ttl_GASs = 0;
             ttl_sGAS = 0;
             ttl_mGAS = 0;
@@ -3101,9 +3051,8 @@ namespace IngameScript
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                 {
                     if (hydrogen_tank_tag[i] != null)
-                    {
-                        crnthyrdogentank = hydrogen_tank_tag[i];
-                        ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
+                    {                        
+                        ttl_GASs = hydrogen_tank_tag[i].FilledRatio * 100.0f;
                         ttl_sGAS = ttl_sGAS + ttl_GASs;
                         ttl_mGAS = 100.0f;
                         ttl_GASm = ttl_GASm + ttl_mGAS;
@@ -3335,7 +3284,7 @@ namespace IngameScript
                 {
                     if (_updatedJob)
                     {
-                        GetCustomDataCommand(Me.CustomData.ToString(), Me);
+                        GetCustomDataCommand(Me);
                         _updatedJob = false;
                     }
                     custom_data_read = 1;
@@ -3519,25 +3468,23 @@ namespace IngameScript
                     if (ai_task_dock_actual.GetValue<bool>(p1) && (stopState || dockState))
                     {
                         ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
-
-                        if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
-                        {
-                            ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
-                        }
-                        if (ai_move_actual.GetValue<bool>(abr) && (stopState || dockState))
-                        {
-                            ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-                        }
-                        if (ai_task_dock_actual.GetValue<bool>(abr) && (stopState || dockState))
-                        {
-                            ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
-                        }
-                        if (ai_task_undock_actual.GetValue<bool>(abr) && (stopState || dockState))
-                        {
-                            ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
-                        }
                     }
-
+                    if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
+                    {
+                        ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
+                    }
+                    if (ai_move_actual.GetValue<bool>(abr) && (stopState || dockState))
+                    {
+                        ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+                    }
+                    if (ai_task_dock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                    {
+                        ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
+                    }
+                    if (ai_task_undock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                    {
+                        ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
+                    }
                 }
             }
         }
@@ -3622,8 +3569,14 @@ namespace IngameScript
                     }
                     if (ai_move_actual != null)
                     {
-                        ai_move_actual.PrecisionMode = true;
-                        ai_move_actual.CollisionAvoidance = false;
+                        if (!ai_move_actual.PrecisionMode)
+                        {
+                            ai_move_actual.PrecisionMode = true;
+                        }
+                        if (ai_move_actual.CollisionAvoidance)
+                        {
+                            ai_move_actual.CollisionAvoidance = false;
+                        }
                         if (ai_move_actual.SpeedLimit != nav_speed)
                         {
                             ai_move_actual.SpeedLimit = nav_speed;
@@ -3792,7 +3745,7 @@ namespace IngameScript
                 if (!wasMining)
                 {
                     if (remoteControlActual != null)
-                    {
+                    {                        
                         remoteControlActual.SetCollisionAvoidance(false);
                         remoteControlActual.SetDockingMode(false);
                         remoteControlActual.SetAutoPilotEnabled(false);
@@ -4029,7 +3982,7 @@ namespace IngameScript
             }
             if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
-            remote_control_position_update();
+            //remote_control_position_update();
 
             if (!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !connectorActual.IsConnected && isUndocked)
             {
@@ -4361,7 +4314,7 @@ namespace IngameScript
 
             #region mining_management
             // *** Mining sequence ***
-            remote_control_position_update();
+            //remote_control_position_update();
             //initialise mining position
             if (!miningInitialised && mineState && custom_data_read == 1 && miningStage == 0 && !isAutopiloting && isUndocked)
             {
@@ -5109,7 +5062,7 @@ namespace IngameScript
                         }
                         if (ai_move_actual.CollisionAvoidance)
                         {
-                            ai_move_actual.CollisionAvoidance = false;
+                            ai_move_actual.CollisionAvoidance = false;                            
                         }
                     }
                 }
@@ -5731,8 +5684,6 @@ namespace IngameScript
             #endregion
 
         }
-
-
 
         public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
