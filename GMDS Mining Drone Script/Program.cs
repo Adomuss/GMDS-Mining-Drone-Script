@@ -28,6 +28,12 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
+        // R e a d m e
+        // -----------
+        // General Mining Drone Script v0.517B       
+        // Adomus o7 o7 o7
+        // 
+        // 
         #region mdk preserve
         public Program()
         {
@@ -104,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.519B";
+        string ver = "V0.517B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -149,7 +155,7 @@ namespace IngameScript
         bool mode_set = false;
         string drnst;
         string commandCommandDataRequested = "0";
-        //string commandDataDistance = "10.0";
+        string commandDataDistance = "10.0";
         double ignoreDistance = 0.0;
         double alignmentTargetX = 0.0;
         double alignmentTargetY = 0.0;
@@ -167,7 +173,7 @@ namespace IngameScript
         //float ttl_PWRm;
         float ttl_mPWR;
         //float ttl_cPWR;
-        //float ttl_PWRc;
+        float ttl_PWRc;
         bool can_gyroOVR = false;
         bool targetAlignmentValid = false;
         bool cnvyrsON = false;
@@ -223,30 +229,48 @@ namespace IngameScript
         bool commandDataPresent_12 = false;
         bool commandDataPresent_13 = false;
         string commandDataIgnoreDistance = "";
-        //string commandData8 = "";
-        //string commandData9 = "";
-        //string commandDataAlignX = "";
-        //string commandDataAlignY = "";
-        //string commandDataAlignZ = "";
+        string commandData8 = "";
+        string commandData9 = "";
+        string commandDataAlignX = "";
+        string commandDataAlignY = "";
+        string commandDataAlignZ = "";
         string gpsIndex = "";
         int cmd_read_ack = 0;
         int mainNavSequence = 0;
         bool add_nav_Waypoint_mn = false;
         bool main_nav_complete = false;
         IMyRemoteControl remoteControlActual;
-        //IMyCameraBlock camera_actual;
+        IMyCameraBlock camera_actual;
         IMyShipConnector connectorActual;
         IMyRadioAntenna antenna_actual;
-        IMyTimerBlock timerBlockTONActual, timerBlockTOFFActual;        
-        IMyPathRecorderBlock ai_task_dock_actual, ai_task_undock_actual;       
+        IMyTimerBlock timerBlockTONActual;
+        IMyTimerBlock timerBlockTOFFActual;
+        IMyPathRecorderBlock ai_task_dock_actual;
+        IMyPathRecorderBlock ai_task_undock_actual;
         IMyFlightMovementBlock ai_move_actual;
-        //IMyBatteryBlock crntbatteryblock;
-        IMyLightingBlock dockLightActual, undockLightActual, collisionAvoidLightActual, precModeLightActual, resetLightActual, damageLightActual;
+        IMyBatteryBlock crntbatteryblock;
+        IMyLightingBlock dockLightActual;
+        IMyLightingBlock undockLightActual;
+        IMyLightingBlock collisionAvoidLightActual;
+        IMyLightingBlock precModeLightActual;
+        IMyLightingBlock resetLightActual;
+        IMyLightingBlock damageLightActual;
         IMySensorBlock sensorActual;
-        //IMyGasTank crnthyrdogentank;
-        Vector3D main_gps_coords, mining_gps_coords, mining_gps_coords_temp, tgt_drill_start, tgt_drill_end, tgt_drill_exit, exit_gps_coords_temp;
-        //Vector3D Last_Coords_Term;
-        Vector3D crnt_tgt_align, alignmentTargetNew, directionb, direction, directionc, gravity;
+        IMyGasTank crnthyrdogentank;
+        Vector3D main_gps_coords;
+        Vector3D mining_gps_coords;
+        Vector3D mining_gps_coords_temp;
+        Vector3D tgt_drill_start;
+        Vector3D tgt_drill_end;
+        Vector3D tgt_drill_exit;
+        Vector3D exit_gps_coords_temp;
+        Vector3D Last_Coords_Term;
+        Vector3D crnt_tgt_align;
+        Vector3D alignmentTargetNew;
+        Vector3D directionb;
+        Vector3D direction;
+        Vector3D directionc;
+        Vector3D gravity;
         bool navigation_reset_delay = false;
         bool miningInitialised = false;
         bool exitWaypointSet = false;
@@ -271,26 +295,55 @@ namespace IngameScript
         string p1 = "ID_PLAY_CHECKBOX";
         string pon = "ID_PLAY_CHECKBOX_On";
         string poff = "ID_PLAY_CHECKBOX_Off";
-        List<IMyRemoteControl> rc_all, rctag;
-        List<IMySensorBlock> sensor_all, sensor_tag;
-        List<IMyCameraBlock> cam_all, camera_tag;
-        List<IMyShipConnector> connector_all, connector_tag;
-        List<IMyCargoContainer> cargo_all, cargo_tag, cargo_sense;
-        List<IMyRadioAntenna> antenna_all, antenna_tag;
-        List<IMyBeacon> beacons_all, beacons_tag;
-        List<IMyPathRecorderBlock> flight_path_all, flight_path_dock_tag, flight_path_undock_tag;
-        List<IMyFlightMovementBlock> flight_move_all, flight_move_tag;
-        List<IMyTimerBlock> timer_block_all, timer_block_tON_tag, timer_block_tOFF_tag, timer_block_precM_tag, timer_block_undock_tag;
-        List<IMyLightingBlock> light_all, lightUndockTag, light_dock_tag, light_collision_avoid_tag, lightPrecMTag, lightResetTag, light_dmg_tag;
-        List<IMyBatteryBlock> battery_all, battery_tag;
-        List<IMyGasTank> hydrogen_tank_all, hydrogen_tank_tag;
-        List<IMyShipDrill> drill_all, drill_tag;
+        List<IMyRemoteControl> rc_all;
+        List<IMyRemoteControl> rctag;
+        List<IMySensorBlock> sensor_all;
+        List<IMySensorBlock> sensor_tag;
+        List<IMyCameraBlock> cam_all;
+        List<IMyCameraBlock> camera_tag;
+        List<IMyShipConnector> connector_all;
+        List<IMyShipConnector> connector_tag;
+        List<IMyCargoContainer> cargo_all;
+        List<IMyCargoContainer> cargo_tag;
+        List<IMyCargoContainer> cargo_sense;
+        List<IMyRadioAntenna> antenna_all;
+        List<IMyRadioAntenna> antenna_tag;
+        List<IMyBeacon> beacons_all;
+        List<IMyBeacon> beacons_tag;
+        List<IMyPathRecorderBlock> flight_path_all;
+        List<IMyPathRecorderBlock> flight_path_dock_tag;
+        List<IMyPathRecorderBlock> flight_path_undock_tag;
+        List<IMyFlightMovementBlock> flight_move_all;
+        List<IMyFlightMovementBlock> flight_move_tag;
+        List<IMyTimerBlock> timer_block_all;
+        List<IMyTimerBlock> timer_block_tON_tag;
+        List<IMyTimerBlock> timer_block_tOFF_tag;
+        List<IMyTimerBlock> timer_block_precM_tag;
+        List<IMyTimerBlock> timer_block_undock_tag;
+        List<IMyLightingBlock> light_all;
+        List<IMyLightingBlock> lightUndockTag;
+        List<IMyLightingBlock> light_dock_tag;
+        List<IMyLightingBlock> light_collision_avoid_tag;
+        List<IMyLightingBlock> lightPrecMTag;
+        List<IMyLightingBlock> lightResetTag;
+        List<IMyLightingBlock> light_dmg_tag;
+        List<IMyBatteryBlock> battery_all;
+        List<IMyBatteryBlock> battery_tag;
+        List<IMyGasTank> hydrogen_tank_all;
+        List<IMyGasTank> hydrogen_tank_tag;
+        List<IMyShipDrill> drill_all;
+        List<IMyShipDrill> drill_tag;
         List<MyWaypointInfo> waypoints;
-        List<IMyThrust> thrust_all, thrust_tag;
+        List<IMyThrust> thrust_all;
+        List<IMyThrust> thrust_tag;
         List<MyIGCMessage> syncMessagesBuffer;
-        IMyBlockGroup precModeGroup, undockModeGroup, resetModeGroup, thrusterGroup;
+        IMyBlockGroup precModeGroup;
+        IMyBlockGroup undockModeGroup;
+        IMyBlockGroup resetModeGroup;
+        IMyBlockGroup thrusterGroup;
         IMyGyro gyroActual;
-        List<IMyGyro> gyro_all, gyroTag;
+        List<IMyGyro> gyro_all;
+        List<IMyGyro> gyroTag;
         IMyShipDrill drl_act;
         StringBuilder sb;
         MyIni _ini = new MyIni();
@@ -320,7 +373,7 @@ namespace IngameScript
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
-        //string temp_id_name;
+        string temp_id_name;
         int temp_id_num;
         double response_time = 0.0;
         double undock_delay_time = 0.0;
@@ -328,8 +381,15 @@ namespace IngameScript
         double navigation_reset_delay_time = 0.0;
         string fail_data = "---:-1:0:0:0:0:0:0:0:";
         double spd;
-        IMyBroadcastListener listn, listn_recall, listn_recall_drone, listn_png, listensync;
-        MyIGCMessage new_msg, new_msg_2, new_msg_3, new_msg_4;
+        IMyBroadcastListener listn;
+        IMyBroadcastListener listn_recall;
+        IMyBroadcastListener listn_recall_drone;
+        IMyBroadcastListener listn_png;
+        IMyBroadcastListener listensync;
+        MyIGCMessage new_msg;
+        MyIGCMessage new_msg_2;
+        MyIGCMessage new_msg_3;
+        MyIGCMessage new_msg_4;
         string syncDataInput;
         Vector3D rc_xyz;
         float percent_battery_power = 0.0f;
@@ -354,7 +414,7 @@ namespace IngameScript
         MyIni _sensorInfo = new MyIni();
         bool syncMessageReceived = false;
         bool secondary_tag_changed = false;
-        //MyIni _commandData = new MyIni();
+        MyIni _commandData = new MyIni();
         MyIni _customDataStore = new MyIni();
         string gmdscategory = "GMDSJobData";
         string jobinfo = "Jobinfo";
@@ -623,7 +683,6 @@ namespace IngameScript
             damage_check();
             power_check();
             fuel_check();
-            remote_control_position_update();
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
@@ -640,7 +699,7 @@ namespace IngameScript
             gravity_alignment_mng();
             check_ai_gravity_setting();
             drone_alignment_management();
-            rc_navigation_init();            
+            rc_navigation_init();
             if (navState)
             {
                 navigation_management();
@@ -651,7 +710,8 @@ namespace IngameScript
             }
 
             docking_management(canDock, autoDocking);
-            connector_state_management(dockingReady);            
+            connector_state_management(dockingReady);
+            remote_control_position_update();
             drone_message_transmission_management(autoDocking, remoteControlActual, antenna_actual, dockingReady);
             nagivation_movement_check();
             undock_delay_check();
@@ -888,77 +948,7 @@ namespace IngameScript
             }
             _customDataStore.Clear();
         }
-
-        void GetCustomDataCommand(IMyTerminalBlock block)
-        {
-            // Checks if the block has CustomData AND if it's NOT already INI-formatted data
-            if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
-            {
-                _customDataStore.Clear();
-                if (!_customDataStore.TryParse(Me.CustomData))
-                {
-                    String[] gpsCommandtest = block.CustomData.ToString().Split(':');
-
-                    if (gpsCommandtest.Length > 0)
-                    {
-                        StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
-                        _updatedJob = true;
-                    }
-                    Echo("Dataconversion");
-                }
-            }
-            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
-            {
-                Echo("Custom Data is empty");
-                return;
-            }
-            // 2. Fetch and Initial Split
-            FetchJobData(block.CustomData);
-            string[] gpsData = jobdata.Split(':');
-            int len = gpsData.Length;
-
-            if (len < 5)
-            {
-                Echo("Custom Data is faulty");
-                jobdata = fail_data;
-                return;
-            }
-
-            // 3. Main Target Parsing (Indices 1-7)
-            gpsIndex = gpsData[1];
-
-            // Direct Vector3D creation with parsing
-            double mx = ParseDouble(gpsData, 2, 0.0);
-            double my = ParseDouble(gpsData, 3, 0.0);
-            double mz = ParseDouble(gpsData, 4, 0.0);
-            main_gps_coords = new Vector3D(mx, my, mz);
-
-            commandRequest = ParseInt(gpsData, 6, 0);
-            drillSetLength = ParseDouble(gpsData, 7, 1.0);
-            // 4. Distance and Extras (Indices 8-10)
-            ignoreDistance = ParseDouble(gpsData, 8, 0.0);
-            commandDataIgnoreDistance = gpsData[8];
-            //commandData8 = (len > 9) ? gpsData[9] ?? "" : "";
-            //commandData9 = (len > 10) ? gpsData[10] ?? "" : "";
-
-            // 5. Alignment Logic (Indices 11-13)
-            // We use the new helper to set both the value and the 'present' bool at once
-            alignmentTargetX = ParseAndValidate(gpsData, 11, out commandDataPresent_11);
-            alignmentTargetY = ParseAndValidate(gpsData, 12, out commandDataPresent_12);
-            alignmentTargetZ = ParseAndValidate(gpsData, 13, out commandDataPresent_13);
-
-            if (commandDataPresent_11 && commandDataPresent_12 && commandDataPresent_13)
-            {
-                targetAlignmentValid = true;
-                alignmentTargetNew = new Vector3D(alignmentTargetX, alignmentTargetY, alignmentTargetZ);
-            }
-            else
-            {
-                targetAlignmentValid = false;
-            }
-        }
-
-        void GetCustomDataCommandOld(string input, IMyTerminalBlock block)
+        void GetCustomDataCommand(string input, IMyTerminalBlock block)
         {
             // Checks if the block has CustomData AND if it's NOT already INI-formatted data
             if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
@@ -1017,11 +1007,11 @@ namespace IngameScript
                     commandRequest = 0;
                 }
 
-                //commandDataDistance = gpsCommandData[7];
-                //if (!Double.TryParse(commandDataDistance, out drillSetLength))
-                //{
-                 //   drillSetLength = 1.0;
-                //}
+                commandDataDistance = gpsCommandData[7];
+                if (!Double.TryParse(commandDataDistance, out drillSetLength))
+                {
+                    drillSetLength = 1.0;
+                }
 
             }
 
@@ -1052,11 +1042,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[9] == null || gpsCommandData[9] == "")
                 {
-                   // commandData8 = "";
+                    commandData8 = "";
                 }
                 else
                 {
-                   // commandData8 = gpsCommandData[9];
+                    commandData8 = gpsCommandData[9];
                 }
             }
 
@@ -1064,11 +1054,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[10] == null || gpsCommandData[10] == "")
                 {
-                   // commandData9 = "";
+                    commandData9 = "";
                 }
                 else
                 {
-                    //commandData9 = gpsCommandData[10];
+                    commandData9 = gpsCommandData[10];
                 }
             }
 
@@ -1076,23 +1066,23 @@ namespace IngameScript
             {
                 if (gpsCommandData[11] == null || gpsCommandData[11] == "")
                 {
-                  //  commandDataAlignX = "";
+                    commandDataAlignX = "";
                     commandDataPresent_11 = false;
                 }
                 else
                 {
-                   // commandDataAlignX = gpsCommandData[11];
+                    commandDataAlignX = gpsCommandData[11];
 
-                  //  if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
-                  //  {
-                  //      alignmentTargetX = 0.0;
-                  //      commandDataPresent_11 = false;
+                    if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
+                    {
+                        alignmentTargetX = 0.0;
+                        commandDataPresent_11 = false;
 
-                 //   }
-                  //  else
-                  //  {
-                 //       commandDataPresent_11 = true;
-                 //   }
+                    }
+                    else
+                    {
+                        commandDataPresent_11 = true;
+                    }
                 }
             }
 
@@ -1100,23 +1090,23 @@ namespace IngameScript
             {
                 if (gpsCommandData[12] == null || gpsCommandData[12] == "")
                 {
-                  //  commandDataAlignY = "";
+                    commandDataAlignY = "";
                     commandDataPresent_12 = false;
                 }
                 else
                 {
-                  //  commandDataAlignY = gpsCommandData[12];
+                    commandDataAlignY = gpsCommandData[12];
 
-                 //   if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
-                  //  {
-                    //    alignmentTargetY = 0.0;
-                    //    commandDataPresent_12 = false;
+                    if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
+                    {
+                        alignmentTargetY = 0.0;
+                        commandDataPresent_12 = false;
 
-                  //  }
-                  //  else
-                 //   {
-                 //       commandDataPresent_12 = true;
-                 //   }
+                    }
+                    else
+                    {
+                        commandDataPresent_12 = true;
+                    }
                 }
             }
 
@@ -1124,23 +1114,22 @@ namespace IngameScript
             {
                 if (gpsCommandData[13] == null || gpsCommandData[13] == "")
                 {
-                    // commandDataAlignZ = "";
-                    //  commandDataPresent_13 = false;
+                    commandDataAlignZ = "";
+                    commandDataPresent_13 = false;
                 }
                 else
                 {
-                    //   commandDataAlignZ = gpsCommandData[13].ToString();
+                    commandDataAlignZ = gpsCommandData[13].ToString();
 
-                    //  if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
+                    if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
                     {
-                        //      alignmentTargetZ = 0.0;
-                        //     commandDataPresent_13 = false;
+                        alignmentTargetZ = 0.0;
+                        commandDataPresent_13 = false;
 
-                        //  }
-                        // else
-                        // {
-                        //      commandDataPresent_13 = true;
-                        //  }
+                    }
+                    else
+                    {
+                        commandDataPresent_13 = true;
                     }
                 }
             }
@@ -1454,7 +1443,7 @@ namespace IngameScript
                     // Check for exit distance command
                     if (arg.Contains(exitDistanceCommand))
                     {
-                        
+
                         string temparg = arg;
                         if (!string.IsNullOrWhiteSpace(temparg))
                         {
@@ -1696,29 +1685,30 @@ namespace IngameScript
                         }
                     }
                 }
-
+            }
+            if (temp_id.Length > 1)
+            {
                 if (temp_id[1] != null)
                 {
-                    //temp_id_name = temp_id[1];
+                    temp_id_name = temp_id[1];
                     load_tag = true;
                     if (load_tag)
                     {
-                        droneTag = temp_id[1];
+                        droneTag = temp_id_name;
                     }
-                    if (temp_id[1] == "" || temp_id[1] == null)
+                    if (temp_id_name == "" || temp_id_name == null)
                     {
-                        //temp_id_name = droneTag;
+                        temp_id_name = droneTag;
                         Echo($"Resorting to default drone tag.{droneTag.Replace("[", "[[").Replace("]", "]]")}");
                     }
                 }
             }
 
-
             if (temp_id.Length == 0)
             {
                 temp_id_num = drone_id_num;
-                //temp_id_name = droneTag;
-                Echo($"Resorting to default config. {droneTag.Replace("[", "[[").Replace("]", "]]")} {temp_id_num}");
+                temp_id_name = droneTag;
+                Echo($"Resorting to default config. {temp_id_name.Replace("[", "[[").Replace("]", "]]")} {temp_id_num}");
             }
 
             if (antenna_all[index] != null)
@@ -2320,17 +2310,17 @@ namespace IngameScript
                 }
             }
             thrust_all.Clear();
-            
+
             thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
 
             if (thrust_tag.Count > 0)
             {
-                
+
                 thrustGroupPresent = true;
                 //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 thrust_tag.Clear();
                 gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
-                Echo($"Thruster Group {thrustGroupTag.Replace("[","[[").Replace("]","]]")} found");
+                Echo($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
@@ -2691,7 +2681,7 @@ namespace IngameScript
                 Echo($"Camera with tag: '{D_I_N_Clone}' not found.");
                 return;
             }
-            //camera_actual = camera_tag[0];
+            camera_actual = camera_tag[0];
             if (connector_tag.Count <= 0 || connector_tag[0] == null)
             {
                 Echo($"Connector with tag: '{D_C_N_Clone}' not found.");
@@ -2996,7 +2986,7 @@ namespace IngameScript
             #region power_check
             ttl_sPWR = 0f;  // Total stored power
             ttl_mPWR = 0f;  // Total max power
-           // ttl_PWRc = 0f;  // Total current output
+            ttl_PWRc = 0f;  // Total current output
             int validBatteries = 0;
 
             // Single loop to gather totals and optionally set ChargeMode
@@ -3004,19 +2994,20 @@ namespace IngameScript
             {
                 if (battery_tag[i] != null)
                 {
-                    ttl_sPWR += battery_tag[i].CurrentStoredPower;
-                    ttl_mPWR += battery_tag[i].MaxStoredPower;
-                    //ttl_PWRc += crntbatteryblock.CurrentOutput;
+                    crntbatteryblock = battery_tag[i];
+                    ttl_sPWR += crntbatteryblock.CurrentStoredPower;
+                    ttl_mPWR += crntbatteryblock.MaxStoredPower;
+                    ttl_PWRc += crntbatteryblock.CurrentOutput;
                     validBatteries++;
 
                     // Set ChargeMode in the same loop if conditions allow
-                  /*   if (connectorActual != null)
-                    {
-                        if (!recharge_request_battery && crntbatteryblock.ChargeMode != ChargeMode.Auto && !autoChargeMode && connectorActual.Status == MyShipConnectorStatus.Connected || connectorActual.Status != MyShipConnectorStatus.Connected && crntbatteryblock.ChargeMode != ChargeMode.Auto)
-                        {
-                            crntbatteryblock.ChargeMode = ChargeMode.Auto;
-                        }
-                    } */
+                    /*   if (connectorActual != null)
+                      {
+                          if (!recharge_request_battery && crntbatteryblock.ChargeMode != ChargeMode.Auto && !autoChargeMode && connectorActual.Status == MyShipConnectorStatus.Connected || connectorActual.Status != MyShipConnectorStatus.Connected && crntbatteryblock.ChargeMode != ChargeMode.Auto)
+                          {
+                              crntbatteryblock.ChargeMode = ChargeMode.Auto;
+                          }
+                      } */
                 }
             }
 
@@ -3041,6 +3032,9 @@ namespace IngameScript
         {
 
             #region fuel_check
+            if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
+            {
+            }
             ttl_GASs = 0;
             ttl_sGAS = 0;
             ttl_mGAS = 0;
@@ -3051,8 +3045,9 @@ namespace IngameScript
                 for (int i = 0; i < hydrogen_tank_tag.Count; i++)
                 {
                     if (hydrogen_tank_tag[i] != null)
-                    {                        
-                        ttl_GASs = hydrogen_tank_tag[i].FilledRatio * 100.0f;
+                    {
+                        crnthyrdogentank = hydrogen_tank_tag[i];
+                        ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
                         ttl_sGAS = ttl_sGAS + ttl_GASs;
                         ttl_mGAS = 100.0f;
                         ttl_GASm = ttl_GASm + ttl_mGAS;
@@ -3284,7 +3279,7 @@ namespace IngameScript
                 {
                     if (_updatedJob)
                     {
-                        GetCustomDataCommand(Me);
+                        GetCustomDataCommand(Me.CustomData.ToString(), Me);
                         _updatedJob = false;
                     }
                     custom_data_read = 1;
@@ -3468,23 +3463,25 @@ namespace IngameScript
                     if (ai_task_dock_actual.GetValue<bool>(p1) && (stopState || dockState))
                     {
                         ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
+
+                        if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
+                        {
+                            ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
+                        }
+                        if (ai_move_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+                        }
+                        if (ai_task_dock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
+                        }
+                        if (ai_task_undock_actual.GetValue<bool>(abr) && (stopState || dockState))
+                        {
+                            ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
+                        }
                     }
-                    if (ai_task_undock_actual.GetValue<bool>(p1) && (stopState || dockState))
-                    {
-                        ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
-                    }
-                    if (ai_move_actual.GetValue<bool>(abr) && (stopState || dockState))
-                    {
-                        ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-                    }
-                    if (ai_task_dock_actual.GetValue<bool>(abr) && (stopState || dockState))
-                    {
-                        ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
-                    }
-                    if (ai_task_undock_actual.GetValue<bool>(abr) && (stopState || dockState))
-                    {
-                        ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
-                    }
+
                 }
             }
         }
@@ -3569,14 +3566,8 @@ namespace IngameScript
                     }
                     if (ai_move_actual != null)
                     {
-                        if (!ai_move_actual.PrecisionMode)
-                        {
-                            ai_move_actual.PrecisionMode = true;
-                        }
-                        if (ai_move_actual.CollisionAvoidance)
-                        {
-                            ai_move_actual.CollisionAvoidance = false;
-                        }
+                        ai_move_actual.PrecisionMode = true;
+                        ai_move_actual.CollisionAvoidance = false;
                         if (ai_move_actual.SpeedLimit != nav_speed)
                         {
                             ai_move_actual.SpeedLimit = nav_speed;
@@ -3745,7 +3736,7 @@ namespace IngameScript
                 if (!wasMining)
                 {
                     if (remoteControlActual != null)
-                    {                        
+                    {
                         remoteControlActual.SetCollisionAvoidance(false);
                         remoteControlActual.SetDockingMode(false);
                         remoteControlActual.SetAutoPilotEnabled(false);
@@ -3982,7 +3973,7 @@ namespace IngameScript
             }
             if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
-            //remote_control_position_update();
+            remote_control_position_update();
 
             if (!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !connectorActual.IsConnected && isUndocked)
             {
@@ -4314,7 +4305,7 @@ namespace IngameScript
 
             #region mining_management
             // *** Mining sequence ***
-            //remote_control_position_update();
+            remote_control_position_update();
             //initialise mining position
             if (!miningInitialised && mineState && custom_data_read == 1 && miningStage == 0 && !isAutopiloting && isUndocked)
             {
@@ -4504,7 +4495,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-              //  Last_Coords_Term = main_gps_coords;
+                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4518,7 +4509,7 @@ namespace IngameScript
             if (miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && !targetDepthAchieved && requestExit && wasMining && miningInitialised && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
                 miningStage = 6;
-              //  Last_Coords_Term = main_gps_coords;
+                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4534,7 +4525,7 @@ namespace IngameScript
 
                 miningStage = 6;
                 requestExit = true;
-              //  Last_Coords_Term = main_gps_coords;
+                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4549,7 +4540,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-               // Last_Coords_Term = main_gps_coords;
+                Last_Coords_Term = main_gps_coords;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(false);
@@ -4623,7 +4614,7 @@ namespace IngameScript
                 }
                 Vector3D targetpositione = directionc * drill_el;
                 Vector3D targetpositione_temp = directionc * req_dist;
-                
+
                 tgt_drill_exit.Y = Math.Round(tgt_drill_start.Y - targetpositione.Y, 2);
                 tgt_drill_exit.X = Math.Round(tgt_drill_start.X - targetpositione.X, 2);
                 tgt_drill_exit.Z = Math.Round(tgt_drill_start.Z - targetpositione.Z, 2);
@@ -4647,9 +4638,9 @@ namespace IngameScript
 
                     Vector3D targetposition = direction * req_dist;
 
-                        exit_gps_coords_temp.X = Math.Round(rc_xyz.X - targetposition.X, 2);
-                        exit_gps_coords_temp.Y = Math.Round(rc_xyz.Y - targetposition.Y, 2);
-                        exit_gps_coords_temp.Z = Math.Round(rc_xyz.Z - targetposition.Z, 2);
+                    exit_gps_coords_temp.X = Math.Round(rc_xyz.X - targetposition.X, 2);
+                    exit_gps_coords_temp.Y = Math.Round(rc_xyz.Y - targetposition.Y, 2);
+                    exit_gps_coords_temp.Z = Math.Round(rc_xyz.Z - targetposition.Z, 2);
 
                     remoteControlActual.ClearWaypoints();
                     remoteControlActual.AddWaypoint(exit_gps_coords_temp, "exit shaft");
@@ -4995,9 +4986,9 @@ namespace IngameScript
                     switchedThrustersOn = true;
                     switchedThrustersOff = false;
                 }
-                if(ai_move_actual != null)
+                if (ai_move_actual != null)
                 {
-                    if(ai_move_actual.SpeedLimit != nav_speed)
+                    if (ai_move_actual.SpeedLimit != nav_speed)
                     {
                         ai_move_actual.SpeedLimit = nav_speed;
                     }
@@ -5062,7 +5053,7 @@ namespace IngameScript
                         }
                         if (ai_move_actual.CollisionAvoidance)
                         {
-                            ai_move_actual.CollisionAvoidance = false;                            
+                            ai_move_actual.CollisionAvoidance = false;
                         }
                     }
                 }
@@ -5132,10 +5123,10 @@ namespace IngameScript
                             {
                                 ai_move_actual.CollisionAvoidance = true;
                             }
-                                if (ai_move_actual.SpeedLimit != nav_speed)
-                                {
-                                    ai_move_actual.SpeedLimit = nav_speed;
-                                }
+                            if (ai_move_actual.SpeedLimit != nav_speed)
+                            {
+                                ai_move_actual.SpeedLimit = nav_speed;
+                            }
                         }
                         if (ai_move_actual != null)
                         {
@@ -5331,7 +5322,7 @@ namespace IngameScript
                 if (connectorActual != null && ai_task_dock_actual != null)
                 {
                     if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr) || (ai_task_dock_actual.GetValue<bool>(abr)))))
-                    {                        
+                    {
                         if (resetLightActual != null)
                         {
                             if (!resetLightActual.Enabled)
@@ -5360,14 +5351,14 @@ namespace IngameScript
                                 }
                             }
 
-                        }                        
+                        }
 
                     }
                 }
 
 
             }
-            
+
             if (precMflip && dockingStage == 2)
             {
                 if (ai_move_actual != null)
@@ -5520,7 +5511,7 @@ namespace IngameScript
                     tankAutochargeSet = false;
                     tankRechargeModeSet = true;
                 }
-            
+
             }
             if (!connectorActual.IsConnected && ignore_Htank)
             {
@@ -5685,6 +5676,8 @@ namespace IngameScript
 
         }
 
+
+
         public void drone_message_transmission_management(bool autoDock, IMyRemoteControl rc_actual, IMyRadioAntenna antenna_actual, bool dockingReady)
         {
 
@@ -5826,10 +5819,10 @@ namespace IngameScript
             if (no_speed_dock_delay_count >= no_speed_dock_delay_limit)
             {
                 no_speed_ready_dock = true;
-                    if (!precMflip)
-                    {
-                        precMflip = true;
-                    }
+                if (!precMflip)
+                {
+                    precMflip = true;
+                }
             }
             #endregion
 
@@ -5982,32 +5975,6 @@ namespace IngameScript
                     list.Clear();
                 }
             }
-        }
-
-        double ParseDouble(string[] data, int index, double defaultValue)
-        {
-            double result;
-            if (index < data.Length && double.TryParse(data[index], out result)) return result;
-            return defaultValue;
-        }
-
-        int ParseInt(string[] data, int index, int defaultValue)
-        {
-            int result;
-            if (index < data.Length && int.TryParse(data[index], out result)) return result;
-            return defaultValue;
-        }
-
-        double ParseAndValidate(string[] data, int index, out bool present)
-        {
-            double result;
-            if (index < data.Length && !string.IsNullOrEmpty(data[index]) && double.TryParse(data[index], out result))
-            {
-                present = true;
-                return result;
-            }
-            present = false;
-            return 0.0;
         }
         //end program
 
