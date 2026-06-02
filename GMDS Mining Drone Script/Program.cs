@@ -679,18 +679,23 @@ namespace IngameScript
             ClearCurrentWaypoints();
             item_presence_check();
             confirm_item_presence();
-            if(runTick % 6 == 0) 
+            if (runTick % 6 == 0)
             {
                 power_check();
             }
-            if(runTick % 6 == 2)
+            if (runTick % 6 == 2)
             {
                 fuel_check();
             }
-            if(runTick % 6 == 4)
+            if (runTick % 6 == 4)
             {
                 cargo_check();
-            }            
+            }
+
+            if (runTick > 60)
+            {
+                runTick = 0;
+            }
             damage_check();
             
 
