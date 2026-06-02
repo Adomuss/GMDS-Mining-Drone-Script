@@ -173,7 +173,7 @@ namespace IngameScript
         //float ttl_PWRm;
         float ttl_mPWR;
         //float ttl_cPWR;
-        float ttl_PWRc;
+        //float ttl_PWRc;
         bool can_gyroOVR = false;
         bool targetAlignmentValid = false;
         bool cnvyrsON = false;
@@ -229,8 +229,8 @@ namespace IngameScript
         bool commandDataPresent_12 = false;
         bool commandDataPresent_13 = false;
         string commandDataIgnoreDistance = "";
-        string commandData8 = "";
-        string commandData9 = "";
+        //string commandData8 = "";
+        //string commandData9 = "";
         string commandDataAlignX = "";
         string commandDataAlignY = "";
         string commandDataAlignZ = "";
@@ -240,7 +240,7 @@ namespace IngameScript
         bool add_nav_Waypoint_mn = false;
         bool main_nav_complete = false;
         IMyRemoteControl remoteControlActual;
-        IMyCameraBlock camera_actual;
+        //IMyCameraBlock camera_actual;
         IMyShipConnector connectorActual;
         IMyRadioAntenna antenna_actual;
         IMyTimerBlock timerBlockTONActual;
@@ -264,7 +264,7 @@ namespace IngameScript
         Vector3D tgt_drill_end;
         Vector3D tgt_drill_exit;
         Vector3D exit_gps_coords_temp;
-        Vector3D Last_Coords_Term;
+        //Vector3D Last_Coords_Term;
         Vector3D crnt_tgt_align;
         Vector3D alignmentTargetNew;
         Vector3D directionb;
@@ -414,7 +414,6 @@ namespace IngameScript
         MyIni _sensorInfo = new MyIni();
         bool syncMessageReceived = false;
         bool secondary_tag_changed = false;
-        MyIni _commandData = new MyIni();
         MyIni _customDataStore = new MyIni();
         string gmdscategory = "GMDSJobData";
         string jobinfo = "Jobinfo";
@@ -1058,11 +1057,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[9] == null || gpsCommandData[9] == "")
                 {
-                    commandData8 = "";
+                   // commandData8 = "";
                 }
                 else
                 {
-                    commandData8 = gpsCommandData[9];
+                   // commandData8 = gpsCommandData[9];
                 }
             }
 
@@ -1070,11 +1069,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[10] == null || gpsCommandData[10] == "")
                 {
-                    commandData9 = "";
+                    //commandData9 = "";
                 }
                 else
                 {
-                    commandData9 = gpsCommandData[10];
+                    //commandData9 = gpsCommandData[10];
                 }
             }
 
@@ -2697,7 +2696,6 @@ namespace IngameScript
                 Echo($"Camera with tag: '{D_I_N_Clone}' not found.");
                 return;
             }
-            camera_actual = camera_tag[0];
             if (connector_tag.Count <= 0 || connector_tag[0] == null)
             {
                 Echo($"Connector with tag: '{D_C_N_Clone}' not found.");
@@ -3002,7 +3000,6 @@ namespace IngameScript
             #region power_check
             ttl_sPWR = 0f;  // Total stored power
             ttl_mPWR = 0f;  // Total max power
-            ttl_PWRc = 0f;  // Total current output
             int validBatteries = 0;
 
             // Single loop to gather totals and optionally set ChargeMode
@@ -3013,7 +3010,6 @@ namespace IngameScript
                     crntbatteryblock = battery_tag[i];
                     ttl_sPWR += crntbatteryblock.CurrentStoredPower;
                     ttl_mPWR += crntbatteryblock.MaxStoredPower;
-                    ttl_PWRc += crntbatteryblock.CurrentOutput;
                     validBatteries++;
 
                     // Set ChargeMode in the same loop if conditions allow
@@ -3409,7 +3405,6 @@ namespace IngameScript
 
         public void DockingStateCheck()
         {
-            int startInstructions = Runtime.CurrentInstructionCount;
             if (!dockState)
             {
                 //early exit if not in dock state
@@ -3699,7 +3694,6 @@ namespace IngameScript
 
         public void dock_undock_state_check()
         {
-            int startInstructions = Runtime.CurrentInstructionCount;
             #region dock_undock_state_check
             if (dockingStage > 0)
             {
@@ -3981,8 +3975,6 @@ namespace IngameScript
 
         public void navigation_management()
         {
-
-            int startInstructions = Runtime.CurrentInstructionCount;
             if (!navState)
             {
                 return;
@@ -4511,7 +4503,6 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4525,7 +4516,6 @@ namespace IngameScript
             if (miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && !targetDepthAchieved && requestExit && wasMining && miningInitialised && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
                 miningStage = 6;
-                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4541,7 +4531,6 @@ namespace IngameScript
 
                 miningStage = 6;
                 requestExit = true;
-                Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4556,7 +4545,6 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-                Last_Coords_Term = main_gps_coords;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(false);
@@ -5783,7 +5771,7 @@ namespace IngameScript
             double groundSpeed = Math.Round(currentSpeed, 2);
 
             // Core status report
-            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {nav_speed}");
+            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {runTick} {nav_speed}");
             Echo($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
             Echo($"Status Ints: {drnst}");
             Echo($"Drone Status: {droneStatusOutput}");
