@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.517B";
+        string ver = "V0.518B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -425,7 +425,7 @@ namespace IngameScript
         bool precMflipped = false;
         string _recievedMessage;
         bool _updatedJob = false;
-
+        int runTick = 0;
 
 
 
@@ -672,17 +672,28 @@ namespace IngameScript
                 return;
             }
 
-
+            runTick++;
             Echo($"GMDS {ver} Running...");
 
             bool canDock = (dockState);
             ClearCurrentWaypoints();
             item_presence_check();
             confirm_item_presence();
-            cargo_check();
+            if(runTick % 6 == 0) 
+            {
+                power_check();
+            }
+            if(runTick % 6 == 2)
+            {
+                fuel_check();
+            }
+            if(runTick % 6 == 4)
+            {
+                cargo_check();
+            }            
             damage_check();
-            power_check();
-            fuel_check();
+            
+
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
