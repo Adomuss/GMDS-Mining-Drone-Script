@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.521B";
+        string ver = "V0.522B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -426,8 +426,22 @@ namespace IngameScript
         bool _updatedJob = false;
         int runTick = 0;
 
-
-
+        string D_S_C_Clone = "";
+        string D_I_N_Clone = "";
+        string D_C_N_Clone = "";
+        string dockTaskName_Clone = "";
+        string UndockModeTagName_Clone = "";
+        string Thr_ON_n_Clone = "";
+        string Thr_OFF_N_Clone = "";
+        string precisionModeTagName_Clone = "";
+        string ResetTagName_Clone = "";
+        string C_A_T_N_Clone = "";
+        string damageLightTagClone = "";
+        double precisionSquaredMine;
+        double precisionSquaredNav;
+        double precisionSquaredNav2;
+        double precisionSquaredTerm;
+        StringBuilder sbtemp = new StringBuilder();
         #endregion
         public void Save()
         {
@@ -2410,20 +2424,25 @@ namespace IngameScript
             listn_png = IGC.RegisterBroadcastListener(pingChannel);
             listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
             #endregion
+
+             D_S_C_Clone = D_S_C.Replace("[", "[[").Replace("]", "]]");
+             D_I_N_Clone = D_I_N.Replace("[", "[[").Replace("]", "]]");
+             D_C_N_Clone = D_C_N.Replace("[", "[[").Replace("]", "]]");
+             dockTaskName_Clone = dockTaskName.Replace("[", "[[").Replace("]", "]]");
+             UndockModeTagName_Clone = UndockModeTagName.Replace("[", "[[").Replace("]", "]]");
+             Thr_ON_n_Clone = Thr_ON_n.Replace("[", "[[").Replace("]", "]]");
+             Thr_OFF_N_Clone = Thr_OFF_N.Replace("[", "[[").Replace("]", "]]");
+             precisionModeTagName_Clone = PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]");
+             ResetTagName_Clone = ResetTagName.Replace("[", "[[").Replace("]", "]]");
+             C_A_T_N_Clone = CA_T_N.Replace("[", "[[").Replace("]", "]]");
+             damageLightTagClone = damageLightTag.Replace("[", "[[").Replace("]", "]]");
+             precisionSquaredMine = mine_prec * mine_prec;
+            precisionSquaredTerm = termnationPrecision * termnationPrecision;
+            precisionSquaredNav2 = nav_prec2 * nav_prec2;
+            precisionSquaredNav = nav_prec * nav_prec;
         }
         public void item_presence_check()
         {
-            string D_S_C_Clone = D_S_C.Replace("[", "[[").Replace("]", "]]");
-            string D_I_N_Clone = D_I_N.Replace("[", "[[").Replace("]", "]]");
-            string D_C_N_Clone = D_C_N.Replace("[", "[[").Replace("]", "]]");
-            string dockTaskName_Clone = dockTaskName.Replace("[", "[[").Replace("]", "]]");
-            string UndockModeTagName_Clone = UndockModeTagName.Replace("[", "[[").Replace("]", "]]");
-            string Thr_ON_n_Clone = Thr_ON_n.Replace("[", "[[").Replace("]", "]]");
-            string Thr_OFF_N_Clone = Thr_OFF_N.Replace("[", "[[").Replace("]", "]]");
-            string precisionModeTagName_Clone = PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]");
-            string ResetTagName_Clone = ResetTagName.Replace("[", "[[").Replace("]", "]]");
-            string C_A_T_N_Clone = CA_T_N.Replace("[", "[[").Replace("]", "]]");
-            string damageLightTagClone = damageLightTag.Replace("[", "[[").Replace("]", "]]");
 
             if (!setupIsComplete)
             {
@@ -3966,8 +3985,9 @@ namespace IngameScript
                     }
                 }
             }
-            if (mainNavSequence == 3 && rc_xyz.X >= rc_cw_x - nav_prec && rc_xyz.X <= rc_cw_x + nav_prec && rc_xyz.Y >= rc_cw_y - nav_prec && rc_xyz.Y <= rc_cw_y + nav_prec && rc_xyz.Z >= rc_cw_z - nav_prec && rc_xyz.Z <= rc_cw_z + nav_prec && navState && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
+            if (mainNavSequence == 3 && (Vector3D.DistanceSquared(rc_xyz, main_gps_coords) <= precisionSquaredNav) && navState && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
+                
                 mainNavSequence = 4;
                 main_nav_complete = true;
                 add_nav_Waypoint_mn = false;
@@ -4125,12 +4145,10 @@ namespace IngameScript
             double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
             bool hasOvershot = projectionDistance > drillSetLength + termnationPrecision;
             if (!targetDepthAchieved &&
-                rc_xyz.X >= tgt_drill_end.X - termnationPrecision && rc_xyz.X <= tgt_drill_end.X + termnationPrecision &&
-                rc_xyz.Y >= tgt_drill_end.Y - termnationPrecision && rc_xyz.Y <= tgt_drill_end.Y + termnationPrecision &&
-                rc_xyz.Z >= tgt_drill_end.Z - termnationPrecision && rc_xyz.Z <= tgt_drill_end.Z + termnationPrecision &&
+                (Vector3D.DistanceSquared(rc_xyz, tgt_drill_end) <= precisionSquaredTerm) &&
                 mineState && miningInitialised && isUndocked && miningStage > 0)
             {
-                targetDepthAchieved = true;
+                targetDepthAchieved = true;                
             }
             else if (!targetDepthAchieved && hasOvershot && mineState && miningInitialised && isUndocked)
             {
@@ -4254,7 +4272,7 @@ namespace IngameScript
                 droneStatusOutput = "Mining+++";
             }
 
-            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !targetDepthAchieved && rc_xyz.X >= rc_cmw_x - mine_prec && rc_xyz.X <= rc_cmw_x + mine_prec && rc_xyz.Y >= rc_cmw_y - mine_prec && rc_xyz.Y <= rc_cmw_y + mine_prec && rc_xyz.Z >= rc_cmw_z - mine_prec && rc_xyz.Z <= rc_cmw_z + mine_prec && mineState && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !targetDepthAchieved && (Vector3D.DistanceSquared(rc_xyz, mining_gps_coords) <= precisionSquaredMine) && mineState && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 5;
                 mining_nav_complete = true;
@@ -4475,7 +4493,7 @@ namespace IngameScript
             double rc_cew_y = tgt_drill_exit.Y;
             double rc_cew_z = tgt_drill_exit.Z;
 
-            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= tgt_drill_exit.X - nav_prec2 && rc_xyz.X <= tgt_drill_exit.X + nav_prec2 && rc_xyz.Y >= tgt_drill_exit.Y - nav_prec2 && rc_xyz.Y <= tgt_drill_exit.Y + nav_prec2 && rc_xyz.Z >= tgt_drill_exit.Z - nav_prec2 && rc_xyz.Z <= tgt_drill_exit.Z + nav_prec2 && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && (Vector3D.DistanceSquared(rc_xyz, tgt_drill_exit) <= precisionSquaredNav2) && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 10;
                 exitSequenceComplete = true;
@@ -4497,7 +4515,7 @@ namespace IngameScript
                 droneStatus = 19;
                 droneStatusOutput = "Exit Clear";
             }
-            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= exit_gps_coords_temp.X - nav_prec && rc_xyz.X <= exit_gps_coords_temp.X + nav_prec && rc_xyz.Y >= exit_gps_coords_temp.Y - nav_prec && rc_xyz.Y <= exit_gps_coords_temp.Y + nav_prec && rc_xyz.Z >= exit_gps_coords_temp.Z - nav_prec && rc_xyz.Z <= exit_gps_coords_temp.Z + nav_prec && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && (Vector3D.DistanceSquared(rc_xyz, exit_gps_coords_temp) <= precisionSquaredNav) && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 7;
                 exitWaypointAdjusted = false;
@@ -5545,34 +5563,35 @@ namespace IngameScript
             double mineDistance = Math.Round(distance_current, 2);
             double speed = Math.Round(spd, 2);
             double groundSpeed = Math.Round(currentSpeed, 2);
+            sbtemp.Clear();
 
             // Core status report
-            Echo($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {runTick} {nav_speed}");
-            Echo($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
-            Echo($"Status Ints: {drnst}");
-            Echo($"Drone Status: {droneStatusOutput}");
-            Echo($"Distance ID: {miningInitialised}");
-            Echo($"Command seq: {commandCommandDataRequested}");
-            Echo($"Cargo: {cargoPercent}%  Full: {cargoFullAchieved}");
-            Echo($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
+            sbtemp.AppendLine($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {runTick} {nav_speed}");
+            sbtemp.AppendLine($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
+            sbtemp.AppendLine($"Status Ints: {drnst}");
+            sbtemp.AppendLine($"Drone Status: {droneStatusOutput}");
+            sbtemp.AppendLine($"Distance ID: {miningInitialised}");
+            sbtemp.AppendLine($"Command seq: {commandCommandDataRequested}");
+            sbtemp.AppendLine($"Cargo: {cargoPercent}%  Full: {cargoFullAchieved}");
+            sbtemp.AppendLine($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
             if (hydrogen_tank_tag.Count > 0)
             {
-                Echo($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
+                sbtemp.AppendLine($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
             }
-            Echo($"Mine distance: {mineDistance}m  Mine Start: {(drillSetLength - ignoreDistance)}m");
-            Echo($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining} - Ed: {drill_el}");
-            Echo($"Nav: {navState} - Stage: {mainNavSequence}");
-            Echo($"Dock: {isDocked} - Stage: {dockingStage} DR: {dockingReady}");
-            Echo($"Undock: {isUndocked} - Stage: {undocking_stage}");
-            Echo($"Connected: {connectorActual.IsConnected}");
-            Echo($"Depth Achieved: {targetDepthAchieved}");
-            Echo($"Stopped: {stopState}");
-            Echo($"Last response: {response_time}s waiting: {transmit_delay}");
-            Echo($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
-            Echo($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
-            Echo($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
-            Echo($"Speed: {speed} {groundSpeed}");
-
+            sbtemp.AppendLine($"Mine distance: {mineDistance}m  Mine Start: {(drillSetLength - ignoreDistance)}m");
+            sbtemp.AppendLine($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining} - Ed: {drill_el}");
+            sbtemp.AppendLine($"Nav: {navState} - Stage: {mainNavSequence}");
+            sbtemp.AppendLine($"Dock: {isDocked} - Stage: {dockingStage} DR: {dockingReady}");
+            sbtemp.AppendLine($"Undock: {isUndocked} - Stage: {undocking_stage}");
+            sbtemp.AppendLine($"Connected: {connectorActual.IsConnected}");
+            sbtemp.AppendLine($"Depth Achieved: {targetDepthAchieved}");
+            sbtemp.AppendLine($"Stopped: {stopState}");
+            sbtemp.AppendLine($"Last response: {response_time}s waiting: {transmit_delay}");
+            sbtemp.AppendLine($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
+            sbtemp.AppendLine($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
+            sbtemp.AppendLine($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
+            sbtemp.AppendLine($"Speed: {speed} {groundSpeed}");
+            Echo(sbtemp.ToString());
 
             #endregion
 
