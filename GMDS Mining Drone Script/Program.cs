@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using VRage;
@@ -23,6 +24,7 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.AI;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
+using VRageRender;
 
 namespace IngameScript
 {
@@ -95,6 +97,8 @@ namespace IngameScript
         string HT = "HT";
         string Sense = "Sense";
         string dmg = "Dmg";
+        string debug = "Debug";
+        string display = "Info";
         string thrusters = "Thrusters";
         string autodockCommand = "autodock";
         string collisionSenseCommand = "collision";
@@ -106,11 +110,12 @@ namespace IngameScript
         string navSpeedCommand = "navspeed";
         string drillSpeedCommand = "drillspeed";
         string terrainDistanceCommand = "terraincleardistance";
+        string refillHydrogenCommand = "hydrogen";
 
 
         #endregion
 
-        string ver = "V0.522B";
+        string ver = "V0.523B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -254,7 +259,7 @@ namespace IngameScript
         IMyLightingBlock collisionAvoidLightActual;
         IMyLightingBlock precModeLightActual;
         IMyLightingBlock resetLightActual;
-        IMyLightingBlock damageLightActual;
+        IMyLightingBlock damageLightActual;        
         IMySensorBlock sensorActual;
         IMyGasTank crnthyrdogentank;
         Vector3D main_gps_coords;
@@ -337,6 +342,11 @@ namespace IngameScript
         List<IMyThrust> thrust_all;
         List<IMyThrust> thrust_tag;
         List<MyIGCMessage> syncMessagesBuffer;
+        List<IMyTerminalBlock> displays_all;
+        List<IMyTerminalBlock> displays_tag;
+        List<IMyTerminalBlock> displays_debug;
+        List<IMyProjector> projectors_all;
+        IMyTextSurface visualiser;
         IMyBlockGroup precModeGroup;
         IMyBlockGroup undockModeGroup;
         IMyBlockGroup resetModeGroup;
@@ -373,6 +383,7 @@ namespace IngameScript
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
+        string s_display = "Display Panel";
         //string temp_id_name;
         //int temp_id_num;
         double response_time = 0.0;
@@ -520,7 +531,7 @@ namespace IngameScript
         {
             if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
             {
-                Echo("No Storage data found.");
+                sbtemp.AppendLine("No Storage data found.");
                 //return;
             }
             _ini.Clear();
@@ -674,19 +685,19 @@ namespace IngameScript
                 ClearAllNonEmptyLists();
                 setup_function();
                 setupIsComplete = true;
-                Echo("Setup complete!");
+                sbtemp.AppendLine("Setup complete!");
                 Save();
             }
             #endregion
             if (!setupIsComplete)
             {
-                Echo($"Drone parts missing - exiting");
+                sbtemp.AppendLine($"Drone parts missing - exiting");
                 ClearAllNonEmptyLists();
                 return;
             }
 
             runTick++;
-            Echo($"GMDS {ver} Running...");
+
 
             bool canDock = (dockState);
             ClearCurrentWaypoints();
@@ -753,7 +764,7 @@ namespace IngameScript
         {
             if (!setupIsComplete)
             {
-                Echo($"Drone parts missing - exiting");
+                sbtemp.AppendLine($"Drone parts missing - exiting");
                 ClearAllNonEmptyLists();
                 return;
             }
@@ -769,7 +780,7 @@ namespace IngameScript
         {
             if (remoteControlActual == null)
             {
-                Echo("No RC found");
+                sbtemp.AppendLine("No RC found");
                 return new Vector3D(0, 0, 0);
 
             }
@@ -806,7 +817,7 @@ namespace IngameScript
                 {
                     if (gyroTag[j] == null)
                     {
-                        Echo("Gyro [{i}] not found resetting setup flag");
+                        sbtemp.AppendLine("Gyro [{i}] not found resetting setup flag");
                         setupIsComplete = false;
                     }
                     if (gyroTag[j] != null)
@@ -852,12 +863,12 @@ namespace IngameScript
                         StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
                         _updatedJob = true;
                     }
-                    Echo("Dataconversion");
+                    sbtemp.AppendLine("Dataconversion");
                 }
             }
             if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
             {
-                Echo("Custom Data is empty");
+                sbtemp.AppendLine("Custom Data is empty");
                 return;
             }
             FetchJobData(block.CustomData.ToString().Trim());
@@ -865,7 +876,7 @@ namespace IngameScript
             String[] gpsCommandData = jobdata.Split(':');
             if (gpsCommandData.Length < 5)
             {
-                Echo("Custom Data is faulty");
+                sbtemp.AppendLine("Custom Data is faulty");
                 jobdata = fail_data;
             }
             /* Custom data message structure
@@ -1217,7 +1228,7 @@ namespace IngameScript
             // --- Step 1: Handle Empty Input (Using the simpler IsNullOrWhiteSpace check) ---
             if (string.IsNullOrWhiteSpace(input))
             {
-                Echo("No arguments provided, using defaults.");
+                sbtemp.AppendLine("No arguments provided, using defaults.");
                 autoDocking = false;
                 collisionSenseEnabled = true;
                 cargoSenseEnabled = true;
@@ -1238,7 +1249,7 @@ namespace IngameScript
             // Check if the split array is unexpectedly empty (though covered by the initial check)
             if (droneconfigdata.Length == 0)
             {
-                Echo("No arguments provided, using defaults.");
+                sbtemp.AppendLine("No arguments provided, using defaults.");
                 // Use a consistent set of defaults or return immediately.
                 return;
             }
@@ -1271,7 +1282,7 @@ namespace IngameScript
                 manualSenseAssign = false;
                 terrainKeepMode = false;
                 terrainclearoffset = 9.0;
-
+                ignore_Htank = true;                
 
                 // Loop through all command arguments starting at index 2 (the first flag position) // do i need to test incorrect indexing on argument parse
                 for (int i = 2; i < droneconfigdata.Length; i++)
@@ -1302,6 +1313,11 @@ namespace IngameScript
                     if (arg.Contains(terrainClearCommand))
                     {
                         terrainKeepMode = true;
+                    }
+                    //check for hydrogen refill
+                    if (arg.Contains(refillHydrogenCommand))
+                    {
+                        ignore_Htank = false;
                     }
                     // Check for terrain clear distance command
                     if (arg.Contains(terrainDistanceCommand))
@@ -1557,14 +1573,14 @@ namespace IngameScript
                 ParseAndApplyArguments(runargument);
                 StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
                 _updatedJob = true;
-                Echo("Configuration loaded from Storage.");
+                sbtemp.AppendLine("Configuration loaded from Storage.");
             }
             else
             {
                 ParseAndApplyArguments(runargument);
                 StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
                 _updatedJob = true;
-                Echo("No Storage data found, configuration loaded from arguments or defaults.");
+                sbtemp.AppendLine("No Storage data found, configuration loaded from arguments or defaults.");
             }
 
         }
@@ -1581,7 +1597,7 @@ namespace IngameScript
                 float s_bklm = 6.5f;
                 float s_flm = 3.0f;
                     */
-                Echo("No sensor range data found, using default.");
+                sbtemp.AppendLine("No sensor range data found, using default.");
                 _sensorInfo.Clear();
                 _sensorInfo.Set("SensorRange", "LeftExtend", s_llm);
                 _sensorInfo.Set("SensorRange", "RightExtend", s_rlm);
@@ -1595,7 +1611,7 @@ namespace IngameScript
             }
             if (!string.IsNullOrEmpty(block.CustomData) && !string.IsNullOrWhiteSpace(block.CustomData))
             {
-                Echo("Sensor range data found, loading settings");
+                sbtemp.AppendLine("Sensor range data found, loading settings");
                 if (_sensorInfo.TryParse(block.CustomData))
                 {
                     _sensorInfo.TryParse(block.CustomData);
@@ -1688,7 +1704,7 @@ namespace IngameScript
             syncMessagesBuffer = new List<MyIGCMessage>();
             if (string.IsNullOrEmpty(droneTag) || string.IsNullOrWhiteSpace(droneTag))
             {
-                Echo($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
+                sbtemp.AppendLine($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
                 return;
             }
             tx_ch = droneTag + " reply";
@@ -1739,7 +1755,7 @@ namespace IngameScript
                         //drone_custom_data_check(checker, i);
                         if (string.IsNullOrEmpty(droneTag) || string.IsNullOrWhiteSpace(droneTag))
                         {
-                            Echo($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
+                            sbtemp.AppendLine($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
                             return;
                         }
                         n = s_antenna + " " + (i + 1) + " " + D_I_N;
@@ -1754,7 +1770,7 @@ namespace IngameScript
                         //drone_custom_data_check(checker, i);
                         if (string.IsNullOrEmpty(droneTag) || string.IsNullOrWhiteSpace(droneTag))
                         {
-                            Echo($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
+                            sbtemp.AppendLine($"Invalid name for drone_tag {droneTag.Replace("[", "[[").Replace("]", "]]")}");
                             return;
                         }
                         n = s_antenna + " " + (i + 1) + " " + D_I_N;
@@ -1842,7 +1858,7 @@ namespace IngameScript
                 sensor_all.Clear();
                 if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
                 {
-                    Echo($"Sensor with tag: '{D_I_N.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                    sbtemp.AppendLine($"Sensor with tag: '{D_I_N.Replace("[", "[[").Replace("]", "]]")}' not found.");
                     return;
                 }
                 sensorActual = sensor_tag[0];
@@ -2125,12 +2141,12 @@ namespace IngameScript
                 //thrusterGroup.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
                 thrust_tag.Clear();
                 gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
-                Echo($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} found");
+                sbtemp.AppendLine($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 thrustGroupPresent = false;
-                Echo($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} not found");
+                sbtemp.AppendLine($"Thruster Group {thrustGroupTag.Replace("[", "[[").Replace("]", "]]")} not found");
             }
             timer_block_all = new List<IMyTimerBlock>();
             timer_block_tON_tag = new List<IMyTimerBlock>();
@@ -2181,36 +2197,36 @@ namespace IngameScript
             if (precModeGroup != null)
             {
                 precisionModeGroupPresent = true;
-                Echo($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
+                sbtemp.AppendLine($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 precisionModeGroupPresent = false;
-                Echo($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
+                sbtemp.AppendLine($"Precision mode group {PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
             undockModeGroup = gts.GetBlockGroupWithName(UndockModeTagName);
             if (undockModeGroup != null)
             {
                 undockModeGroupPresent = true;
-                Echo($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
+                sbtemp.AppendLine($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 undockModeGroupPresent = false;
-                Echo($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
+                sbtemp.AppendLine($"Undock mode group {UndockModeTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
             resetModeGroup = gts.GetBlockGroupWithName(ResetTagName);
             if (resetModeGroup != null)
             {
                 resetModeGroupPresent = true;
-                Echo($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} found");
+                sbtemp.AppendLine($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} found");
             }
             else
             {
                 resetModeGroupPresent = false;
-                Echo($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} not found");
+                sbtemp.AppendLine($"Reset mode group {ResetTagName.Replace("[", "[[").Replace("]", "]]")} not found");
             }
 
 
@@ -2409,13 +2425,64 @@ namespace IngameScript
                 }
             }
             gyro_all.Clear();
-            waypoints = new List<MyWaypointInfo>();
+            //display search
+            displays_all = new List<IMyTerminalBlock>();
+            displays_tag = new List<IMyTerminalBlock>();
+            displays_debug = new List<IMyTerminalBlock>();
+            gts.GetBlocksOfType<IMyTerminalBlock>(displays_all, b => b.CubeGrid == Me.CubeGrid);
+            if (displays_all.Count > 0)
+            {
+                for (int i = 0; i < displays_all.Count; i++)
+                {
+                        string tv1 = "";
+                        if (
+                            (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display)) 
+                            || (!displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
+                            )
+                        {
+                            tv1 = s_display;
+                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                            displays_all[i].CustomName = n;
+                            displays_tag.Add(displays_all[i]);
+                        }
+                        if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                        {
+                            tv1 = s_display;
+                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + debug;
+                            displays_all[i].CustomName = n;
+                            displays_debug.Add(displays_all[i]);
+                        }
+                        if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                        {
+                            tv1 = s_display;
+                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                            displays_all[i].CustomName = n;
+                            displays_tag.Add(displays_all[i]);
+                        }                                       
+                }                
+            }
+            displays_all.Clear();
+
+            projectors_all = new List<IMyProjector>();
+            gts.GetBlocksOfType<IMyProjector>(projectors_all, b => b.CubeGrid == Me.CubeGrid);
+            if (projectors_all.Count > 0)
+            {
+                for (int i = 0; i < projectors_all.Count; i++)
+                {
+                    string tv1 = "";
+                    tv1 = "Projector";
+                    n = tv1 + " " + (i + 1) + " " + D_I_N;
+                    projectors_all[i].CustomName = n;
+                }
+            }
+            projectors_all.Clear();
             /* if (Storage != "" && Storage != null)
              {
                  LoadStorageData();
                  Storage = "";
              } */ //should be handled in main program
 
+            waypoints = new List<MyWaypointInfo>();
             #region setup_broadcast_channels
             rx_ch = D_I_N;
             listn = IGC.RegisterBroadcastListener(rx_ch);
@@ -2446,31 +2513,31 @@ namespace IngameScript
 
             if (!setupIsComplete)
             {
-                Echo("Setup not complete.");
+                sbtemp.AppendLine("Setup not complete.");
                 return;
             }
             #region presence_check            
             if (thrust_tag.Count <= 0 && thrustGroupPresent)
             {
-                Echo($"Please add thrusters to grid");
+                sbtemp.AppendLine($"Please add thrusters to grid");
                 return;
 
             }
 
             if (drill_tag.Count <= 0)
             {
-                Echo($"Drills with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Drills with tag: '{D_I_N_Clone}' not found.");
                 return;
             }
             if (gyroTag.Count <= 0 || gyroTag[0] == null)
             {
-                Echo($"Gyro with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Gyro with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             if (rctag.Count <= 0 || rctag[0] == null)
             {
-                Echo($"Remote control with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Remote control with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2479,7 +2546,7 @@ namespace IngameScript
             {
                 if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
                 {
-                    Echo($"Sensor with tag: '{D_I_N_Clone}' not found.");
+                    sbtemp.AppendLine($"Sensor with tag: '{D_I_N_Clone}' not found.");
                     setupIsComplete = !setupIsComplete;
                     return;
                 }
@@ -2488,19 +2555,19 @@ namespace IngameScript
 
             if (camera_tag.Count <= 0 || camera_tag[0] == null)
             {
-                Echo($"Camera with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Camera with tag: '{D_I_N_Clone}' not found.");
                 return;
             }
             if (connector_tag.Count <= 0 || connector_tag[0] == null)
             {
-                Echo($"Connector with tag: '{D_C_N_Clone}' not found.");
+                sbtemp.AppendLine($"Connector with tag: '{D_C_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             connectorActual = connector_tag[0];
             if (cargo_tag.Count <= 0 || cargo_tag[0] == null)
             {
-                Echo($"Cargo containers with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Cargo containers with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2508,34 +2575,34 @@ namespace IngameScript
             {
                 if (cargo_sense.Count <= 0 || cargo_sense[0] == null)
                 {
-                    Echo($"Sense container with tag: '{D_S_C_Clone}' not found. Add '{D_S_C_Clone}' tag to container");
+                    sbtemp.AppendLine($"Sense container with tag: '{D_S_C_Clone}' not found. Add '{D_S_C_Clone}' tag to container");
                     //return;
                 }
             }
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
             {
-                Echo($"Antenna with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Antenna with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             antenna_actual = antenna_tag[0];
             if (flight_path_dock_tag.Count <= 0 || flight_path_dock_tag[0] == null)
             {
-                Echo($"Docking AI task recorder with tag: '{dockTaskName_Clone}' not found. Add ' {Dock}' tag");
+                sbtemp.AppendLine($"Docking AI task recorder with tag: '{dockTaskName_Clone}' not found. Add ' {Dock}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             ai_task_dock_actual = flight_path_dock_tag[0];
             if (flight_path_undock_tag.Count <= 0 || flight_path_undock_tag[0] == null)
             {
-                Echo($"Undocking AI task recorder with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
+                sbtemp.AppendLine($"Undocking AI task recorder with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             ai_task_undock_actual = flight_path_undock_tag[0];
             if (flight_move_tag.Count <= 0 || flight_move_tag[0] == null)
             {
-                Echo($"Flight movement with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Flight movement with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2544,14 +2611,14 @@ namespace IngameScript
             {
                 if (timer_block_tON_tag.Count <= 0 || timer_block_tON_tag[0] == null)
                 {
-                    Echo($"Thrust ON timer block with tag: '{Thr_ON_n_Clone}' not found. Add ' {TON}' tag");
+                    sbtemp.AppendLine($"Thrust ON timer block with tag: '{Thr_ON_n_Clone}' not found. Add ' {TON}' tag");
                     setupIsComplete = !setupIsComplete;
                     return;
                 }
                 timerBlockTONActual = timer_block_tON_tag[0];
                 if (timer_block_tOFF_tag.Count <= 0 || timer_block_tOFF_tag[0] == null)
                 {
-                    Echo($"Thrust OFF timer block with tag: '{Thr_OFF_N_Clone}' not found. Add ' {TOFF}' tag");
+                    sbtemp.AppendLine($"Thrust OFF timer block with tag: '{Thr_OFF_N_Clone}' not found. Add ' {TOFF}' tag");
                     setupIsComplete = !setupIsComplete;
                     return;
                 }
@@ -2561,7 +2628,7 @@ namespace IngameScript
             {
                 if (timer_block_precM_tag.Count <= 0 || timer_block_precM_tag[0] == null)
                 {
-                    Echo($"Precision mode timer block with tag: '{precisionModeTagName_Clone}' not found. Add ' {PrecM}' tag");
+                    sbtemp.AppendLine($"Precision mode timer block with tag: '{precisionModeTagName_Clone}' not found. Add ' {PrecM}' tag");
                     setupIsComplete = !setupIsComplete;
                     return;
                 }
@@ -2570,14 +2637,14 @@ namespace IngameScript
             {
                 if (timer_block_undock_tag.Count <= 0 || timer_block_undock_tag[0] == null)
                 {
-                    Echo($"Undock mode timer block with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
+                    sbtemp.AppendLine($"Undock mode timer block with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
                     setupIsComplete = !setupIsComplete;
                     return;
                 }
             }
             if (light_dock_tag.Count <= 0 || light_dock_tag[0] == null)
             {
-                Echo($"dock indicator light with tag: '{dockTaskName_Clone}' not found. Add ' {Dock}' tag");
+                sbtemp.AppendLine($"dock indicator light with tag: '{dockTaskName_Clone}' not found. Add ' {Dock}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2585,20 +2652,20 @@ namespace IngameScript
 
             if (lightUndockTag.Count <= 0 || lightUndockTag[0] == null)
             {
-                Echo($"undock indicator light with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
+                sbtemp.AppendLine($"undock indicator light with tag: '{UndockModeTagName_Clone}' not found. Add ' {Undock}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             if (undockModeGroupPresent && (lightUndockTag.Count <= 0 || lightUndockTag[0] == null))
             {
-                Echo($"Add undock indicator light with tag: '{UndockModeTagName_Clone} to {UndockModeTagName_Clone} group - ensure {UndockModeTagName_Clone} group is in AI {UndockModeTagName_Clone} task recorder waypoint actions");
+                sbtemp.AppendLine($"Add undock indicator light with tag: '{UndockModeTagName_Clone} to {UndockModeTagName_Clone} group - ensure {UndockModeTagName_Clone} group is in AI {UndockModeTagName_Clone} task recorder waypoint actions");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             undockLightActual = lightUndockTag[0];
             if (light_collision_avoid_tag.Count <= 0 || light_collision_avoid_tag[0] == null)
             {
-                Echo($"collision avoidance required indicator light with tag: '{C_A_T_N_Clone}' not found. Add ' {CA}' tag");
+                sbtemp.AppendLine($"collision avoidance required indicator light with tag: '{C_A_T_N_Clone}' not found. Add ' {CA}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2606,13 +2673,13 @@ namespace IngameScript
 
             if (lightPrecMTag.Count <= 0 || lightPrecMTag[0] == null)
             {
-                Echo($"Precision mode required indicator light with tag: '{precisionModeTagName_Clone}' not found. Add ' {PrecM}' tag");
+                sbtemp.AppendLine($"Precision mode required indicator light with tag: '{precisionModeTagName_Clone}' not found. Add ' {PrecM}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             if (precisionModeGroupPresent && (lightPrecMTag.Count <= 0 || lightPrecMTag[0] == null))
             {
-                Echo($"Add precision mode indicator light with tag: '{precisionModeTagName_Clone} to {precisionModeTagName_Clone} group - ensure {precisionModeTagName_Clone} group is in AI {dockTaskName_Clone} task recorder waypoint actions");
+                sbtemp.AppendLine($"Add precision mode indicator light with tag: '{precisionModeTagName_Clone} to {precisionModeTagName_Clone} group - ensure {precisionModeTagName_Clone} group is in AI {dockTaskName_Clone} task recorder waypoint actions");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2620,13 +2687,13 @@ namespace IngameScript
 
             if (lightResetTag.Count <= 0 || lightResetTag[0] == null)
             {
-                Echo($"Dock reset indicator light with tag: '{ResetTagName_Clone}' not found. Add ' {Reset}' tag");
+                sbtemp.AppendLine($"Dock reset indicator light with tag: '{ResetTagName_Clone}' not found. Add ' {Reset}' tag");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
             if (resetModeGroupPresent && (lightResetTag.Count <= 0 || lightResetTag[0] == null))
             {
-                Echo($"Reset mode indicator light with tag: '{ResetTagName_Clone} to {ResetTagName_Clone} group - ensure {ResetTagName_Clone} group is in Sensor {D_I_N_Clone} detect action only");
+                sbtemp.AppendLine($"Reset mode indicator light with tag: '{ResetTagName_Clone} to {ResetTagName_Clone} group - ensure {ResetTagName_Clone} group is in Sensor {D_I_N_Clone} detect action only");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2634,8 +2701,8 @@ namespace IngameScript
 
             if (light_dmg_tag.Count <= 0 && damageReportingEnabled)
             {
-                Echo($"Damage indicator light with tag: '{damageLightTagClone}' not found. Add ' {dmg}' tag\"");
-                Echo("");
+                sbtemp.AppendLine($"Damage indicator light with tag: '{damageLightTagClone}' not found. Add ' {dmg}' tag\"");
+                sbtemp.AppendLine("");
             }
             if (light_dmg_tag.Count > 0 && damageReportingEnabled && light_dmg_tag[0] != null)
             {
@@ -2644,7 +2711,7 @@ namespace IngameScript
 
             if (battery_tag.Count <= 0)
             {
-                Echo($"Batteries with tag: '{D_I_N_Clone}' not found.");
+                sbtemp.AppendLine($"Batteries with tag: '{D_I_N_Clone}' not found.");
                 setupIsComplete = !setupIsComplete;
                 return;
             }
@@ -2668,7 +2735,7 @@ namespace IngameScript
                 }
                 else
                 {
-                    Echo($"Warning: Cargo container [{i}] is null in cargo_check");
+                    sbtemp.AppendLine($"Warning: Cargo container [{i}] is null in cargo_check");
                 }
             }
             if (ttl_volm > 0.0f)
@@ -2716,7 +2783,7 @@ namespace IngameScript
                     }
                     else
                     {
-                        Echo($"Warning: Sense cargo container [{i}] is null in cargo_check");
+                        sbtemp.AppendLine($"Warning: Sense cargo container [{i}] is null in cargo_check");
                     }
                 }
                 if (ttl_volms > 0.0f)
@@ -2740,7 +2807,7 @@ namespace IngameScript
         {
             if (remoteControlActual == null)
             {
-                Echo("Remote control is null in remote_control_position_update");
+                sbtemp.AppendLine("Remote control is null in remote_control_position_update");
                 return;
             }
             rc_xyz = remoteControlActual.GetPosition();
@@ -2770,7 +2837,7 @@ namespace IngameScript
                 if (damageLightActual == null && damageReportingEnabled)
                 {
                     droneDamageStatus = "UNK";
-                    Echo("Warning: Damage light is null in damage check");
+                    sbtemp.AppendLine("Warning: Damage light is null in damage check");
                     return;
                 }
                 if (damageLightActual != null)
@@ -3207,27 +3274,27 @@ namespace IngameScript
             }
             if (connectorActual == null)
             {
-                Echo("Connector missing - exiting");
+                sbtemp.AppendLine("Connector missing - exiting");
                 return;
             }
             if (undockLightActual == null)
             {
-                Echo("Undock light missing - exiting");
+                sbtemp.AppendLine("Undock light missing - exiting");
                 return;
             }
             if (dockLightActual == null)
             {
-                Echo("Docklight missing - exiting");
+                sbtemp.AppendLine("Docklight missing - exiting");
                 return;
             }
             if (collisionAvoidLightActual == null)
             {
-                Echo("Collision avoidance light missing - exiting");
+                sbtemp.AppendLine("Collision avoidance light missing - exiting");
                 return;
             }
             if (collisionSenseEnabled && sensorActual == null)
             {
-                Echo("Collision sensor missing missing - exiting");
+                sbtemp.AppendLine("Collision sensor missing missing - exiting");
                 return;
             }
             if (dockState && !connectorActual.IsConnected && dockingStage == 0)
@@ -3774,7 +3841,7 @@ namespace IngameScript
             {
                 return;
             }
-            if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
+            if (remoteControlActual == null) { sbtemp.AppendLine("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
 
@@ -4105,7 +4172,7 @@ namespace IngameScript
 
         public void mining_management(bool autoDock)
         {
-            if (remoteControlActual == null) { Echo("Error: Remote control is null in mining_management"); return; }
+            if (remoteControlActual == null) { sbtemp.AppendLine("Error: Remote control is null in mining_management"); return; }
 
             #region mining_management
             // *** Mining sequence ***
@@ -4154,13 +4221,13 @@ namespace IngameScript
             {
                 targetDepthAchieved = true;
                 droneStatus = 26;
-                Echo("Overshoot detected");
+                sbtemp.AppendLine("Overshoot detected");
             }
             // Check depth achieved
             else if (!targetDepthAchieved && distance_to_target <= termnationPrecision && mineState && miningInitialised && isUndocked)
             {
                 targetDepthAchieved = true;
-                Echo("Target depth achieved");
+                sbtemp.AppendLine("Target depth achieved");
             }
             else
             {
@@ -4711,7 +4778,7 @@ namespace IngameScript
             // Normalize direction vector with safety check
             if (pathLength == 0)
             {
-                Echo("Error: Drill path length is zero!");
+                sbtemp.AppendLine("Error: Drill path length is zero!");
                 return;
             }
             drillDirection.Normalize();
@@ -4740,7 +4807,7 @@ namespace IngameScript
             // Correction logic
             if (xyDrift > termnationPrecision * 2)
             {
-                Echo($"Drift: {xyDrift:F2}m - Correcting");
+                sbtemp.AppendLine($"Drift: {xyDrift:F2}m - Correcting");
                 mining_gps_coords = expectedPos;
             }
         }
@@ -5480,8 +5547,8 @@ namespace IngameScript
         {
 
             string dataTransmissionOut;
-            if (antenna_actual == null) { Echo("Error: antenna is null in drone_message_transmission_management"); return; }
-            if (rc_actual == null) { Echo("Error: remote control is null in drone_message_transmission_management"); return; }
+            if (antenna_actual == null) { sbtemp.AppendLine("Error: antenna is null in drone_message_transmission_management"); return; }
+            if (rc_actual == null) { sbtemp.AppendLine("Error: remote control is null in drone_message_transmission_management"); return; }
             #region drone_transmission_response_management
             if (transmit_delay && pinged)
             {
@@ -5506,7 +5573,7 @@ namespace IngameScript
                     );
                 dataTransmissionOut = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
-                Echo("Transmission sent");
+                sbtemp.AppendLine("Transmission sent");
                 dataTransmissionOut = "";
                 pinged = false;
                 pingedMessageDataIn = "";
@@ -5563,9 +5630,10 @@ namespace IngameScript
             double mineDistance = Math.Round(distance_current, 2);
             double speed = Math.Round(spd, 2);
             double groundSpeed = Math.Round(currentSpeed, 2);
-            sbtemp.Clear();
+            
 
             // Core status report
+            sbtemp.AppendLine($"GMDS {ver} Running...");
             sbtemp.AppendLine($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {runTick} {nav_speed}");
             sbtemp.AppendLine($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
             sbtemp.AppendLine($"Status Ints: {drnst}");
@@ -5591,7 +5659,51 @@ namespace IngameScript
             sbtemp.AppendLine($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
             sbtemp.AppendLine($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             sbtemp.AppendLine($"Speed: {speed} {groundSpeed}");
-            Echo(sbtemp.ToString());
+            
+            if (displays_tag.Count > 0)
+            {
+                for (int i = 0; i < displays_tag.Count; i++)
+                {
+             
+                    if(displays_tag[i] != null)
+                    {
+                        visualiser = ((IMyTextSurfaceProvider)displays_tag[0]).GetSurface(0);
+                        if (visualiser.ContentType != ContentType.TEXT_AND_IMAGE)
+                        {
+                            //Echo("Correcting visualiser display");
+                            visualiser.ContentType = ContentType.TEXT_AND_IMAGE;
+                            visualiser.FontSize = 0.66f;
+                            visualiser.Font = "White";
+                        }
+                        visualiser.WriteText(sbtemp.ToString());
+                    }
+                
+                }
+            }
+            if (displays_debug.Count > 0)
+            {
+                for (int i = 0; i < displays_debug.Count; i++)
+                {
+                    if (displays_debug[i] != null)
+                    {
+                        visualiser = ((IMyTextSurfaceProvider)displays_debug[0]).GetSurface(0);
+                        if (visualiser.ContentType != ContentType.TEXT_AND_IMAGE)
+                        {
+                            //Echo("Correcting visualiser display");
+                            visualiser.ContentType = ContentType.TEXT_AND_IMAGE;
+                            visualiser.FontSize = 0.66f;
+                            visualiser.Font = "White";
+                        }
+                        visualiser.WriteText(sbtemp.ToString());
+                    }
+
+                }
+            }
+            if (displays_tag.Count == 0)
+            {
+                Echo(sbtemp.ToString());
+            }
+            sbtemp.Clear();
 
             #endregion
 
@@ -5630,7 +5742,7 @@ namespace IngameScript
         public void Thruster_Management(bool EnableOnOff)
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
-            thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
+            //thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
             thrust_tag.Clear();
             gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             if (thrust_tag.Count > 0)
@@ -5662,7 +5774,7 @@ namespace IngameScript
             {
                 if (thrusterGroup != null)
                 {
-                    Echo($"Thrusters not found in {thrusterGroup.Name.Replace("[", "[[").Replace("]", "]]")}. Please add thrusters");
+                    sbtemp.AppendLine($"Thrusters not found in {thrusterGroup.Name.Replace("[", "[[").Replace("]", "]]")}. Please add thrusters");
                 }
                 return;
 
@@ -5736,7 +5848,7 @@ namespace IngameScript
 
             // Save to the Programmable Block's CustomData
             block.CustomData = iniBuilder.ToString();
-            //Echo($"Raw input stored successfully in [{INI_SECTION}] {INI_KEY}.");
+            //sbtemp.AppendLine($"Raw input stored successfully in [{INI_SECTION}] {INI_KEY}.");
         }
 
         public void ClearAllNonEmptyLists()
