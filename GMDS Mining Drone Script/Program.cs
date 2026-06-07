@@ -115,7 +115,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.527B";
+        string ver = "V0.528B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -259,7 +259,7 @@ namespace IngameScript
         IMyLightingBlock collisionAvoidLightActual;
         IMyLightingBlock precModeLightActual;
         IMyLightingBlock resetLightActual;
-        IMyLightingBlock damageLightActual;        
+        IMyLightingBlock damageLightActual;
         IMySensorBlock sensorActual;
         IMyGasTank crnthyrdogentank;
         Vector3D main_gps_coords;
@@ -721,7 +721,7 @@ namespace IngameScript
                 runTick = 0;
             }
             damage_check();
-            
+
 
             GetSpeed();
             recharge_state_check();
@@ -781,7 +781,7 @@ namespace IngameScript
             if (remoteControlActual == null)
             {
                 sbtemp.AppendLine("No RC found");
-                return Vector3D.Zero;
+                return new Vector3D(0, 0, 0);
 
             }
             Vector3D RCcenter = remoteControlActual.GetPosition();
@@ -805,7 +805,7 @@ namespace IngameScript
             }
             return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
         }
-        Vector3D GetNavAnglesBorked(Vector3D target)
+        Vector3D GetNavAnglesbroken(Vector3D target)
         {
             if (remoteControlActual == null)
             {
@@ -868,21 +868,22 @@ namespace IngameScript
                         gyroActual = gyroTag[j];
                         if (gyroActual != null)
                         {
-                            if(!gyroActual.GyroOverride && OverrideOnOff)
+                            if (!gyroActual.GyroOverride && OverrideOnOff)
                             {
                                 gyroActual.GyroOverride = true;
                                 if (gyroActual.GyroPower != Power)
                                 {
                                     gyroActual.GyroPower = Power;
-                                }                                
+                                }
                                 gyroActual.Yaw = settings.GetDim(0);
                                 gyroActual.Pitch = settings.GetDim(1);
                                 gyroActual.Roll = settings.GetDim(2);
-                            } else if (gyroActual.GyroOverride && !OverrideOnOff)
+                            }
+                            else if (gyroActual.GyroOverride && !OverrideOnOff)
                             {
                                 gyroActual.GyroOverride = false;
-                                
-                            }                            
+
+                            }
                         }
                     }
                 }
@@ -994,11 +995,11 @@ namespace IngameScript
             {
                 if (gpsCommandData[9] == null || gpsCommandData[9] == "")
                 {
-                   // commandData8 = "";
+                    // commandData8 = "";
                 }
                 else
                 {
-                   // commandData8 = gpsCommandData[9];
+                    // commandData8 = gpsCommandData[9];
                 }
             }
 
@@ -1334,7 +1335,7 @@ namespace IngameScript
                 manualSenseAssign = false;
                 terrainKeepMode = false;
                 terrainclearoffset = 9.0;
-                ignore_Htank = true;                
+                ignore_Htank = true;
 
                 // Loop through all command arguments starting at index 2 (the first flag position) // do i need to test incorrect indexing on argument parse
                 for (int i = 2; i < droneconfigdata.Length; i++)
@@ -2486,32 +2487,32 @@ namespace IngameScript
             {
                 for (int i = 0; i < displays_all.Count; i++)
                 {
-                        string tv1 = "";
-                        if (
-                            (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display)) 
-                            || (!displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
-                            )
-                        {
-                            tv1 = s_display;
-                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
-                            displays_all[i].CustomName = n;
-                            displays_tag.Add(displays_all[i]);
-                        }
-                        if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
-                        {
-                            tv1 = s_display;
-                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + debug;
-                            displays_all[i].CustomName = n;
-                            displays_debug.Add(displays_all[i]);
-                        }
-                        if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
-                        {
-                            tv1 = s_display;
-                            n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
-                            displays_all[i].CustomName = n;
-                            displays_tag.Add(displays_all[i]);
-                        }                                       
-                }                
+                    string tv1 = "";
+                    if (
+                        (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
+                        || (!displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
+                        )
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                        displays_all[i].CustomName = n;
+                        displays_tag.Add(displays_all[i]);
+                    }
+                    if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + debug;
+                        displays_all[i].CustomName = n;
+                        displays_debug.Add(displays_all[i]);
+                    }
+                    if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                        displays_all[i].CustomName = n;
+                        displays_tag.Add(displays_all[i]);
+                    }
+                }
             }
             displays_all.Clear();
 
@@ -2544,18 +2545,18 @@ namespace IngameScript
             listensync = IGC.RegisterBroadcastListener(rx_channel_sync);
             #endregion
 
-             D_S_C_Clone = D_S_C.Replace("[", "[[").Replace("]", "]]");
-             D_I_N_Clone = D_I_N.Replace("[", "[[").Replace("]", "]]");
-             D_C_N_Clone = D_C_N.Replace("[", "[[").Replace("]", "]]");
-             dockTaskName_Clone = dockTaskName.Replace("[", "[[").Replace("]", "]]");
-             UndockModeTagName_Clone = UndockModeTagName.Replace("[", "[[").Replace("]", "]]");
-             Thr_ON_n_Clone = Thr_ON_n.Replace("[", "[[").Replace("]", "]]");
-             Thr_OFF_N_Clone = Thr_OFF_N.Replace("[", "[[").Replace("]", "]]");
-             precisionModeTagName_Clone = PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]");
-             ResetTagName_Clone = ResetTagName.Replace("[", "[[").Replace("]", "]]");
-             C_A_T_N_Clone = CA_T_N.Replace("[", "[[").Replace("]", "]]");
-             damageLightTagClone = damageLightTag.Replace("[", "[[").Replace("]", "]]");
-             precisionSquaredMine = mine_prec * mine_prec;
+            D_S_C_Clone = D_S_C.Replace("[", "[[").Replace("]", "]]");
+            D_I_N_Clone = D_I_N.Replace("[", "[[").Replace("]", "]]");
+            D_C_N_Clone = D_C_N.Replace("[", "[[").Replace("]", "]]");
+            dockTaskName_Clone = dockTaskName.Replace("[", "[[").Replace("]", "]]");
+            UndockModeTagName_Clone = UndockModeTagName.Replace("[", "[[").Replace("]", "]]");
+            Thr_ON_n_Clone = Thr_ON_n.Replace("[", "[[").Replace("]", "]]");
+            Thr_OFF_N_Clone = Thr_OFF_N.Replace("[", "[[").Replace("]", "]]");
+            precisionModeTagName_Clone = PrecisionModeTagName.Replace("[", "[[").Replace("]", "]]");
+            ResetTagName_Clone = ResetTagName.Replace("[", "[[").Replace("]", "]]");
+            C_A_T_N_Clone = CA_T_N.Replace("[", "[[").Replace("]", "]]");
+            damageLightTagClone = damageLightTag.Replace("[", "[[").Replace("]", "]]");
+            precisionSquaredMine = mine_prec * mine_prec;
             precisionSquaredTerm = termnationPrecision * termnationPrecision;
             precisionSquaredNav2 = nav_prec2 * nav_prec2;
             precisionSquaredNav = nav_prec * nav_prec;
@@ -3838,8 +3839,9 @@ namespace IngameScript
             if (miningStage >= 6 && miningStage <= 10)
             {
                 can_gyroOVR = true;
-            }                        
+            }
             Vector3D NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
+            
             SetGyroOverride(can_gyroOVR, NavTemp);
 
             double YawMon = NavTemp.GetDim(0);
@@ -3898,7 +3900,7 @@ namespace IngameScript
             }
             if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
-            remote_control_position_update();
+            //remote_control_position_update();
 
             if (!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !connectorActual.IsConnected && isUndocked)
             {
@@ -4224,14 +4226,13 @@ namespace IngameScript
 
         }
 
-
         public void mining_management(bool autoDock)
         {
             if (remoteControlActual == null) { Echo("Error: Remote control is null in mining_management"); return; }
 
             #region mining_management
             // *** Mining sequence ***
-            remote_control_position_update();
+            //remote_control_position_update();
             //initialise mining position
             if (!miningInitialised && mineState && custom_data_read == 1 && miningStage == 0 && !isAutopiloting && isUndocked)
             {
@@ -4421,7 +4422,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-               // Last_Coords_Term = main_gps_coords;
+                //  Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4435,7 +4436,7 @@ namespace IngameScript
             if (miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && !targetDepthAchieved && requestExit && wasMining && miningInitialised && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
                 miningStage = 6;
-              //  Last_Coords_Term = main_gps_coords;
+                //  Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4451,7 +4452,7 @@ namespace IngameScript
 
                 miningStage = 6;
                 requestExit = true;
-              //  Last_Coords_Term = main_gps_coords;
+                //  Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4466,7 +4467,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
-              //  Last_Coords_Term = main_gps_coords;
+                // Last_Coords_Term = main_gps_coords;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(false);
@@ -5692,7 +5693,7 @@ namespace IngameScript
             double mineDistance = Math.Round(distance_current, 2);
             double speed = Math.Round(spd, 2);
             double groundSpeed = Math.Round(currentSpeed, 2);
-            
+
 
             // Core status report
             sbtemp.AppendLine($"GMDS {ver} Running...");
@@ -5721,13 +5722,13 @@ namespace IngameScript
             sbtemp.AppendLine($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
             sbtemp.AppendLine($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             sbtemp.AppendLine($"Speed: {speed} {groundSpeed}");
-            
+
             if (displays_tag.Count > 0)
             {
                 for (int i = 0; i < displays_tag.Count; i++)
                 {
-             
-                    if(displays_tag[i] != null)
+
+                    if (displays_tag[i] != null)
                     {
                         visualiser = ((IMyTextSurfaceProvider)displays_tag[0]).GetSurface(0);
                         if (visualiser.ContentType != ContentType.TEXT_AND_IMAGE)
@@ -5739,7 +5740,7 @@ namespace IngameScript
                         }
                         visualiser.WriteText(sbtemp.ToString());
                     }
-                
+
                 }
             }
             if (displays_debug.Count > 0)
