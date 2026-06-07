@@ -178,9 +178,9 @@ namespace IngameScript
         bool targetAlignmentValid = false;
         bool cnvyrsON = false;
         bool exitWaypointAdjusted = false;
-        double TrgtPitch = 0.0;
-        double TrgtRoll = 0.0;
-        double TrgtYaw = 0.0;
+        //double TrgtPitch = 0.0;
+       //double TrgtRoll = 0.0;
+       // double TrgtYaw = 0.0;
         double ttl_GASs;
         double ttl_sGAS;
         double ttl_mGAS;
@@ -727,35 +727,59 @@ namespace IngameScript
             if (remoteControlActual == null)
             {
                 sbtext.AppendLine("No RC found");
-                return new Vector3D(0, 0, 0);
-
+                return Vector3D.Zero;
             }
+
+            // 1. Get the RC's orientation
             Vector3D RCcenter = remoteControlActual.GetPosition();
             Vector3D RCfow = remoteControlActual.WorldMatrix.Forward;
-            //Vector3D RCup = remoteControlActual.WorldMatrix.Up;
-            Vector3D RCleft = remoteControlActual.WorldMatrix.Left;
-            //Vector3D RCright = remoteControlActual.WorldMatrix.Right;
+            Vector3D RCup = remoteControlActual.WorldMatrix.Up;
+            Vector3D RCright = remoteControlActual.WorldMatrix.Right;
+
+            // Define the specific face we want to point (Down = -Up)
+            Vector3D RCdown = -RCup;
+
+            Vector3D targetDirection;
+
+            // 2. Determine what we are pointing at
             if (targetAlignmentValid)
             {
-                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
-                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
-                TrgtYaw = TrgtPitch;
+                targetDirection = Vector3D.Normalize(Target - RCcenter);
             }
-            if (!targetAlignmentValid)
+            else
             {
-
-                TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(remoteControlActual.GetNaturalGravity()), RCleft))) - (Math.PI / 2);
-                TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-remoteControlActual.GetNaturalGravity()), RCfow))) - (Math.PI / 2);
-                TrgtYaw = TrgtPitch;
+                targetDirection = remoteControlActual.GetNaturalGravity();
+                // Safety check to ensure we are actually in a gravity field
+                if (targetDirection.LengthSquared() > 0)
+                    targetDirection = Vector3D.Normalize(targetDirection);
+                else
+                    return Vector3D.Zero;
             }
-            return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
+
+            // 3. The Cross Product: Calculates the exact rotational difference
+            Vector3D rotationAxis = Vector3D.Cross(RCdown, targetDirection);
+
+            // 4. Project this rotation axis onto the RC's local axes to get our Gyro inputs
+            // Pitch is rotation around the Left/Right axis
+            double pitch = Vector3D.Dot(rotationAxis, RCright);
+
+            // Roll is rotation around the Forward/Back axis
+            double roll = Vector3D.Dot(rotationAxis, RCfow);
+
+            // Yaw is rotation around the Up/Down axis
+            // Because we used Cross(RCdown, target), this will mathematically default to 0, stopping the spin.
+            double yaw = Vector3D.Dot(rotationAxis, RCup);
+
+            // You may need to invert pitch or roll (e.g., -pitch) depending on if your 
+            // gyro override script expects positive or negative inputs for a given direction.
+            return new Vector3D(yaw, roll, pitch);
         }
 
         private void terminationPrecisionUpdate()
         {
             termnationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
         }
-        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1)
+        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1.0f)
         {
             if (gyroTag.Count > 0)
             {
@@ -783,19 +807,9 @@ namespace IngameScript
                             {
                                 gyroActual.GyroPower = Power;
                             }
-
-                            if (gyroActual.Yaw != settings.GetDim(0))
-                            {
-                                gyroActual.Yaw = settings.GetDim(0);
-                            }
-                            if (gyroActual.Pitch != settings.GetDim(1))
-                            {
-                                gyroActual.Pitch = settings.GetDim(1);
-                            }
-                            if (gyroActual.Roll != settings.GetDim(2))
-                            {
-                                gyroActual.Roll = settings.GetDim(2);
-                            }
+                            gyroActual.Yaw = settings.GetDim(0);
+                            gyroActual.Pitch = settings.GetDim(1);
+                            gyroActual.Roll = settings.GetDim(2);
 
                         }
                     }
