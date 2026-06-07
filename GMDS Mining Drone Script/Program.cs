@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -96,6 +97,8 @@ namespace IngameScript
         string Sense = "Sense";
         string dmg = "Dmg";
         string thrusters = "Thrusters";
+        string debug = "Debug";
+        string display = "Info";
         string autodockCommand = "autodock";
         string collisionSenseCommand = "collision";
         string cargoSenseCommand = "cargo";
@@ -329,6 +332,10 @@ namespace IngameScript
         List<MyWaypointInfo> waypoints;
         List<IMyThrust> thrust_all;
         List<IMyThrust> thrust_tag;
+        List<IMyTerminalBlock> displays_all;
+        List<IMyTerminalBlock> displays_tag;
+        List<IMyTerminalBlock> displays_debug;
+        List<IMyProjector> projectors_all;
         List<MyIGCMessage> syncMessagesBuffer;
         IMyBlockGroup precModeGroup;
         IMyBlockGroup undockModeGroup;
@@ -338,6 +345,7 @@ namespace IngameScript
         List<IMyGyro> gyro_all;
         List<IMyGyro> gyroTag;
         IMyShipDrill drl_act;
+        IMyTextSurface visualiser;
         StringBuilder sb;
         MyIni _ini = new MyIni();
         bool setupIsComplete = false;
@@ -366,6 +374,7 @@ namespace IngameScript
         string s_aitask = "AI Task Recorder";
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
+        string s_display = "Display Panel";
         //string temp_id_name;
         int temp_id_num;
         double response_time = 0.0;
@@ -2703,6 +2712,58 @@ namespace IngameScript
                 }
             }
             gyro_all.Clear();
+            //display search
+            displays_all = new List<IMyTerminalBlock>();
+            displays_tag = new List<IMyTerminalBlock>();
+            displays_debug = new List<IMyTerminalBlock>();
+            gts.GetBlocksOfType<IMyTerminalBlock>(displays_all, b => b.CubeGrid == Me.CubeGrid);
+            if (displays_all.Count > 0)
+            {
+                for (int i = 0; i < displays_all.Count; i++)
+                {
+                    string tv1 = "";
+                    if (
+                        (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
+                        || (!displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && displays_all[i].Name.Contains(display))
+                        )
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                        displays_all[i].CustomName = n;
+                        displays_tag.Add(displays_all[i]);
+                    }
+                    if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + debug;
+                        displays_all[i].CustomName = n;
+                        displays_debug.Add(displays_all[i]);
+                    }
+                    if (displays_all[i].BlockDefinition.SubtypeId.Contains("TextPanel") && !displays_all[i].Name.Contains(debug) && !displays_all[i].Name.Contains(display))
+                    {
+                        tv1 = s_display;
+                        n = tv1 + s_display + " " + (i + 1) + " " + D_I_N + " " + display;
+                        displays_all[i].CustomName = n;
+                        displays_tag.Add(displays_all[i]);
+                    }
+                }
+            }
+            displays_all.Clear();
+
+            projectors_all = new List<IMyProjector>();
+            gts.GetBlocksOfType<IMyProjector>(projectors_all, b => b.CubeGrid == Me.CubeGrid);
+            if (projectors_all.Count > 0)
+            {
+                for (int i = 0; i < projectors_all.Count; i++)
+                {
+                    string tv1 = "";
+                    tv1 = "Projector";
+                    n = tv1 + " " + (i + 1) + " " + D_I_N;
+                    projectors_all[i].CustomName = n;
+                }
+            }
+            projectors_all.Clear();
+
             waypoints = new List<MyWaypointInfo>();
             /* if (Storage != "" && Storage != null)
              {
@@ -5892,9 +5953,51 @@ namespace IngameScript
             sbtext.AppendLine($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
             sbtext.AppendLine($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
             sbtext.AppendLine($"Speed: {speed} {groundSpeed}");
-            Echo(sbtext.ToString());
-            sbtext.Clear();
 
+            if (displays_tag.Count > 0)
+            {
+                for (int i = 0; i < displays_tag.Count; i++)
+                {
+
+                    if (displays_tag[i] != null)
+                    {
+                        visualiser = ((IMyTextSurfaceProvider)displays_tag[0]).GetSurface(0);
+                        if (visualiser.ContentType != ContentType.TEXT_AND_IMAGE)
+                        {
+                            //Echo("Correcting visualiser display");
+                            visualiser.ContentType = ContentType.TEXT_AND_IMAGE;
+                            visualiser.FontSize = 0.66f;
+                            visualiser.Font = "White";
+                        }
+                        visualiser.WriteText(sbtext.ToString());
+                    }
+
+                }
+            }
+            if (displays_debug.Count > 0)
+            {
+                for (int i = 0; i < displays_debug.Count; i++)
+                {
+                    if (displays_debug[i] != null)
+                    {
+                        visualiser = ((IMyTextSurfaceProvider)displays_debug[0]).GetSurface(0);
+                        if (visualiser.ContentType != ContentType.TEXT_AND_IMAGE)
+                        {
+                            //Echo("Correcting visualiser display");
+                            visualiser.ContentType = ContentType.TEXT_AND_IMAGE;
+                            visualiser.FontSize = 0.66f;
+                            visualiser.Font = "White";
+                        }
+                        visualiser.WriteText(sbtext.ToString());
+                    }
+
+                }
+            }
+            if (displays_tag.Count == 0)
+            {
+                Echo(sbtext.ToString());
+            }
+            sbtext.Clear();
             #endregion
 
         }
