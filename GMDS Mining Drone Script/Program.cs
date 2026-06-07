@@ -110,7 +110,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.529B";
+        string ver = "V0.530B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -807,9 +807,18 @@ namespace IngameScript
                             {
                                 gyroActual.GyroPower = Power;
                             }
-                            gyroActual.Yaw = settings.GetDim(0);
-                            gyroActual.Pitch = settings.GetDim(1);
-                            gyroActual.Roll = settings.GetDim(2);
+                            if(gyroActual.Yaw != settings.GetDim(0))
+                            {
+                                gyroActual.Yaw = settings.GetDim(0);
+                            }
+                            if(gyroActual.Pitch != settings.GetDim(1))
+                            {
+                                gyroActual.Pitch = settings.GetDim(1);
+                            }
+                            if (gyroActual.Roll != settings.GetDim(2))
+                            {
+                                gyroActual.Roll = settings.GetDim(2);
+                            }
 
                         }
                     }
