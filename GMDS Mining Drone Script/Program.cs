@@ -115,7 +115,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.526B";
+        string ver = "V0.527B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3890,11 +3890,13 @@ namespace IngameScript
 
         public void navigation_management()
         {
+
+            int startInstructions = Runtime.CurrentInstructionCount;
             if (!navState)
             {
                 return;
             }
-            if (remoteControlActual == null) { sbtemp.AppendLine("Error: Remote control is null in navigation_management"); return; }
+            if (remoteControlActual == null) { Echo("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
 
@@ -4105,9 +4107,8 @@ namespace IngameScript
                     }
                 }
             }
-            if (mainNavSequence == 3 && (Vector3D.DistanceSquared(rc_xyz, main_gps_coords) <= precisionSquaredNav) && navState && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
+            if (mainNavSequence == 3 && rc_xyz.X >= rc_cw_x - nav_prec && rc_xyz.X <= rc_cw_x + nav_prec && rc_xyz.Y >= rc_cw_y - nav_prec && rc_xyz.Y <= rc_cw_y + nav_prec && rc_xyz.Z >= rc_cw_z - nav_prec && rc_xyz.Z <= rc_cw_z + nav_prec && navState && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
-                
                 mainNavSequence = 4;
                 main_nav_complete = true;
                 add_nav_Waypoint_mn = false;
@@ -4223,9 +4224,10 @@ namespace IngameScript
 
         }
 
+
         public void mining_management(bool autoDock)
         {
-            if (remoteControlActual == null) { sbtemp.AppendLine("Error: Remote control is null in mining_management"); return; }
+            if (remoteControlActual == null) { Echo("Error: Remote control is null in mining_management"); return; }
 
             #region mining_management
             // *** Mining sequence ***
@@ -4265,22 +4267,24 @@ namespace IngameScript
             double projectionDistance = Vector3D.Dot(displacement, normalizedVector);
             bool hasOvershot = projectionDistance > drillSetLength + termnationPrecision;
             if (!targetDepthAchieved &&
-                (Vector3D.DistanceSquared(rc_xyz, tgt_drill_end) <= precisionSquaredTerm) &&
+                rc_xyz.X >= tgt_drill_end.X - termnationPrecision && rc_xyz.X <= tgt_drill_end.X + termnationPrecision &&
+                rc_xyz.Y >= tgt_drill_end.Y - termnationPrecision && rc_xyz.Y <= tgt_drill_end.Y + termnationPrecision &&
+                rc_xyz.Z >= tgt_drill_end.Z - termnationPrecision && rc_xyz.Z <= tgt_drill_end.Z + termnationPrecision &&
                 mineState && miningInitialised && isUndocked && miningStage > 0)
             {
-                targetDepthAchieved = true;                
+                targetDepthAchieved = true;
             }
             else if (!targetDepthAchieved && hasOvershot && mineState && miningInitialised && isUndocked)
             {
                 targetDepthAchieved = true;
                 droneStatus = 26;
-                sbtemp.AppendLine("Overshoot detected");
+                Echo("Overshoot detected");
             }
             // Check depth achieved
             else if (!targetDepthAchieved && distance_to_target <= termnationPrecision && mineState && miningInitialised && isUndocked)
             {
                 targetDepthAchieved = true;
-                sbtemp.AppendLine("Target depth achieved");
+                Echo("Target depth achieved");
             }
             else
             {
@@ -4392,7 +4396,7 @@ namespace IngameScript
                 droneStatusOutput = "Mining+++";
             }
 
-            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !targetDepthAchieved && (Vector3D.DistanceSquared(rc_xyz, mining_gps_coords) <= precisionSquaredMine) && mineState && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 4 && !mining_nav_complete && add_mine_waypoint && !targetDepthAchieved && rc_xyz.X >= rc_cmw_x - mine_prec && rc_xyz.X <= rc_cmw_x + mine_prec && rc_xyz.Y >= rc_cmw_y - mine_prec && rc_xyz.Y <= rc_cmw_y + mine_prec && rc_xyz.Z >= rc_cmw_z - mine_prec && rc_xyz.Z <= rc_cmw_z + mine_prec && mineState && miningInitialised && !requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 5;
                 mining_nav_complete = true;
@@ -4417,6 +4421,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
+               // Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4430,6 +4435,7 @@ namespace IngameScript
             if (miningStage >= 1 && miningStage <= 4 && !mining_nav_complete && !targetDepthAchieved && requestExit && wasMining && miningInitialised && remoteControlActual.CurrentWaypoint.Name != "exit shaft" && !isAutopiloting && isUndocked)
             {
                 miningStage = 6;
+              //  Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4445,6 +4451,7 @@ namespace IngameScript
 
                 miningStage = 6;
                 requestExit = true;
+              //  Last_Coords_Term = main_gps_coords;
                 exitWaypointSet = false;
                 exitSequenceComplete = false;
                 remoteControlActual.SpeedLimit = exit_speed;
@@ -4459,6 +4466,7 @@ namespace IngameScript
             {
                 miningStage = 6;
                 requestExit = true;
+              //  Last_Coords_Term = main_gps_coords;
                 remoteControlActual.SpeedLimit = exit_speed;
                 remoteControlActual.SetCollisionAvoidance(false);
                 remoteControlActual.SetDockingMode(false);
@@ -4816,6 +4824,7 @@ namespace IngameScript
             }
             #endregion
         }
+
 
         private void Calculate_miningCoords()
         {
