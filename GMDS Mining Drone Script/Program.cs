@@ -115,7 +115,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.525B";
+        string ver = "V0.526B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -776,7 +776,7 @@ namespace IngameScript
                 waypoints.Clear();
             }
         }
-        Vector3D GetNavAnglesOld(Vector3D Target)
+        Vector3D GetNavAngles(Vector3D Target)
         {
             if (remoteControlActual == null)
             {
@@ -793,7 +793,7 @@ namespace IngameScript
             {
                 TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
                 TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
-                TrgtYaw = 0;
+                TrgtYaw = TrgtPitch;
 
             }
             else
@@ -805,7 +805,7 @@ namespace IngameScript
             }
             return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
         }
-        Vector3D GetNavAngles(Vector3D target)
+        Vector3D GetNavAnglesBorked(Vector3D target)
         {
             if (remoteControlActual == null)
             {
@@ -3839,20 +3839,6 @@ namespace IngameScript
             {
                 can_gyroOVR = true;
             }                        
-            //Addition - early 
-            if (isDocked)
-            {
-                SetGyroOverride(can_gyroOVR, Vector3D.Zero);
-                if (navinst)
-                {
-                    navinst = false;
-                }
-                if (nav_act)
-                {                   
-                    nav_act = false;                    
-                }
-                return;
-            }
             Vector3D NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
             SetGyroOverride(can_gyroOVR, NavTemp);
 
