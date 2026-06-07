@@ -115,7 +115,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.524B";
+        string ver = "V0.525B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -776,7 +776,7 @@ namespace IngameScript
                 waypoints.Clear();
             }
         }
-        Vector3D GetNavAngles(Vector3D Target)
+        Vector3D GetNavAnglesOld(Vector3D Target)
         {
             if (remoteControlActual == null)
             {
@@ -805,7 +805,49 @@ namespace IngameScript
             }
             return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
         }
+        Vector3D GetNavAngles(Vector3D target)
+        {
+            if (remoteControlActual == null)
+            {
+                sbtemp.AppendLine("No RC found");
+                return Vector3D.Zero;
+            }
 
+            // 1. Get the world direction vector depending on alignment state
+            Vector3D worldDir = targetAlignmentValid
+                ? (target - remoteControlActual.GetPosition())
+                : remoteControlActual.GetNaturalGravity();
+
+            if (worldDir.LengthSquared() < 0.0001)
+                return Vector3D.Zero;
+
+            worldDir = Vector3D.Normalize(worldDir);
+
+            // 2. Transform the world direction vector into the RC's local coordinate space
+            // Transposing a pure orientation matrix gives its exact inverse matrix
+            MatrixD invWorldMatrix = MatrixD.Transpose(remoteControlActual.WorldMatrix);
+            Vector3D localDir = Vector3D.TransformNormal(worldDir, invWorldMatrix);
+
+            // Space Engineers Matrix Convention: Forward = -Z, Up = +Y, Right = +X
+            // Math.Atan2(opposite, adjacent) automatically preserves negative/positive signs.
+
+            // Pitch: Rotation around local X-axis (Looking up/down)
+            TrgtPitch = Math.Atan2(localDir.Y, -localDir.Z);
+
+            // Yaw: Rotation around local Y-axis (Turning left/right)
+            TrgtYaw = Math.Atan2(localDir.X, -localDir.Z);
+
+            // Roll: Rotation around local Z-axis (Tilting side-to-side)
+            TrgtRoll = Math.Atan2(localDir.X, localDir.Y);
+
+            // Maintain your fallback logic if alignment isn't valid
+            if (!targetAlignmentValid)
+            {
+                TrgtYaw = TrgtPitch;
+            }
+
+            return new Vector3D(TrgtYaw, -TrgtRoll, -TrgtPitch);
+        }
         private void terminationPrecisionUpdate()
         {
             termnationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
