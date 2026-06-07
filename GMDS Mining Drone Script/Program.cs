@@ -4613,7 +4613,7 @@ namespace IngameScript
             double rc_cew_y = tgt_drill_exit.Y;
             double rc_cew_z = tgt_drill_exit.Z;
 
-            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && (Vector3D.DistanceSquared(rc_xyz, tgt_drill_exit) <= precisionSquaredNav2) && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= tgt_drill_exit.X - nav_prec2 && rc_xyz.X <= tgt_drill_exit.X + nav_prec2 && rc_xyz.Y >= tgt_drill_exit.Y - nav_prec2 && rc_xyz.Y <= tgt_drill_exit.Y + nav_prec2 && rc_xyz.Z >= tgt_drill_exit.Z - nav_prec2 && rc_xyz.Z <= tgt_drill_exit.Z + nav_prec2 && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 10;
                 exitSequenceComplete = true;
@@ -4635,7 +4635,7 @@ namespace IngameScript
                 droneStatus = 19;
                 droneStatusOutput = "Exit Clear";
             }
-            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && (Vector3D.DistanceSquared(rc_xyz, exit_gps_coords_temp) <= precisionSquaredNav) && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
+            if (miningStage == 9 && !exitSequenceComplete && exitWaypointSet && rc_xyz.X >= exit_gps_coords_temp.X - nav_prec && rc_xyz.X <= exit_gps_coords_temp.X + nav_prec && rc_xyz.Y >= exit_gps_coords_temp.Y - nav_prec && rc_xyz.Y <= exit_gps_coords_temp.Y + nav_prec && rc_xyz.Z >= exit_gps_coords_temp.Z - nav_prec && rc_xyz.Z <= exit_gps_coords_temp.Z + nav_prec && miningInitialised && wasMining && requestExit && !isAutopiloting && isUndocked)
             {
                 miningStage = 7;
                 exitWaypointAdjusted = false;
