@@ -115,7 +115,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.523B";
+        string ver = "V0.524B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -781,21 +781,22 @@ namespace IngameScript
             if (remoteControlActual == null)
             {
                 sbtemp.AppendLine("No RC found");
-                return new Vector3D(0, 0, 0);
+                return Vector3D.Zero;
 
             }
             Vector3D RCcenter = remoteControlActual.GetPosition();
             Vector3D RCfow = remoteControlActual.WorldMatrix.Forward;
-            Vector3D RCup = remoteControlActual.WorldMatrix.Up;
+            //Vector3D RCup = remoteControlActual.WorldMatrix.Up;
             Vector3D RCleft = remoteControlActual.WorldMatrix.Left;
-            Vector3D RCright = remoteControlActual.WorldMatrix.Right;
+            //Vector3D RCright = remoteControlActual.WorldMatrix.Right;
             if (targetAlignmentValid)
             {
                 TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(Target - RCcenter), RCleft))) - (Math.PI / 2);
                 TrgtRoll = Math.Acos(Vector3D.Dot(RCleft, Vector3D.Reject(Vector3D.Normalize(-(Target - RCcenter)), RCfow))) - (Math.PI / 2);
+                TrgtYaw = 0;
 
             }
-            if (!targetAlignmentValid)
+            else
             {
 
                 TrgtPitch = Math.Acos(Vector3D.Dot(RCfow, Vector3D.Reject(Vector3D.Normalize(remoteControlActual.GetNaturalGravity()), RCleft))) - (Math.PI / 2);
@@ -825,12 +826,21 @@ namespace IngameScript
                         gyroActual = gyroTag[j];
                         if (gyroActual != null)
                         {
-                            if ((!gyroActual.GyroOverride && OverrideOnOff) || (gyroActual.GyroOverride && !OverrideOnOff))
-                                gyroActual.ApplyAction("Override");
-                            gyroActual.SetValue("Power", Power);
-                            gyroActual.SetValue("Yaw", settings.GetDim(0));
-                            gyroActual.SetValue("Pitch", settings.GetDim(1));
-                            gyroActual.SetValue("Roll", settings.GetDim(2));
+                            if(!gyroActual.GyroOverride && OverrideOnOff)
+                            {
+                                gyroActual.GyroOverride = true;
+                                if (gyroActual.GyroPower != Power)
+                                {
+                                    gyroActual.GyroPower = Power;
+                                }                                
+                                gyroActual.Yaw = settings.GetDim(0);
+                                gyroActual.Pitch = settings.GetDim(1);
+                                gyroActual.Roll = settings.GetDim(2);
+                            } else if (gyroActual.GyroOverride && !OverrideOnOff)
+                            {
+                                gyroActual.GyroOverride = false;
+                                
+                            }                            
                         }
                     }
                 }
@@ -3786,12 +3796,27 @@ namespace IngameScript
             if (miningStage >= 6 && miningStage <= 10)
             {
                 can_gyroOVR = true;
+            }                        
+            //Addition - early 
+            if (isDocked)
+            {
+                SetGyroOverride(can_gyroOVR, Vector3D.Zero);
+                if (navinst)
+                {
+                    navinst = false;
+                }
+                if (nav_act)
+                {                   
+                    nav_act = false;                    
+                }
+                return;
             }
-            SetGyroOverride(can_gyroOVR, GetNavAngles(crnt_tgt_align) * GyrMlt);
+            Vector3D NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
+            SetGyroOverride(can_gyroOVR, NavTemp);
 
-            double YawMon = GetNavAngles(crnt_tgt_align).GetDim(0);
-            double PitchMon = GetNavAngles(crnt_tgt_align).GetDim(1);
-            double RollMon = GetNavAngles(crnt_tgt_align).GetDim(2);
+            double YawMon = NavTemp.GetDim(0);
+            double PitchMon = NavTemp.GetDim(1);
+            double RollMon = NavTemp.GetDim(2);
 
             if (YawMon > nav_inst_thr && !isDocked || YawMon < -nav_inst_thr && !isDocked)
             {
