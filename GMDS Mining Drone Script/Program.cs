@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.530B";
+        string ver = "V0.531B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -421,7 +421,7 @@ namespace IngameScript
         string _recievedMessage;
         bool _updatedJob = false;
         StringBuilder sbtext = new StringBuilder();
-
+        int runTick = 0;
 
 
         #endregion
@@ -637,6 +637,7 @@ namespace IngameScript
         {
             _Runtime = Runtime.LastRunTimeMs;
             _Instruction = Runtime.CurrentInstructionCount;
+            
             // Check if a new argument was passed (manually via run or timer setup)
             if (!string.IsNullOrEmpty(argument) && !string.IsNullOrWhiteSpace(argument))
             {
@@ -674,10 +675,24 @@ namespace IngameScript
             ClearCurrentWaypoints();
             item_presence_check();
             confirm_item_presence();
-            cargo_check();
-            damage_check();
-            power_check();
-            fuel_check();
+            if (runTick % 6 == 0)
+            {
+                cargo_check();
+                damage_check();
+            }
+            if (runTick % 6 == 2)
+            {
+                power_check();
+            }
+            if (runTick % 6 == 4)
+            {
+                fuel_check();
+            }
+            runTick++;
+            if(runTick > 60)
+            {
+                runTick = 0;
+            }
             GetSpeed();
             recharge_state_check();
             terminationPrecisionUpdate();
