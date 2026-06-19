@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.600B";
+        string ver = "V0.606B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -669,7 +669,7 @@ namespace IngameScript
             }
 
 
-            sbtext.AppendLine($"GMDS {ver} Running...");
+            sbtext.Append("GMDS ").Append(ver).AppendLine(" Running...");
 
             bool canDock = (dockState);
             ClearCurrentWaypoints();
@@ -734,7 +734,7 @@ namespace IngameScript
         {
             if (!setupIsComplete)
             {
-                sbtext.AppendLine($"Drone parts missing - exiting");
+                sbtext.AppendLine("Drone parts missing - exiting");
                 ClearAllNonEmptyLists();
                 return;
             }
@@ -1797,7 +1797,7 @@ namespace IngameScript
                     if (!int.TryParse(temp_id[0], out temp_id_num))
                     {
                         temp_id_num = drone_id_num;
-                        sbtext.AppendLine($"Resorting to default ID#.{drone_id_num}");
+                        sbtext.Append("Resorting to default ID#.").Append(drone_id_num).Append('\n');
 
                     }
                     else
@@ -5943,31 +5943,33 @@ namespace IngameScript
             double groundSpeed = Math.Round(currentSpeed, 2);
 
             // Core status report
-            sbtext.AppendLine($"Load: {runtimePercent}% ({runtimeMs}ms) I#: {_Instruction} {nav_speed}");
-            sbtext.AppendLine($"Drone ID: {D_I_N.Replace("[", "[[").Replace("]", "]]")} # {droneDamageStatus}");
-            sbtext.AppendLine($"Status Ints: {drnst}");
-            sbtext.AppendLine($"Drone Status: {droneStatusOutput}");
-            sbtext.AppendLine($"Distance ID: {miningInitialised}");
-            sbtext.AppendLine($"Command seq: {commandCommandDataRequested}");
-            sbtext.AppendLine($"Cargo: {cargoPercent}%  Full: {cargoFullAchieved}");
-            sbtext.AppendLine($"Charge: {batteryPercent}%  Recharge: {recharge_request_battery}");
+            sbtext.Append("Load: ").Append(runtimePercent).Append("% (").Append(runtimeMs).Append("ms) I#: ").Append(_Instruction).Append(" ").Append(nav_speed).Append('\n');
+            sbtext.Append("Drone ID: ").Append(D_I_N.Replace("[", "[[").Replace("]", "]]")).Append(" # ").Append(droneDamageStatus).Append('\n');
+            sbtext.Append("Status Ints: ").Append(drnst).Append('\n');
+            sbtext.Append("Drone Status: ").Append(droneStatusOutput).Append('\n');
+            sbtext.Append("Distance ID: ").Append(miningInitialised).Append('\n');
+            sbtext.Append("Command seq: ").Append(commandCommandDataRequested).Append('\n');
+            sbtext.Append("Cargo: ").Append(cargoPercent).Append("%  Full: ").Append(cargoFullAchieved).Append('\n');
+            sbtext.Append("Charge: ").Append(batteryPercent).Append("%  Recharge: ").Append(recharge_request_battery).Append('\n');
+
             if (hydrogen_tank_tag.Count > 0)
             {
-                sbtext.AppendLine($"HTank: {tankPercent}%  Recharge: {recharge_request_tank}");
+                sbtext.Append("HTank: ").Append(tankPercent).Append("%  Recharge: ").Append(recharge_request_tank).Append('\n');
             }
-            sbtext.AppendLine($"Mine distance: {mineDistance}m  Mine Start: {(drillSetLength - ignoreDistance)}m");
-            sbtext.AppendLine($"Mine: {mineState} - Stage: {miningStage} WM:{wasMining} - Ed: {drill_el}");
-            sbtext.AppendLine($"Nav: {navState} - Stage: {mainNavSequence}");
-            sbtext.AppendLine($"Dock: {isDocked} - Stage: {dockingStage} DR: {dockingReady}");
-            sbtext.AppendLine($"Undock: {isUndocked} - Stage: {undocking_stage}");
-            sbtext.AppendLine($"Connected: {connectorActual.IsConnected}");
-            sbtext.AppendLine($"Depth Achieved: {targetDepthAchieved}");
-            sbtext.AppendLine($"Stopped: {stopState}");
-            sbtext.AppendLine($"Last response: {response_time}s waiting: {transmit_delay}");
-            sbtext.AppendLine($"Undock timer: {undock_delay_time}s {no_speed_ready_undock}");
-            sbtext.AppendLine($"Dock timer: {dock_delay_time}s {no_speed_ready_dock}");
-            sbtext.AppendLine($"Nav timer: {navigation_reset_delay_time}s {navigation_reset_delay}");
-            sbtext.AppendLine($"Speed: {speed} {groundSpeed}");
+
+            sbtext.Append("Mine distance: ").Append(mineDistance).Append("m  Mine Start: ").Append(drillSetLength - ignoreDistance).Append("m\n");
+            sbtext.Append("Mine: ").Append(mineState).Append(" - Stage: ").Append(miningStage).Append(" WM:").Append(wasMining).Append(" - Ed: ").Append(drill_el).Append('\n');
+            sbtext.Append("Nav: ").Append(navState).Append(" - Stage: ").Append(mainNavSequence).Append('\n');
+            sbtext.Append("Dock: ").Append(isDocked).Append(" - Stage: ").Append(dockingStage).Append(" DR: ").Append(dockingReady).Append('\n');
+            sbtext.Append("Undock: ").Append(isUndocked).Append(" - Stage: ").Append(undocking_stage).Append('\n');
+            sbtext.Append("Connected: ").Append(connectorActual.IsConnected).Append('\n');
+            sbtext.Append("Depth Achieved: ").Append(targetDepthAchieved).Append('\n');
+            sbtext.Append("Stopped: ").Append(stopState).Append('\n');
+            sbtext.Append("Last response: ").Append(response_time).Append("s waiting: ").Append(transmit_delay).Append('\n');
+            sbtext.Append("Undock timer: ").Append(undock_delay_time).Append("s ").Append(no_speed_ready_undock).Append('\n');
+            sbtext.Append("Dock timer: ").Append(dock_delay_time).Append("s ").Append(no_speed_ready_dock).Append('\n');
+            sbtext.Append("Nav timer: ").Append(navigation_reset_delay_time).Append("s ").Append(navigation_reset_delay).Append('\n');
+            sbtext.Append("Speed: ").Append(speed).Append(" ").Append(groundSpeed).Append('\n');
 
             if (displays_tag.Count > 0)
             {
