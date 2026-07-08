@@ -669,7 +669,17 @@ namespace IngameScript
                 setup_function();
                 setupIsComplete = true;
                 item_presence_check();
+                if (!setupIsComplete)
+                {
+                    Echo("Setup not complete.");
+                    return;
+                }
                 confirm_item_presence();
+                if (!setupIsComplete)
+                {
+                    Echo("Setup not complete.");
+                    return;
+                }
                 Echo("Setup complete!");
 
                 Save();
@@ -681,8 +691,16 @@ namespace IngameScript
 
             bool canDock = (dockState);
             ClearCurrentWaypoints();
+          //  Echo("yessir");
             item_presence_check();
+         //   Echo("yessir2");
             confirm_item_presence();
+           // Echo("yessir3");
+            if (!setupIsComplete)
+            {
+                Echo("Setup not complete.");
+                return;
+            }
 
             if (runTick % 6 == 0)
             {
