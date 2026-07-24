@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.608B";
+        string ver = "V0.609B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -4519,7 +4519,7 @@ namespace IngameScript
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
 
-                StDrlOnOff(true, cnvyrsON, terrainclearEnable);
+                StDrlOnOff(!navinst, cnvyrsON, terrainclearEnable);
                 droneStatus = 8;
                 droneStatusOutput = "Mining";
             }
