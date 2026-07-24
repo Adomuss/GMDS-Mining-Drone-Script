@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.609B";
+        string ver = "V0.610B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -434,6 +434,7 @@ namespace IngameScript
         string ResetTagName_Clone = "";
         string C_A_T_N_Clone = "";
         string damageLightTagClone = "";
+        bool initiateDrills = false;
 
         #endregion
         public void Save()
@@ -4518,8 +4519,12 @@ namespace IngameScript
                 miningStage = 2;
                 mine_coords_adjusted = true;
                 InitializeMining_Coordinates();
+                if(!navinst && !initiateDrills)
+                {
+                    initiateDrills = true;
+                }
 
-                StDrlOnOff(!navinst, cnvyrsON, terrainclearEnable);
+                StDrlOnOff(initiateDrills, cnvyrsON, terrainclearEnable);
                 droneStatus = 8;
                 droneStatusOutput = "Mining";
             }
@@ -4527,6 +4532,10 @@ namespace IngameScript
             {
 
                 StDrlOnOff(false, cnvyrsON, terrainclearEnable);
+                if (initiateDrills)
+                {
+                    initiateDrills = false;
+                }
                 droneStatus = 8;
                 droneStatusOutput = "Initiating RTB"; //tDA Bug - TDA was being removed early
             }
@@ -5204,6 +5213,10 @@ namespace IngameScript
                     }
                 }
                 StDrlOnOff(false, cnvyrsON);
+                if (initiateDrills)
+                {
+                    initiateDrills = false;
+                }
                 if (undockLightActual != null)
                 {
                     if (!undockLightActual.Enabled)
@@ -5339,6 +5352,10 @@ namespace IngameScript
                     }
                 }
                 StDrlOnOff(false, cnvyrsON);
+                if (initiateDrills)
+                {
+                    initiateDrills = false;
+                }
                 if (connectorActual != null)
                 {
                     if (connectorActual.Status == MyShipConnectorStatus.Connectable && dockingStage == 2)
@@ -5498,6 +5515,10 @@ namespace IngameScript
             {
                 no_speed_dock_delay_count = 0;
                 StDrlOnOff(false, cnvyrsON);
+                if (initiateDrills)
+                {
+                    initiateDrills = false;
+                }
                 if (!thrustGroupPresent)
                 {
                     if (timerBlockTOFFActual != null)
