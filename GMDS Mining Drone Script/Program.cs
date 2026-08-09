@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.610B";
+        string ver = "V0.611B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -436,6 +436,8 @@ namespace IngameScript
         string damageLightTagClone = "";
         bool initiateDrills = false;
 
+        List<MyDetectedEntityInfo> detectedEntityInfos = new List<MyDetectedEntityInfo>();
+
         #endregion
         public void Save()
         {
@@ -703,6 +705,8 @@ namespace IngameScript
                 return;
             }
 
+            SensorProxCheck();
+
             if (runTick % 6 == 0)
             {
                 cargo_check();
@@ -781,19 +785,14 @@ namespace IngameScript
                 sbtext.AppendLine("No RC found");
                 return Vector3D.Zero;
             }
-
-            // 1. Get the RC's orientation
             Vector3D RCcenter = remoteControlActual.GetPosition();
             Vector3D RCfow = remoteControlActual.WorldMatrix.Forward;
             Vector3D RCup = remoteControlActual.WorldMatrix.Up;
             Vector3D RCright = remoteControlActual.WorldMatrix.Right;
-
-            // Define the specific face we want to point (Down = -Up)
             Vector3D RCdown = -RCup;
-
             Vector3D targetDirection;
 
-            // 2. Determine what we are pointing at
+
             if (targetAlignmentValid)
             {
                 targetDirection = Vector3D.Normalize(Target - RCcenter);
@@ -801,29 +800,19 @@ namespace IngameScript
             else
             {
                 targetDirection = remoteControlActual.GetNaturalGravity();
-                // Safety check to ensure we are actually in a gravity field
                 if (targetDirection.LengthSquared() > 0)
                     targetDirection = Vector3D.Normalize(targetDirection);
                 else
                     return Vector3D.Zero;
             }
 
-            // 3. The Cross Product: Calculates the exact rotational difference
             Vector3D rotationAxis = Vector3D.Cross(RCdown, targetDirection);
-
-            // 4. Project this rotation axis onto the RC's local axes to get our Gyro inputs
-            // Pitch is rotation around the Left/Right axis
             double pitch = Vector3D.Dot(rotationAxis, RCright);
 
-            // Roll is rotation around the Forward/Back axis
             double roll = Vector3D.Dot(rotationAxis, RCfow);
 
-            // Yaw is rotation around the Up/Down axis
-            // Because we used Cross(RCdown, target), this will mathematically default to 0, stopping the spin.
             double yaw = Vector3D.Dot(rotationAxis, RCup);
 
-            // You may need to invert pitch or roll (e.g., -pitch) depending on if your 
-            // gyro override script expects positive or negative inputs for a given direction.
             return new Vector3D(yaw, roll, pitch);
         }
 
@@ -2967,10 +2956,13 @@ namespace IngameScript
             {
                 if (cargo_tag[i] != null)
                 {
-                    float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
-                    float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
-                    ttl_volu += inventory_vol;
-                    ttl_volm += max_inventory_vol;
+                    if (cargo_tag[i].IsFunctional)
+                    {
+                        float inventory_vol = (float)cargo_tag[i].GetInventory(0).CurrentVolume;
+                        float max_inventory_vol = (float)cargo_tag[i].GetInventory(0).MaxVolume;
+                        ttl_volu += inventory_vol;
+                        ttl_volm += max_inventory_vol;
+                    }
                 }
                 else
                 {
@@ -3015,10 +3007,13 @@ namespace IngameScript
                 {
                     if (cargo_sense[i] != null)
                     {
-                        float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
-                        float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
-                        ttl_volus += inventory_vol_s;
-                        ttl_volms += max_inventory_vol_s;
+                        if (cargo_tag[i].IsFunctional)
+                        {
+                            float inventory_vol_s = (float)cargo_sense[i].GetInventory(0).CurrentVolume;
+                            float max_inventory_vol_s = (float)cargo_sense[i].GetInventory(0).MaxVolume;
+                            ttl_volus += inventory_vol_s;
+                            ttl_volms += max_inventory_vol_s;
+                        }
                     }
                     else
                     {
@@ -3109,11 +3104,14 @@ namespace IngameScript
             {
                 if (battery_tag[i] != null)
                 {
-                    crntbatteryblock = battery_tag[i];
-                    ttl_sPWR += crntbatteryblock.CurrentStoredPower;
-                    ttl_mPWR += crntbatteryblock.MaxStoredPower;
-                    //ttl_PWRc += crntbatteryblock.CurrentOutput;
-                    validBatteries++;
+                    if (battery_tag[i].IsFunctional)
+                    {
+                        crntbatteryblock = battery_tag[i];
+                        ttl_sPWR += crntbatteryblock.CurrentStoredPower;
+                        ttl_mPWR += crntbatteryblock.MaxStoredPower;
+                        //ttl_PWRc += crntbatteryblock.CurrentOutput;
+                        validBatteries++;
+                    }
 
                     // Set ChargeMode in the same loop if conditions allow
                     /*   if (connectorActual != null)
@@ -3161,12 +3159,15 @@ namespace IngameScript
                 {
                     if (hydrogen_tank_tag[i] != null)
                     {
-                        crnthyrdogentank = hydrogen_tank_tag[i];
-                        ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
-                        ttl_sGAS = ttl_sGAS + ttl_GASs;
-                        ttl_mGAS = 100.0f;
-                        ttl_GASm = ttl_GASm + ttl_mGAS;
-                        pcnt_gas_tank = (ttl_sGAS / ttl_GASm) * 100.0f;
+                        if (hydrogen_tank_tag[i].IsFunctional)
+                        {
+                            crnthyrdogentank = hydrogen_tank_tag[i];
+                            ttl_GASs = crnthyrdogentank.FilledRatio * 100.0f;
+                            ttl_sGAS = ttl_sGAS + ttl_GASs;
+                            ttl_mGAS = 100.0f;
+                            ttl_GASm = ttl_GASm + ttl_mGAS;
+                            pcnt_gas_tank = (ttl_sGAS / ttl_GASm) * 100.0f;
+                        }
                     }
                 }
             }
@@ -6194,6 +6195,37 @@ namespace IngameScript
         }
         //end program
 
+        void SensorProxCheck()
+        {
+            if (sensor_tag[0] == null || lightResetTag[0] == null)
+            {
+                return;
+            }
+            if (sensor_tag[0] != null)
+            {
+                if (!sensor_tag[0].Enabled)
+                {
+                    return;
+                }
+            }
+            if (sensor_tag[0] != null)
+            {
+                detectedEntityInfos.Clear();
+                sensor_tag[0].DetectedEntities(detectedEntityInfos);
+                if (detectedEntityInfos.Count > 0)
+                {
+                    if (lightResetTag[0] != null)
+                    {
+                        if (!lightResetTag[0].Enabled)
+                        {
+                            lightResetTag[0].Enabled = true;
+                        }
+                    }
+                }
 
+
+            }
+            detectedEntityInfos.Clear();
+        }
     }
 }
