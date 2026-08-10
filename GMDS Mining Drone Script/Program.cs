@@ -436,7 +436,6 @@ namespace IngameScript
         string damageLightTagClone = "";
         bool initiateDrills = false;
 
-        List<MyDetectedEntityInfo> detectedEntityInfos = new List<MyDetectedEntityInfo>();
 
         #endregion
         public void Save()
@@ -705,7 +704,6 @@ namespace IngameScript
                 return;
             }
 
-            SensorProxCheck();
 
             if (runTick % 6 == 0)
             {
@@ -6195,37 +6193,6 @@ namespace IngameScript
         }
         //end program
 
-        void SensorProxCheck()
-        {
-            if (sensor_tag[0] == null || lightResetTag[0] == null)
-            {
-                return;
-            }
-            if (sensor_tag[0] != null)
-            {
-                if (!sensor_tag[0].Enabled)
-                {
-                    return;
-                }
-            }
-            if (sensor_tag[0] != null)
-            {
-                detectedEntityInfos.Clear();
-                sensor_tag[0].DetectedEntities(detectedEntityInfos);
-                if (detectedEntityInfos.Count > 0)
-                {
-                    if (lightResetTag[0] != null)
-                    {
-                        if (!lightResetTag[0].Enabled)
-                        {
-                            lightResetTag[0].Enabled = true;
-                        }
-                    }
-                }
-
-
-            }
-            detectedEntityInfos.Clear();
-        }
+       
     }
 }
