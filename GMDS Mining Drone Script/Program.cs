@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.611B";
+        string ver = "V0.612B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3762,7 +3762,8 @@ namespace IngameScript
                 undocking_start = 1;
             }
 
-            if (undocking_stage > 0 && undocking_stage < 3)
+            GetSpeed();
+            if (undocking_stage > 0 && undocking_stage < 3 && spd <= currentSpeedNotMovingThreshold)
             {
                 isUndocking = true;
                 no_speed_undock_delay_count++;
@@ -5786,7 +5787,11 @@ namespace IngameScript
 
         public void undock_delay_check()
         {
-
+            if ((!isUndocking || isUndocked) && undock_delay_time > 0.0)
+            {
+                undock_delay_time = 0;
+                no_speed_undock_delay_count = 0;
+            }
             #region undock_delay_check
             if (no_speed_ready_undock)
             {
@@ -5799,7 +5804,11 @@ namespace IngameScript
         }
         public void dock_delay_check()
         {
-
+            if ((!isDocking || isDocked) && dock_delay_time > 0.0)
+            {
+                dock_delay_time = 0;
+                no_speed_dock_delay_count = 0;
+            }
             #region dock_delay_check
             if (no_speed_ready_dock)
             {
