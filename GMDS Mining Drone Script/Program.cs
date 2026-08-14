@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.612B";
+        string ver = "V0.613B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3419,11 +3419,12 @@ namespace IngameScript
             if (dataInvalid && !wasMining)
             {
                 commandRequest = 0;
+                droneStatusOutput = "Idle";
             }
             if (commandRequest == 0 || commandChanged && mode_set && commandRequest != 7)
             {
                 stopState = true;
-                cmd_read_ack = 0;
+                cmd_read_ack = 0;              
             }
             else stopState = false;
             if (commandRequest == 0 && wasMining)
