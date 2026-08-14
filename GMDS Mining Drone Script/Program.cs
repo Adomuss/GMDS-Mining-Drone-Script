@@ -3467,7 +3467,10 @@ namespace IngameScript
                 droneStatusOutput = "Resetting";
             }
             #endregion
-
+            if(commandRequest == 0 && droneStatusOutput == "Docking")
+            {
+                droneStatusOutput = "Idle";
+            }
         }
 
         public void connected_battery_recharge_check(bool dockingReady)
