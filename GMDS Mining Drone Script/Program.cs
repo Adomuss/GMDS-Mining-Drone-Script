@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.613B";
+        string ver = "V0.614B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -818,7 +818,7 @@ namespace IngameScript
         {
             termnationPrecision = (terminationCoefficient * drillSetLength) + 0.6;
         }
-        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, float Power = 1.0f)
+        void SetGyroOverride(bool OverrideOnOff, Vector3 settings, bool Parked, float Power = 1.0f)
         {
             if (gyroTag.Count > 0)
             {
@@ -831,6 +831,13 @@ namespace IngameScript
                     }
                     if (gyroTag[j] != null)
                     {
+                        if (Parked && gyroTag[j].Enabled)
+                        {
+                            gyroTag[j].Enabled = false;
+                        } else if (!Parked && !gyroTag[j].Enabled)
+                        {
+                            gyroTag[j].Enabled = true;
+                        }
                         gyroActual = gyroTag[j];
                         if (gyroActual != null)
                         {
@@ -4035,7 +4042,7 @@ namespace IngameScript
                 can_gyroOVR = true;
             }
             Vector3D NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
-            SetGyroOverride(can_gyroOVR, NavTemp);
+            SetGyroOverride(can_gyroOVR, NavTemp, isDocked);
 
             double YawMon = NavTemp.GetDim(0);
             double PitchMon = NavTemp.GetDim(1);
