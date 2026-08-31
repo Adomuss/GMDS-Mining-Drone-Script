@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.619B";
+        string ver = "V0.621B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -300,6 +300,7 @@ namespace IngameScript
         List<IMyCameraBlock> camera_tag = new List<IMyCameraBlock>();
         List<IMyShipConnector> connector_all = new List<IMyShipConnector>();
         List<IMyShipConnector> connector_tag = new List<IMyShipConnector>();
+        List<IMyShipConnector> refresh_tag = new List<IMyShipConnector>();
         List<IMyCargoContainer> cargo_all = new List<IMyCargoContainer>();
         List<IMyCargoContainer> cargo_tag = new List<IMyCargoContainer>();
         List<IMyCargoContainer> cargo_sense = new List<IMyCargoContainer>();
@@ -417,8 +418,8 @@ namespace IngameScript
         string jobdata = "";
         bool terrainclearEnable = false;
         bool terrainKeepMode = false;
-        bool precMflip = false;
-        bool precMflipped = false;
+        //  bool precMflip = false;
+        //  bool precMflipped = false;
         string _recievedMessage;
         bool _updatedJob = false;
         StringBuilder sbtext = new StringBuilder();
@@ -436,6 +437,7 @@ namespace IngameScript
         string C_A_T_N_Clone = "";
         string damageLightTagClone = "";
         bool initiateDrills = false;
+        int gridrefreshcount = 0;
 
 
         #endregion
@@ -1877,22 +1879,30 @@ namespace IngameScript
             cam_all.Clear();
             connector_all.Clear();
             connector_tag.Clear();
+            refresh_tag.Clear();
             gts.GetBlocksOfType<IMyShipConnector>(connector_all, b => b.CubeGrid == Me.CubeGrid);
             if (connector_all.Count > 0)
             {
                 for (int i = 0; i < connector_all.Count; i++)
                 {
-                    if (connector_all[i].CustomName.Contains(D_C_N))
+                    if (connector_all[i].CustomName.Contains(D_C_N) && !connector_all[i].CustomName.Contains("Refresh"))
                     {
                         n = s_connector + " " + (i + 1) + " " + D_I_N;
                         connector_all[i].CustomName = n;
                         connector_tag.Add(connector_all[i]);
                     }
-                    if (!connector_all[i].CustomName.Contains(D_I_N))
+                    if (!connector_all[i].CustomName.Contains(D_I_N) && !connector_all[i].CustomName.Contains("Refresh"))
                     {
                         n = s_connector + " " + (i + 1) + " " + D_I_N;
                         connector_all[i].CustomName = n;
                         connector_tag.Add(connector_all[i]);
+                    }
+                    if (connector_all[i].CustomName.Contains("Refresh"))
+                    {
+                        n = s_connector + " Refresh " + (i + 1) + " " + D_I_N;
+                        connector_all[i].CustomName = n;
+                        connector_all[i].PullStrength = 0.0f;
+                        refresh_tag.Add(connector_all[i]);
                     }
                 }
             }
@@ -2448,7 +2458,8 @@ namespace IngameScript
             }
             projectors_all.Clear();
 
-            waypoints = new List<MyWaypointInfo>();
+            waypoints.Clear();
+            
             /* if (Storage != "" && Storage != null)
              {
                  LoadStorageData();
@@ -4770,9 +4781,33 @@ namespace IngameScript
                 }
                 if (ai_move_actual != null)
                 {
+                    if (!ai_move_actual.Enabled)
+                    {
+                        ai_move_actual.Enabled = true;
+                    }
                     if (ai_move_actual.SpeedLimit != nav_speed)
                     {
                         ai_move_actual.SpeedLimit = nav_speed;
+                    }
+                }
+                if (ai_task_dock_actual != null)
+                {
+                    if (!ai_task_dock_actual.Enabled)
+                    {
+                        ai_task_dock_actual.Enabled = true;
+                    }
+                }
+                if (refresh_tag.Count > 0)
+                {
+                    for (int i = 0; i < refresh_tag.Count; i++)
+                    {
+                        if (refresh_tag[i] != null)
+                        {
+                            if (refresh_tag[i].Status == MyShipConnectorStatus.Connected)
+                            {
+                                refresh_tag[i].Disconnect();
+                            }
+                        }
                     }
                 }
             }
@@ -4966,7 +5001,7 @@ namespace IngameScript
             {
                 IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
                 //check waypoint location for precision mode
-               
+
                 if (resetLightActual != null && connectorActual != null && sensorActual != null && precModeLightActual != null && ai_task_dock_actual != null && ai_move_actual != null)
                 {
                     if ((connectorActual.Status != MyShipConnectorStatus.Connectable
@@ -5068,224 +5103,176 @@ namespace IngameScript
                     }
 
                 }
-
-                if (connectorActual != null && ai_task_dock_actual != null)
+                //big reset here
+                if (no_speed_ready_dock)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (ai_task_dock_actual.GetValue<bool>(p1) && (ai_task_dock_actual.GetValue<bool>(abr))))
+                    gridrefreshcount++;
+                    if (resetLightActual != null)
                     {
-                        if (precModeLightActual != null)
+                        if (!resetLightActual.Enabled)
+                        {
+                            resetLightActual.Enabled = true;
+                        }
+                    }
+                    if (collisionAvoidLightActual != null)
+                    {
+                        if (!collisionAvoidLightActual.Enabled)
+                        {
+                            collisionAvoidLightActual.Enabled = true;
+                        }
+                    }
+                    if (ai_move_actual != null)
+                    {
+                        if (ai_move_actual.Enabled)
+                        {
+                            ai_move_actual.Enabled = false;
+                        }
+                    }
+                    if (ai_task_dock_actual != null)
+                    {
+                        if (ai_task_dock_actual.Enabled)
+                        {
+                            ai_task_dock_actual.Enabled = false;
+                        }
+                    }
+                    reset_ai();
+                    if (refresh_tag.Count > 0)
+                    {
+                        for (int i = 0; i < refresh_tag.Count; i++)
+                        {
+                            if (refresh_tag[i] != null)
+                            {
+                                if (refresh_tag[i].Status == MyShipConnectorStatus.Connectable)
+                                {
+                                    refresh_tag[i].Connect();
+                                }
+                            }
+                        }
+                    }
+
+                    if (dockingStage != 0)
+                    {
+                        dockingStage = 0;
+                    }
+
+                }
+
+
+                if (dockingStage == 3 && isDocked)
+                {
+                    no_speed_dock_delay_count = 0;
+                    StDrlOnOff(false, cnvyrsON);
+                    if (initiateDrills)
+                    {
+                        initiateDrills = false;
+                    }
+                    if (!thrustGroupPresent)
+                    {
+                        if (timerBlockTOFFActual != null)
+                        {
+                            if (!timerBlockTOFFActual.Enabled)
+                            {
+                                timerBlockTOFFActual.Enabled = true;
+                            }
+                            timerBlockTOFFActual.Trigger();
+                        }
+                    }
+                    else
+                    {
+                        Thruster_Management(false);
+                    }
+
+                    reset_ai();
+                    if (resetLightActual != null)
+                    {
+                        if (resetLightActual.Enabled)
+                        {
+                            resetLightActual.Enabled = false;
+                        }
+                    }
+                    if (dockLightActual != null)
+                    {
+                        if (!dockLightActual.Enabled)
+                        {
+                            dockLightActual.Enabled = true;
+                        }
+                    }
+                    if (undockLightActual != null)
+                    {
+                        if (undockLightActual.Enabled)
+                        {
+                            undockLightActual.Enabled = false;
+                        }
+                    }
+                    if (precModeLightActual != null)
+                    {
+                        if (precModeLightActual.Enabled)
                         {
                             precModeLightActual.Enabled = false;
                         }
-
-                        if (precMflip)
+                    }
+                    if (recharge_request_battery)
+                    {
+                        for (int i = 0; i < battery_tag.Count; i++)
                         {
-                            if (ai_move_actual != null)
+                            if (!batteryRechargeModeSet)
                             {
-                                if (ai_move_actual.PrecisionMode && !precMflipped)
-                                {
-                                    ai_move_actual.PrecisionMode = false;
-                                    precMflipped = true;
-                                }
-                                if (!ai_move_actual.PrecisionMode && !precMflipped)
-                                {
-                                    ai_move_actual.PrecisionMode = true;
-                                    precMflipped = true;
-                                }
+                                batteryupdate(ChargeMode.Recharge);
+                                batteryRechargeModeSet = true;
+                                batteryAutochargeSet = false;
                             }
-
+                            droneStatusOutput = "Recharging";
                         }
-                        if (!ai_task_dock_actual.GetValue<bool>(abr))
+                    }
+                    if (!recharge_request_battery)
+                    {
+                        if (!batteryAutochargeSet)
                         {
-                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                            batteryupdate(ChargeMode.Auto);
+                            batteryRechargeModeSet = false;
+                            batteryAutochargeSet = true;
                         }
-
-                        if (!ai_task_dock_actual.GetValue<bool>(p1))
+                    }
+                    if (recharge_request_tank && !ignore_Htank)
+                    {
+                        if (!tankRechargeModeSet)
                         {
-                            //ai_task_dock_actual.ApplyAction(p1);
-                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
-                        }
-
-                    }
-                }
-
-
-                // To do:check waypoint name from move block - if null or blank for time delay then reset docking sequence
-                //get terminal properties
-                if (connectorActual != null && ai_task_dock_actual != null)
-                {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr) || (ai_task_dock_actual.GetValue<bool>(abr)))))
-                    {
-                        if (resetLightActual != null)
-                        {
-                            if (!resetLightActual.Enabled)
-                            {
-                                resetLightActual.Enabled = true;
-                            }
-                        }
-                        if (precModeLightActual != null)
-                        {
-                            precModeLightActual.Enabled = false;
-                        }
-
-                        if (precMflip)
-                        {
-                            if (ai_move_actual != null)
-                            {
-                                if (ai_move_actual.PrecisionMode && !precMflipped)
-                                {
-                                    ai_move_actual.PrecisionMode = false;
-                                    precMflipped = true;
-                                }
-                                if (!ai_move_actual.PrecisionMode && !precMflipped)
-                                {
-                                    ai_move_actual.PrecisionMode = true;
-                                    precMflipped = true;
-                                }
-                            }
-
-                        }
-
-                    }
-                }
-
-
-            }
-
-            if (precMflip && dockingStage == 2)
-            {
-                if (ai_move_actual != null)
-                {
-                    if (ai_move_actual.PrecisionMode && precMflipped)
-                    {
-                        ai_move_actual.PrecisionMode = false;
-                        precMflipped = false;
-                        precMflip = false;
-                    }
-                    if (!ai_move_actual.PrecisionMode && precMflipped)
-                    {
-                        ai_move_actual.PrecisionMode = true;
-                        precMflipped = false;
-                        precMflip = false;
-                    }
-                }
-            }
-
-
-            if (dockingStage == 3 && isDocked)
-            {
-                no_speed_dock_delay_count = 0;
-                StDrlOnOff(false, cnvyrsON);
-                if (initiateDrills)
-                {
-                    initiateDrills = false;
-                }
-                if (!thrustGroupPresent)
-                {
-                    if (timerBlockTOFFActual != null)
-                    {
-                        if (!timerBlockTOFFActual.Enabled)
-                        {
-                            timerBlockTOFFActual.Enabled = true;
-                        }
-                        timerBlockTOFFActual.Trigger();
-                    }
-                }
-                else
-                {
-                    Thruster_Management(false);
-                }
-
-                reset_ai();
-                if (resetLightActual != null)
-                {
-                    if (resetLightActual.Enabled)
-                    {
-                        resetLightActual.Enabled = false;
-                    }
-                }
-                if (dockLightActual != null)
-                {
-                    if (!dockLightActual.Enabled)
-                    {
-                        dockLightActual.Enabled = true;
-                    }
-                }
-                if (undockLightActual != null)
-                {
-                    if (undockLightActual.Enabled)
-                    {
-                        undockLightActual.Enabled = false;
-                    }
-                }
-                if (precModeLightActual != null)
-                {
-                    if (precModeLightActual.Enabled)
-                    {
-                        precModeLightActual.Enabled = false;
-                    }
-                }
-                if (recharge_request_battery)
-                {
-                    for (int i = 0; i < battery_tag.Count; i++)
-                    {
-                        if (!batteryRechargeModeSet)
-                        {
-                            batteryupdate(ChargeMode.Recharge);
-                            batteryRechargeModeSet = true;
-                            batteryAutochargeSet = false;
+                            tankupdate(true);
+                            tankAutochargeSet = false;
+                            tankRechargeModeSet = true;
                         }
                         droneStatusOutput = "Recharging";
-                    }
-                }
-                if (!recharge_request_battery)
-                {
-                    if (!batteryAutochargeSet)
-                    {
-                        batteryupdate(ChargeMode.Auto);
-                        batteryRechargeModeSet = false;
-                        batteryAutochargeSet = true;
-                    }
-                }
-                if (recharge_request_tank && !ignore_Htank)
-                {
-                    if (!tankRechargeModeSet)
-                    {
-                        tankupdate(true);
-                        tankAutochargeSet = false;
-                        tankRechargeModeSet = true;
-                    }
-                    droneStatusOutput = "Recharging";
 
-                }
-                if (!recharge_request_tank && !ignore_Htank)
-                {
-                    if (!tankAutochargeSet)
+                    }
+                    if (!recharge_request_tank && !ignore_Htank)
                     {
-                        tankupdate(false);
-                        tankAutochargeSet = true;
-                        tankRechargeModeSet = false;
+                        if (!tankAutochargeSet)
+                        {
+                            tankupdate(false);
+                            tankAutochargeSet = true;
+                            tankRechargeModeSet = false;
+                        }
+                    }
+                    if (!recharge_request)
+                    {
+                        dockingStage = 0;
                     }
                 }
-                if (!recharge_request)
+                if (dockingStage >= 1 && dockingStage <= 2 && stopState && isDocking && !isDocked)
                 {
+                    reset_ai();
+                    if (resetLightActual != null)
+                    {
+                        if (resetLightActual.Enabled)
+                        {
+                            resetLightActual.Enabled = false;
+                        }
+                    }
                     dockingStage = 0;
                 }
-            }
-            if (dockingStage >= 1 && dockingStage <= 2 && stopState && isDocking && !isDocked)
-            {
-                reset_ai();
-                if (resetLightActual != null)
-                {
-                    if (resetLightActual.Enabled)
-                    {
-                        resetLightActual.Enabled = false;
-                    }
-                }
-                dockingStage = 0;
-            }
-            #endregion
+                #endregion
 
+            }
         }
 
         public void connector_state_management(bool dockingReady)
@@ -5596,7 +5583,7 @@ namespace IngameScript
             sbtext.Append("Stopped: ").Append(stopState).Append('\n');
             sbtext.Append("Last response: ").Append(response_time).Append("s waiting: ").Append(transmit_delay).Append('\n');
             sbtext.Append("Undock timer: ").Append(undock_delay_time).Append("s ").Append(no_speed_ready_undock).Append('\n');
-            sbtext.Append("Dock timer: ").Append(dock_delay_time).Append("s ").Append(no_speed_ready_dock).Append('\n');
+            sbtext.Append("Dock timer: ").Append(dock_delay_time).Append("s ").Append(no_speed_ready_dock).Append(" GRef: ").Append(gridrefreshcount).Append('\n');
             sbtext.Append("Nav timer: ").Append(navigation_reset_delay_time).Append("s ").Append(navigation_reset_delay).Append('\n');
             sbtext.Append("Speed: ").Append(speed).Append(" ").Append(groundSpeed).Append('\n');
 
@@ -5670,10 +5657,12 @@ namespace IngameScript
             {
                 no_speed_ready_dock = true;
                 //_updatedJob = true;
+                /*
                 if (!precMflip)
                 {
                     precMflip = true;
                 }
+                */
             }
             #endregion
 
