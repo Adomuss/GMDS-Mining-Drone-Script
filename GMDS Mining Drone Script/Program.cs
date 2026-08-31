@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using EmptyKeys.UserInterface.Generated.EditFactionIconView_Bindings;
+using ProtoBuf;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Screens.Terminal.Controls;
@@ -113,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.616B";
+        string ver = "V0.617B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -883,146 +884,6 @@ namespace IngameScript
             }
             _customDataStore.Clear();
         }
-        void FetchConfigData(string input)
-        {
-
-            _customDataStore.Clear();
-            if (_customDataStore.TryParse(input))
-            {
-                var str = "";
-                str = _customDataStore.Get(gmdscategory, "droneTagname").ToString().Trim();
-                if (!string.IsNullOrWhiteSpace(str))
-                {
-                    droneTag = str;
-                }
-                str = _customDataStore.Get(gmdscategory, "droneidnum").ToString().Trim();
-                if (!int.TryParse(str, out drone_id_num))
-                {
-                    drone_id_num = 1;
-                }
-                str = _customDataStore.Get(gmdscategory, "collisionSenseEnabled").ToString().Trim();
-                if (!bool.TryParse(str, out collisionSenseEnabled))
-                {
-                    collisionSenseEnabled = true;
-                }
-                str = _customDataStore.Get(gmdscategory, "cargoSenseEnabled").ToString().Trim();
-                if (!bool.TryParse(str, out cargoSenseEnabled))
-                {
-                    cargoSenseEnabled = true;
-                }
-                str = _customDataStore.Get(gmdscategory, "cargoSenseLimit").ToString().Trim();
-                if (!float.TryParse(str, out cargoSenseLimit))
-                {
-                    cargoSenseLimit = 0.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "cargoSenseEnabled").ToString().Trim();
-                if (!bool.TryParse(str, out cargoSenseEnabled))
-                {
-                    cargoSenseEnabled = true;
-                }
-                str = _ini.Get(gmdscategory, "drillterrainenabled").ToString().Trim();
-                if (!bool.TryParse(str, out terrainclearEnable))
-                {
-                    terrainclearEnable = false;
-                }
-                str = _ini.Get(gmdscategory, "drillterrainoffset").ToString().Trim();
-                if (!double.TryParse(str, out terrainclearoffset))
-                {
-                    terrainclearoffset = 9.0;
-                }
-                str = _ini.Get(gmdscategory, "keepterrain").ToString().Trim();
-                if (!bool.TryParse(str, out terrainKeepMode))
-                {
-                    terrainKeepMode = false;
-                }
-                str = _customDataStore.Get(gmdscategory, "damageReportingEnabled").ToString().Trim();
-                if (!bool.TryParse(str, out damageReportingEnabled))
-                {
-                    damageReportingEnabled = true;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensorleftlim").ToString().Trim();
-                if (!float.TryParse(str, out s_llm))
-                {
-                    s_llm = 4.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensorrightlim").ToString().Trim();
-                if (!float.TryParse(str, out s_rlm))
-                {
-                    s_rlm = 4.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensorbottomlim").ToString().Trim();
-                if (!float.TryParse(str, out s_btlm))
-                {
-                    s_btlm = 3.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensortoplim").ToString().Trim();
-                if (!float.TryParse(str, out s_tlm))
-                {
-                    s_tlm = 4.5f;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensorbacklim").ToString().Trim();
-                if (!float.TryParse(str, out s_bklm))
-                {
-                    s_bklm = 6.5f;
-                }
-                str = _customDataStore.Get(gmdscategory, "sensorfrontlim").ToString().Trim();
-                if (!float.TryParse(str, out s_flm))
-                {
-                    s_flm = 3.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "ignorehydrogentank").ToString().Trim();
-                if (!bool.TryParse(str, out ignore_Htank))
-                {
-                    ignore_Htank = true;
-                }
-                str = _customDataStore.Get(gmdscategory, "gas_CHGhi").ToString().Trim();
-                if (!double.TryParse(str, out gas_CHGhi))
-                {
-                    gas_CHGhi = 100.0;
-                }
-                str = _customDataStore.Get(gmdscategory, "gas_CHGlow").ToString().Trim();
-                if (!double.TryParse(str, out gas_CHGlow))
-                {
-                    gas_CHGlow = 30.0;
-                }
-                str = _customDataStore.Get(gmdscategory, "autoChargeMode").ToString().Trim();
-                if (!bool.TryParse(str, out autoChargeMode))
-                {
-                    autoChargeMode = true;
-                }
-                str = _customDataStore.Get(gmdscategory, "bat_CHGhi").ToString().Trim();
-                if (!float.TryParse(str, out bat_CHGhi))
-                {
-                    bat_CHGhi = 100.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "bat_CHGlow").ToString().Trim();
-                if (!float.TryParse(str, out bat_CHGlow))
-                {
-                    bat_CHGlow = 30.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "drill_speed").ToString().Trim();
-                if (!float.TryParse(str, out drill_speed))
-                {
-                    drill_speed = 1.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "nav_speed").ToString().Trim();
-                if (!float.TryParse(str, out nav_speed))
-                {
-                    nav_speed = 5.0f;
-                }
-                str = _customDataStore.Get(gmdscategory, "exit_speed").ToString().Trim();
-                if (!float.TryParse(str, out exit_speed))
-                {
-                    exit_speed = 1.0f;
-                }
-            }
-            else
-            {
-                StoreRawInput(jobdata, Me, gmdscategory, jobinfo);
-                _updatedJob = true;
-            }
-            _customDataStore.Clear();
-        }
 
         void GetCustomDataCommand(string input, IMyTerminalBlock block)
         {
@@ -1092,220 +953,6 @@ namespace IngameScript
                 targetAlignmentValid = false;
             }
         }
-
-        void GetCustomDataCommandOld(string input, IMyTerminalBlock block)
-        {
-            // Checks if the block has CustomData AND if it's NOT already INI-formatted data
-            if (!string.IsNullOrEmpty(block.CustomData) && !block.CustomData.Contains(gmdscategory))
-            {
-                _customDataStore.Clear();
-                if (!_customDataStore.TryParse(Me.CustomData))
-                {
-                    String[] gpsCommandtest = block.CustomData.ToString().Split(':');
-
-                    if (gpsCommandtest.Length > 0)
-                    {
-                        StoreRawInput(block.CustomData, block, gmdscategory, jobinfo);
-                        _updatedJob = true;
-                    }
-                    sbtext.AppendLine("Dataconversion");
-                }
-            }
-            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
-            {
-                sbtext.AppendLine("Custom Data is empty");
-                return;
-            }
-            FetchJobData(block.CustomData.ToString().Trim());
-            //FetchConfigData(block.CustomData.ToString().Trim());
-            String[] gpsCommandData = jobdata.Split(':');
-            if (gpsCommandData.Length < 5)
-            {
-                sbtext.AppendLine("Custom Data is faulty");
-                jobdata = fail_data;
-            }
-            /* Custom data message structure
-             * 0 = GPS Text
-             * 1 = GPS Index
-             * 2 = Main Target X
-             * 3 = Main Target Y
-             * 4 = Main Target Z
-             * 5 = Colour output?
-             * 6 = Command Request
-             * 7 = Command Distance
-             * 8 = Ignore Distance
-             * 9 = GPS Data 8
-             * 10 = GPS Data 9
-             * 11 = Alignment Target X
-             * 12 = Alignment Target Y
-             * 13 = Alignment Target Z
-             * 
-             */
-            if (gpsCommandData.Length > 5)
-            {
-                gpsIndex = gpsCommandData[1];
-                main_gps_coords = new Vector3D(Double.Parse(gpsCommandData[2]), Double.Parse(gpsCommandData[3]), Double.Parse(gpsCommandData[4]));
-
-                commandCommandDataRequested = gpsCommandData[6];
-                if (!int.TryParse(commandCommandDataRequested, out commandRequest))
-                {
-                    commandRequest = 0;
-                }
-
-                //commandDataDistance = gpsCommandData[7];
-                //if (!Double.TryParse(commandDataDistance, out drillSetLength))
-                //{
-                //   drillSetLength = 1.0;
-                //}
-
-            }
-
-            if (gpsCommandData.Length < 9)
-            {
-                ignoreDistance = 0.0;
-                return;
-            }
-
-            if (gpsCommandData.Length > 9)
-            {
-                if (gpsCommandData[8] == null || gpsCommandData[8] == "")
-                {
-                    commandDataIgnoreDistance = "";
-                    ignoreDistance = 0.0;
-                }
-                else
-                {
-                    commandDataIgnoreDistance = gpsCommandData[8];
-                    if (!double.TryParse(commandDataIgnoreDistance, out ignoreDistance))
-                    {
-                        ignoreDistance = 0.0;
-                    }
-                }
-            }
-
-            if (gpsCommandData.Length > 10)
-            {
-                if (gpsCommandData[9] == null || gpsCommandData[9] == "")
-                {
-                    // commandData8 = "";
-                }
-                else
-                {
-                    // commandData8 = gpsCommandData[9];
-                }
-            }
-
-            if (gpsCommandData.Length > 11)
-            {
-                if (gpsCommandData[10] == null || gpsCommandData[10] == "")
-                {
-                    // commandData9 = "";
-                }
-                else
-                {
-                    //commandData9 = gpsCommandData[10];
-                }
-            }
-
-            if (gpsCommandData.Length > 12)
-            {
-                if (gpsCommandData[11] == null || gpsCommandData[11] == "")
-                {
-                    //  commandDataAlignX = "";
-                    commandDataPresent_11 = false;
-                }
-                else
-                {
-                    // commandDataAlignX = gpsCommandData[11];
-
-                    //  if (!double.TryParse(commandDataAlignX, out alignmentTargetX))
-                    //  {
-                    //      alignmentTargetX = 0.0;
-                    //      commandDataPresent_11 = false;
-
-                    //   }
-                    //  else
-                    //  {
-                    //       commandDataPresent_11 = true;
-                    //   }
-                }
-            }
-
-            if (gpsCommandData.Length > 13)
-            {
-                if (gpsCommandData[12] == null || gpsCommandData[12] == "")
-                {
-                    //  commandDataAlignY = "";
-                    commandDataPresent_12 = false;
-                }
-                else
-                {
-                    //  commandDataAlignY = gpsCommandData[12];
-
-                    //   if (!double.TryParse(commandDataAlignY, out alignmentTargetY))
-                    //  {
-                    //    alignmentTargetY = 0.0;
-                    //    commandDataPresent_12 = false;
-
-                    //  }
-                    //  else
-                    //   {
-                    //       commandDataPresent_12 = true;
-                    //   }
-                }
-            }
-
-            if (gpsCommandData.Length > 14)
-            {
-                if (gpsCommandData[13] == null || gpsCommandData[13] == "")
-                {
-                    // commandDataAlignZ = "";
-                    //  commandDataPresent_13 = false;
-                }
-                else
-                {
-                    //   commandDataAlignZ = gpsCommandData[13].ToString();
-
-                    //  if (!double.TryParse(commandDataAlignZ, out alignmentTargetZ))
-                    {
-                        //      alignmentTargetZ = 0.0;
-                        //     commandDataPresent_13 = false;
-
-                        //  }
-                        // else
-                        // {
-                        //      commandDataPresent_13 = true;
-                        //  }
-                    }
-                }
-            }
-
-            if (commandDataPresent_11 && commandDataPresent_12 && commandDataPresent_13)
-            {
-                targetAlignmentValid = true;
-                alignmentTargetNew.X = alignmentTargetX;
-                alignmentTargetNew.Y = alignmentTargetY;
-                alignmentTargetNew.Z = alignmentTargetZ;
-            }
-            else
-            {
-                targetAlignmentValid = false;
-            }
-
-            if (gpsCommandData.Length < 14)
-            {
-                commandDataPresent_13 = false;
-            }
-            if (gpsCommandData.Length < 13)
-            {
-                commandDataPresent_12 = false;
-            }
-            if (gpsCommandData.Length < 12)
-            {
-                commandDataPresent_11 = false;
-            }
-        }
-
 
         void StDrlOnOff(bool DrilOnOf, bool UConv, bool terrainClear = false)
         {
@@ -3915,7 +3562,7 @@ namespace IngameScript
 
                 undocking_stage = 0;
                 droneStatus = 0;
-                commandCommandDataRequested = "0";
+               
             }
             //reset exit request on stop state
             if (miningStage == 0 && stopState && requestExit)
@@ -4048,20 +3695,20 @@ namespace IngameScript
             double PitchMon = NavTemp.GetDim(1);
             double RollMon = NavTemp.GetDim(2);
 
-            if (YawMon > nav_inst_thr && !isDocked || YawMon < -nav_inst_thr && !isDocked)
+            if ((YawMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (YawMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
             {
                 droneStatus = 23;
                 yawinst = true;
             }
             else yawinst = false;
 
-            if (PitchMon > nav_inst_thr && !isDocked || PitchMon < -nav_inst_thr && !isDocked)
+            if ((PitchMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (PitchMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
             {
                 pitchinst = true;
                 droneStatus = 23;
             }
             else pitchinst = false;
-            if (RollMon > nav_inst_thr && !isDocked || RollMon < -nav_inst_thr && !isDocked)
+            if ((RollMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (RollMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
             {
                 rollinst = true;
                 droneStatus = 23;
@@ -4076,7 +3723,7 @@ namespace IngameScript
             {
                 nav_act = false;
             }
-            if (yawinst && !nav_act && !isDocked || pitchinst && !nav_act && !isDocked || rollinst && !nav_act && !isDocked || resetLightActual.Enabled && !isDocking && !isDocked)
+            if ((yawinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (pitchinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (rollinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (resetLightActual.Enabled && !isDocking && !isDocked))
             {
                 navinst = true;
                 droneStatus = 23;
@@ -4335,7 +3982,7 @@ namespace IngameScript
                     }
                 }
                 mainNavSequence = 0;
-                commandCommandDataRequested = "0";
+                
             }
             remoteControlActual.GetWaypointInfo(waypoints);
             if (mainNavSequence == 3 && add_nav_Waypoint_mn && waypoints.Count <= 0 && !main_nav_complete && isUndocked && navState)
@@ -4361,7 +4008,7 @@ namespace IngameScript
                     }
                 }
                 mainNavSequence = 0;
-                commandCommandDataRequested = "0";
+                
             }
 
             if ((mainNavSequence > 0 && recharge_request) || (mainNavSequence > 0 && force_request_dock))
@@ -5318,33 +4965,34 @@ namespace IngameScript
             if (dockingStage == 2)
             {
                 IMyAutopilotWaypoint myWaypoint = ai_move_actual.CurrentWaypoint;
-
-                if (resetLightActual != null && connectorActual != null && sensorActual != null && precModeLightActual != null)
+                //check waypoint location for precision mode
+               
+                if (resetLightActual != null && connectorActual != null && sensorActual != null && precModeLightActual != null && ai_task_dock_actual != null && ai_move_actual != null)
                 {
                     if ((connectorActual.Status != MyShipConnectorStatus.Connectable
                         && !precModeLightActual.Enabled
                         && sensorActual.Enabled
                         && !resetLightActual.Enabled
                         && currentSpeed < currentSpeedNotMovingThreshold
-                        && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit && !ai_task_dock_actual.GetValue<bool>(p1))
                             || (connectorActual.Status != MyShipConnectorStatus.Connectable
                             && precModeLightActual.Enabled
                             && !sensorActual.Enabled
                             && !resetLightActual.Enabled
                             && currentSpeed < currentSpeedNotMovingThreshold
-                            && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                            && no_speed_dock_delay_count < no_speed_dock_delay_limit && !ai_task_dock_actual.GetValue<bool>(p1))
                         || (connectorActual.Status != MyShipConnectorStatus.Connectable
                         && precModeLightActual.Enabled
                         && !sensorActual.Enabled
                         && !resetLightActual.Enabled
                         && currentSpeed < currentSpeedNotMovingThreshold
-                        && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit && !ai_task_dock_actual.GetValue<bool>(p1))
                             || (connectorActual.Status != MyShipConnectorStatus.Connectable
                             && !precModeLightActual.Enabled
                             && sensorActual.Enabled
                             && !resetLightActual.Enabled
                             && currentSpeed < currentSpeedNotMovingThreshold
-                            && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                            && no_speed_dock_delay_count < no_speed_dock_delay_limit && !ai_task_dock_actual.GetValue<bool>(p1))
                                             )
                     {
                         no_speed_dock_delay_count++;
@@ -5362,6 +5010,7 @@ namespace IngameScript
                         ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
                     }
                 }
+
                 StDrlOnOff(false, cnvyrsON);
                 if (initiateDrills)
                 {
@@ -5384,7 +5033,59 @@ namespace IngameScript
                 }
                 if (connectorActual != null && ai_task_dock_actual != null && precModeLightActual != null)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
+                    if ((connectorActual.Status != MyShipConnectorStatus.Connectable || connectorActual.Status != MyShipConnectorStatus.Connected) && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
+                    {
+                        if (collisionSenseEnabled)
+                        {
+                            if (sensorActual != null)
+                            {
+                                if (!sensorActual.Enabled)
+                                {
+                                    sensorActual.Enabled = !sensorActual.Enabled;
+                                }
+                            }
+                        }
+                        if (precModeLightActual != null)
+                        {
+                            if (precModeLightActual.Enabled)
+                            {
+                                precModeLightActual.Enabled = false;
+                                ai_move_actual.PrecisionMode = false;
+                            }
+                        }
+                        
+                        if (collisionAvoidLightActual != null)
+                        {
+                            if (!collisionAvoidLightActual.Enabled)
+                            {
+                                collisionAvoidLightActual.Enabled = true;
+                                ai_move_actual.CollisionAvoidance = true;
+                            }
+                        }
+                        
+
+                        if (ai_move_actual != null)
+                        {
+                            if (!ai_move_actual.GetValue<bool>(abr))
+                            {
+                                ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                            }
+                        }
+                        if (!ai_task_dock_actual.GetValue<bool>(abr))
+                        {
+                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                        }
+
+                        if (!ai_task_dock_actual.GetValue<bool>(p1))
+                        {
+                            //ai_task_dock_actual.ApplyAction(p1);
+                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
+                        }
+
+                        droneStatusOutput = "Docking";
+                    }
+
+                    if ((connectorActual.Status != MyShipConnectorStatus.Connectable || connectorActual.Status != MyShipConnectorStatus.Connected) && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
                     {
                         if (collisionSenseEnabled)
                         {
@@ -5919,7 +5620,7 @@ namespace IngameScript
             double tankPercent = hydrogen_tank_tag.Count > 0 ? Math.Round(pcnt_gas_tank, 2) : 0;
             double mineDistance = Math.Round(distance_current, 2);
             double speed = Math.Round(spd, 2);
-            double groundSpeed = Math.Round(currentSpeed, 2);
+            double groundSpeed = Math.Round(currentSpeed, 2);            
 
             // Core status report
             sbtext.Append("Load: ").Append(runtimePercent).Append("% (").Append(runtimeMs).Append("ms) I#: ").Append(_Instruction).Append(" ").Append(nav_speed).Append('\n');
@@ -5927,7 +5628,7 @@ namespace IngameScript
             sbtext.Append("Status Ints: ").Append(drnst).Append('\n');
             sbtext.Append("Drone Status: ").Append(droneStatusOutput).Append('\n');
             sbtext.Append("Distance ID: ").Append(miningInitialised).Append('\n');
-            sbtext.Append("Command seq: ").Append(commandCommandDataRequested).Append('\n');
+            sbtext.Append("Command seq: ").Append(commandRequest).Append('\n');
             sbtext.Append("Cargo: ").Append(cargoPercent).Append("%  Full: ").Append(cargoFullAchieved).Append('\n');
             sbtext.Append("Charge: ").Append(batteryPercent).Append("%  Recharge: ").Append(recharge_request_battery).Append('\n');
 
@@ -6019,6 +5720,7 @@ namespace IngameScript
             if (no_speed_dock_delay_count >= no_speed_dock_delay_limit)
             {
                 no_speed_ready_dock = true;
+                //_updatedJob = true;
                 if (!precMflip)
                 {
                     precMflip = true;
