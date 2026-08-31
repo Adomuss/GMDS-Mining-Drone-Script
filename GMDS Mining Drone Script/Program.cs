@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.617B";
+        string ver = "V0.618B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -5033,57 +5033,6 @@ namespace IngameScript
                 }
                 if (connectorActual != null && ai_task_dock_actual != null && precModeLightActual != null)
                 {
-                    if ((connectorActual.Status != MyShipConnectorStatus.Connectable || connectorActual.Status != MyShipConnectorStatus.Connected) && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
-                    {
-                        if (collisionSenseEnabled)
-                        {
-                            if (sensorActual != null)
-                            {
-                                if (!sensorActual.Enabled)
-                                {
-                                    sensorActual.Enabled = !sensorActual.Enabled;
-                                }
-                            }
-                        }
-                        if (precModeLightActual != null)
-                        {
-                            if (precModeLightActual.Enabled)
-                            {
-                                precModeLightActual.Enabled = false;
-                                ai_move_actual.PrecisionMode = false;
-                            }
-                        }
-                        
-                        if (collisionAvoidLightActual != null)
-                        {
-                            if (!collisionAvoidLightActual.Enabled)
-                            {
-                                collisionAvoidLightActual.Enabled = true;
-                                ai_move_actual.CollisionAvoidance = true;
-                            }
-                        }
-                        
-
-                        if (ai_move_actual != null)
-                        {
-                            if (!ai_move_actual.GetValue<bool>(abr))
-                            {
-                                ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
-                            }
-                        }
-                        if (!ai_task_dock_actual.GetValue<bool>(abr))
-                        {
-                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
-                        }
-
-                        if (!ai_task_dock_actual.GetValue<bool>(p1))
-                        {
-                            //ai_task_dock_actual.ApplyAction(p1);
-                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
-                        }
-
-                        droneStatusOutput = "Docking";
-                    }
 
                     if ((connectorActual.Status != MyShipConnectorStatus.Connectable || connectorActual.Status != MyShipConnectorStatus.Connected) && dockingStage == 2 && !no_speed_ready_dock && (!ai_task_dock_actual.GetValue<bool>(p1) && (!ai_task_dock_actual.GetValue<bool>(abr))) && !precModeLightActual.Enabled) //checking if not docking properly when not in precision mode to restart
                     {
