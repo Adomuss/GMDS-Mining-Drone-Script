@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.622B";
+        string ver = "V0.623B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -338,6 +338,7 @@ namespace IngameScript
         List<IMyTerminalBlock> displays_tag = new List<IMyTerminalBlock>();
         List<IMyTerminalBlock> displays_debug = new List<IMyTerminalBlock>();
         List<IMyProjector> projectors_all = new List<IMyProjector>();
+        List<IMyEventControllerBlock> events_all = new List<IMyEventControllerBlock>();
         List<MyIGCMessage> syncMessagesBuffer = new List<MyIGCMessage>();
         IMyBlockGroup precModeGroup;
         IMyBlockGroup undockModeGroup;
@@ -377,6 +378,7 @@ namespace IngameScript
         string s_lightblock = "Indication Light";
         string s_cargo = "Cargo Container";
         string s_display = "Display Panel";
+        string s_eventctrl = "Event Controller";
         //string temp_id_name;
         int temp_id_num;
         double response_time = 0.0;
@@ -2458,7 +2460,18 @@ namespace IngameScript
                 }
             }
             projectors_all.Clear();
-
+            events_all.Clear();
+            gts.GetBlocksOfType<IMyEventControllerBlock>(events_all, b => b.CubeGrid == Me.CubeGrid);
+            if(events_all.Count > 0)
+            {
+                for(int i = 0; i < events_all.Count; i++)
+                {
+                    n = s_eventctrl + " " + (i + 1) + " " + D_I_N;
+                    events_all[i].CustomName = n;
+                }
+                   
+            }
+            events_all.Clear();
             waypoints.Clear();
             
             /* if (Storage != "" && Storage != null)
