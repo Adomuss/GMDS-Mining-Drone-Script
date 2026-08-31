@@ -113,7 +113,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.614B";
+        string ver = "V0.616B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3492,7 +3492,7 @@ namespace IngameScript
             #region connected_battery_recharge_check
             if (connectorActual != null)
             {
-                if (connectorActual.Status == MyShipConnectorStatus.Connected && ((autoChargeMode && !undockState) || !autoChargeMode && !undockState && recharge_request_battery))
+                if ((connectorActual.Status == MyShipConnectorStatus.Connected && ((autoChargeMode && !undockState)) || (!autoChargeMode && !undockState && recharge_request_battery)))
                 {
                     if (!batteryRechargeModeSet)
                     {
@@ -4197,7 +4197,7 @@ namespace IngameScript
                 }
             }
 
-            if (mainNavSequence == 3 && navinst && commandRequest == 1 || mainNavSequence == 3 && navinst && commandRequest == 4)
+            if ((mainNavSequence == 3 && navinst && commandRequest == 1) || (mainNavSequence == 3 && navinst && commandRequest == 4))
             {
                 remoteControlActual.ClearWaypoints();
                 mainNavSequence = 1;
@@ -4214,13 +4214,13 @@ namespace IngameScript
 
             //            GetSpeed();
 
-            if (spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 4 || spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 1)
+            if ((spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 4) || (spd <= currentSpeedNotMovingThreshold && no_speed_count_navigation_reset_delay_count < no_speed_navigation_delay_limit && mainNavSequence == 3 && !resetLightActual.Enabled && !navinst && commandRequest == 1))
             {
                 no_speed_count_navigation_reset_delay_count++;
                 navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
 
             }
-            if (mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 1 || mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 4 || navigation_reset_delay)
+            if ((mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 1) || (mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 4 || navigation_reset_delay))
             {
                 remoteControlActual.ClearWaypoints();
                 mainNavSequence = 1;
@@ -4364,7 +4364,7 @@ namespace IngameScript
                 commandCommandDataRequested = "0";
             }
 
-            if (mainNavSequence > 0 && recharge_request || mainNavSequence > 0 && force_request_dock)
+            if ((mainNavSequence > 0 && recharge_request) || (mainNavSequence > 0 && force_request_dock))
             {
                 mainNavSequence = 0;
                 main_nav_complete = true;
@@ -4502,12 +4502,12 @@ namespace IngameScript
                 cargoFullAchieved = true;
             }
             //check if battery is low to request recharge
-            if (is_low_charge && mineState && miningInitialised && !recharge_request_battery || is_low_charge && connectorActual.IsConnected && !recharge_request_battery || is_low_charge && !connectorActual.IsConnected && !recharge_request_battery && mainNavSequence > 0 && !mineState && isUndocked)
+            if ((is_low_charge && mineState && miningInitialised && !recharge_request_battery) || (is_low_charge && connectorActual.IsConnected && !recharge_request_battery) || (is_low_charge && !connectorActual.IsConnected && !recharge_request_battery && mainNavSequence > 0 && !mineState && isUndocked))
             {
                 recharge_request_battery = true;
             }
             //check if tank is low to request gas recharge if tanks is not ignored
-            if (is_low_tank && mineState && miningInitialised && !recharge_request_tank && !ignore_Htank || is_low_tank && connectorActual.IsConnected && !recharge_request_tank && !ignore_Htank || is_low_tank && !connectorActual.IsConnected && !recharge_request_tank && !ignore_Htank && mainNavSequence > 0 && !mineState && isUndocked)
+            if (((is_low_tank && mineState && miningInitialised && !recharge_request_tank && !ignore_Htank) || (is_low_tank && connectorActual.IsConnected && !recharge_request_tank && !ignore_Htank)) || (is_low_tank && !connectorActual.IsConnected && !recharge_request_tank && !ignore_Htank && mainNavSequence > 0 && !mineState && isUndocked))
             {
                 recharge_request_tank = true;
             }
@@ -4706,7 +4706,7 @@ namespace IngameScript
             }
             distance_current = (remoteControlActual.GetPosition() - tgt_drill_end).Length();
             //manage converyor operation
-            if (distance_current <= drillSetLength - ignoreDistance || connectorActual.IsConnected || sens_convOPN)
+            if ((distance_current <= drillSetLength - ignoreDistance) || connectorActual.IsConnected || sens_convOPN)
             {
                 cnvyrsON = true;
             }
@@ -4715,7 +4715,7 @@ namespace IngameScript
                 cnvyrsON = false;
             }
             //manage terrain clearing mode
-            if (distance_current <= drillSetLength - ignoreDistance + terrainclearoffset || connectorActual.IsConnected || sens_convOPN || terrainKeepMode)
+            if ((distance_current <= drillSetLength - ignoreDistance + terrainclearoffset) || connectorActual.IsConnected || sens_convOPN || terrainKeepMode)
             {
                 terrainclearEnable = false;
 
@@ -5112,7 +5112,7 @@ namespace IngameScript
                 //early return if docking is disabled
                 return;
             }
-            if ((canDock) && dockingStage == 0 && !isDocked || (canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>(abr)) && droneStatusOutput == "Idle")))
+            if (((canDock) && dockingStage == 0 && !isDocked) || ((canDock) && dockingStage == 3 && !isDocked && (((!ai_task_dock_actual.GetValue<bool>(p1) && !ai_task_dock_actual.GetValue<bool>(abr)) && droneStatusOutput == "Idle"))))
             {
                 dockingStage = 1;
                 if (!switchedThrustersOn)
@@ -5269,7 +5269,7 @@ namespace IngameScript
                         }
                         if (ai_move_actual != null)
                         {
-                            if (skip_prec_mode && ai_move_actual.CollisionAvoidance || !skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance)
+                            if ((skip_prec_mode && ai_move_actual.CollisionAvoidance) || (!skip_prec_mode && ai_move_actual.PrecisionMode && ai_move_actual.CollisionAvoidance))
                             {
                                 if (!ai_move_actual.GetValue<bool>(abr))
                                 {
@@ -5321,30 +5321,30 @@ namespace IngameScript
 
                 if (resetLightActual != null && connectorActual != null && sensorActual != null && precModeLightActual != null)
                 {
-                    if (connectorActual.Status != MyShipConnectorStatus.Connectable
+                    if ((connectorActual.Status != MyShipConnectorStatus.Connectable
                         && !precModeLightActual.Enabled
                         && sensorActual.Enabled
                         && !resetLightActual.Enabled
                         && currentSpeed < currentSpeedNotMovingThreshold
-                        && no_speed_dock_delay_count < no_speed_dock_delay_limit
-                            || connectorActual.Status != MyShipConnectorStatus.Connectable
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                            || (connectorActual.Status != MyShipConnectorStatus.Connectable
                             && precModeLightActual.Enabled
                             && !sensorActual.Enabled
                             && !resetLightActual.Enabled
                             && currentSpeed < currentSpeedNotMovingThreshold
-                            && no_speed_dock_delay_count < no_speed_dock_delay_limit
-                        || connectorActual.Status != MyShipConnectorStatus.Connectable
+                            && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                        || (connectorActual.Status != MyShipConnectorStatus.Connectable
                         && precModeLightActual.Enabled
                         && !sensorActual.Enabled
                         && !resetLightActual.Enabled
                         && currentSpeed < currentSpeedNotMovingThreshold
-                        && no_speed_dock_delay_count < no_speed_dock_delay_limit
-                            || connectorActual.Status != MyShipConnectorStatus.Connectable
+                        && no_speed_dock_delay_count < no_speed_dock_delay_limit)
+                            || (connectorActual.Status != MyShipConnectorStatus.Connectable
                             && !precModeLightActual.Enabled
                             && sensorActual.Enabled
                             && !resetLightActual.Enabled
                             && currentSpeed < currentSpeedNotMovingThreshold
-                            && no_speed_dock_delay_count < no_speed_dock_delay_limit
+                            && no_speed_dock_delay_count < no_speed_dock_delay_limit)
                                             )
                     {
                         no_speed_dock_delay_count++;
@@ -5650,7 +5650,7 @@ namespace IngameScript
                 dockingReady = false;
             }
             #region connector_state_management
-            if (connectorActual.IsConnected && ignore_Htank || connectorActual.IsConnected && !ignore_Htank)
+            if ((connectorActual.IsConnected && ignore_Htank) || (connectorActual.IsConnected && !ignore_Htank))
             {
                 if (!tankRechargeModeSet)
                 {
@@ -5669,7 +5669,7 @@ namespace IngameScript
                     tankRechargeModeSet = false;
                 }
             }
-            if (connectorActual.IsConnected && cargoFullAchieved || connectorActual.IsConnected && !cargoIsEmpty)
+            if ((connectorActual.IsConnected && cargoFullAchieved) || (connectorActual.IsConnected && !cargoIsEmpty))
             {
                 droneStatusOutput = "Docked Unloading";
 
@@ -5849,7 +5849,7 @@ namespace IngameScript
 
             if (pinged)
             {
-                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:";
+                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:{22}:";
                 sb.Clear().EnsureCapacity(128);
                 sb.AppendFormat(baseFormat, D_I_N,
                     droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
@@ -5859,7 +5859,7 @@ namespace IngameScript
                     drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
                     gpsIndex, cargoFullAchieved, recharge_request,
-                    autoDock, dockingReady
+                    autoDock, dockingReady, commandRequest
                     );
                 dataTransmissionOut = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
