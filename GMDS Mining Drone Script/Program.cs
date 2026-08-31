@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.618B";
+        string ver = "V0.619B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3695,20 +3695,20 @@ namespace IngameScript
             double PitchMon = NavTemp.GetDim(1);
             double RollMon = NavTemp.GetDim(2);
 
-            if ((YawMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (YawMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
+            if (YawMon > nav_inst_thr && !isDocked || YawMon < -nav_inst_thr && !isDocked)
             {
                 droneStatus = 23;
                 yawinst = true;
             }
             else yawinst = false;
 
-            if ((PitchMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (PitchMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
+            if (PitchMon > nav_inst_thr && !isDocked || PitchMon < -nav_inst_thr && !isDocked)
             {
                 pitchinst = true;
                 droneStatus = 23;
             }
             else pitchinst = false;
-            if ((RollMon > nav_inst_thr && !isDocked && !(isDocking || !isUndocking)) || (RollMon < -nav_inst_thr && !isDocked && !(isDocking || !isUndocking)))
+            if (RollMon > nav_inst_thr && !isDocked || RollMon < -nav_inst_thr && !isDocked)
             {
                 rollinst = true;
                 droneStatus = 23;
@@ -3723,7 +3723,7 @@ namespace IngameScript
             {
                 nav_act = false;
             }
-            if ((yawinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (pitchinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (rollinst && !nav_act && !isDocked && !(isDocking || !isUndocking)) || (resetLightActual.Enabled && !isDocking && !isDocked))
+            if (yawinst && !nav_act && !isDocked  || pitchinst && !nav_act && !isDocked  || rollinst && !nav_act && !isDocked  || resetLightActual.Enabled && !isDocking && !isDocked)
             {
                 navinst = true;
                 droneStatus = 23;
