@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.623B";
+        string ver = "V0.624B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3699,13 +3699,13 @@ namespace IngameScript
 
         public void drone_alignment_management()
         {
-
+            Vector3D NavTemp;
             #region drone_alignment_management
-            if (isDocked || !isUndocked && !isDocked || isUndocking || isDocking || navState || stopState)
+            if (isDocked || !isUndocked && !isDocked || isUndocking || isDocking || stopState)
             {
                 can_gyroOVR = false;
             }
-            else
+            else if (navState || (mineState && !(isDocking || isUndocking)))
             {
                 can_gyroOVR = true;
             }
@@ -3713,8 +3713,16 @@ namespace IngameScript
             {
                 can_gyroOVR = true;
             }
-            Vector3D NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
-            SetGyroOverride(can_gyroOVR, NavTemp, isDocked);
+            if(navState || mineState)
+            {
+                NavTemp = GetNavAngles(crnt_tgt_align) * GyrMlt;
+            }
+            else
+            {
+                NavTemp = Vector3D.Zero;
+            }
+
+                SetGyroOverride(can_gyroOVR, NavTemp, isDocked);
 
             double YawMon = NavTemp.GetDim(0);
             double PitchMon = NavTemp.GetDim(1);
