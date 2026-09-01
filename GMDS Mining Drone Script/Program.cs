@@ -3446,10 +3446,17 @@ namespace IngameScript
             }
 
             GetSpeed();
+
             if (undocking_stage > 0 && undocking_stage < 3 && spd <= currentSpeedNotMovingThreshold)
             {
                 isUndocking = true;
-                no_speed_undock_delay_count++;
+                if (ai_task_undock_actual != null)
+                {
+                    if (!ai_task_undock_actual.GetValue<bool>(p1))
+                    {
+                        no_speed_undock_delay_count++;
+                    }
+                }
                 undock_delay_time = Math.Round(((double)no_speed_undock_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
             }
             if (no_speed_ready_undock && undocking_stage > 0 && undocking_stage < 3 && !connectorActual.IsConnected)
