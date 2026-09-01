@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.624B";
+        string ver = "V0.625B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3782,7 +3782,7 @@ namespace IngameScript
             #region navigation_management
             remote_control_position_update();
 
-            if (!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !connectorActual.IsConnected && isUndocked)
+            if (!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !(connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable) && isUndocked)
             {
                 remoteControlActual.ClearWaypoints();
                 add_nav_Waypoint_mn = true;
@@ -3903,7 +3903,7 @@ namespace IngameScript
             if ((mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 1) || (mainNavSequence == 3 && resetLightActual.Enabled && commandRequest == 4 || navigation_reset_delay))
             {
                 remoteControlActual.ClearWaypoints();
-                mainNavSequence = 1;
+                mainNavSequence = 0;
                 add_nav_Waypoint_mn = false;
                 reset_ai();
                 if (resetLightActual != null)
@@ -4044,7 +4044,7 @@ namespace IngameScript
                 
             }
 
-            if ((mainNavSequence > 0 && recharge_request) || (mainNavSequence > 0 && force_request_dock))
+            if ((mainNavSequence > 0 && recharge_request) || (mainNavSequence > 0 && force_request_dock) || (mainNavSequence > 0 && (connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable)))
             {
                 mainNavSequence = 0;
                 main_nav_complete = true;
