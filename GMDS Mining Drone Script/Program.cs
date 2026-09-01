@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.625B";
+        string ver = "V0.626B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3788,39 +3788,47 @@ namespace IngameScript
             if (remoteControlActual == null) { sbtext.AppendLine("Error: Remote control is null in navigation_management"); return; }
             #region navigation_management
             remote_control_position_update();
-            if ((!add_nav_Waypoint_mn && mainNavSequence == 0 && custom_data_read == 1 && navState && !(connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable) && isUndocked))
+            if (connectorActual != null)
             {
-                remoteControlActual.ClearWaypoints();
-                main_nav_complete = false;
-                mainNavSequence = 1;
-                droneStatus = 1;
-                droneStatusOutput = "mine nav gps--";
-                if (!undockLightActual.Enabled)
+                if ((!add_nav_Waypoint_mn && mainNavSequence == 0 && custom_data_read == 1 && navState && !(connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable) && isUndocked) && !main_nav_complete)
                 {
-                    undockLightActual.Enabled = true;
+                    remoteControlActual.ClearWaypoints();
+                    //main_nav_complete = false;
+                    mainNavSequence = 1;
+                    droneStatus = 1;
+                    droneStatusOutput = "mine nav gps--";
+                    if (!undockLightActual.Enabled)
+                    {
+                        undockLightActual.Enabled = true;
+                    }
+                    if (dockLightActual.Enabled)
+                    {
+                        dockLightActual.Enabled = false;
+                    }
                 }
-                if (dockLightActual.Enabled)
+                if ((!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !(connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable) && isUndocked))
                 {
-                    dockLightActual.Enabled = false;
+                    remoteControlActual.ClearWaypoints();
+                    add_nav_Waypoint_mn = true;
+                    main_nav_complete = false;
+                    mainNavSequence = 2;
+                    remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
+                    droneStatus = 1;
+                    droneStatusOutput = "Nav";
+                    if (!undockLightActual.Enabled)
+                    {
+                        undockLightActual.Enabled = true;
+                    }
+                    if (dockLightActual.Enabled)
+                    {
+                        dockLightActual.Enabled = false;
+                    }
                 }
             }
-            if ((!add_nav_Waypoint_mn && mainNavSequence == 1 && custom_data_read == 1 && navState && !(connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable) && isUndocked))
+            else
             {
-                remoteControlActual.ClearWaypoints();
-                add_nav_Waypoint_mn = true;
-                main_nav_complete = false;
-                mainNavSequence = 2;
-                remoteControlActual.AddWaypoint(main_gps_coords, "mine nav gps");
-                droneStatus = 1;
-                droneStatusOutput = "Nav";
-                if (!undockLightActual.Enabled)
-                {
-                    undockLightActual.Enabled = true;
-                }
-                if (dockLightActual.Enabled)
-                {
-                    dockLightActual.Enabled = false;
-                }
+                setupIsComplete = false;
+                return;
             }
             if (mainNavSequence == 2 && rc_xyz != remoteControlActual.CurrentWaypoint.Coords && navState && isUndocked && !main_nav_complete && add_nav_Waypoint_mn)
             {
