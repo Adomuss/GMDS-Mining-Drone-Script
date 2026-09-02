@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.626B";
+        string ver = "V0.627B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -2864,7 +2864,7 @@ namespace IngameScript
             {
                 is_low_tank = false;
             }
-            if (!is_low_tank && recharge_request_tank && is_full_tank && !ignore_Htank || ignore_Htank)
+            if ((!is_low_tank && recharge_request_tank && is_full_tank && !ignore_Htank) || (ignore_Htank))
             {
                 recharge_request_tank = false;
             }
@@ -3100,7 +3100,7 @@ namespace IngameScript
                 commandRequest = 0;
                 droneStatusOutput = "Idle";
             }
-            if (commandRequest == 0 || commandChanged && mode_set && commandRequest != 7)
+            if ((commandRequest == 0) || (commandChanged && mode_set && commandRequest != 7))
             {
                 stopState = true;
                 cmd_read_ack = 0;              
@@ -3140,7 +3140,7 @@ namespace IngameScript
                 undockState = true;
             }
             else undockState = false;
-            if (commandRequest == 8 && tunnelSequenceFinished || commandRequest == 0 && connectorActual.IsConnected && tunnelSequenceFinished && !undockState && !cargoFullAchieved && cargoIsEmpty && !recharge_request)
+            if ((commandRequest == 8 && tunnelSequenceFinished) || (commandRequest == 0 && connectorActual.IsConnected && tunnelSequenceFinished && !undockState && !cargoFullAchieved && cargoIsEmpty && !recharge_request))
             {
                 tunnelSequenceFinished = false;
                 droneStatusOutput = "Resetting";
@@ -3293,7 +3293,7 @@ namespace IngameScript
             }
             if (connectorActual != null)
             {
-                if (undockState && recharge_request && connectorActual.IsConnected && (is_low_charge || is_low_tank && !ignore_Htank))
+                if (undockState && recharge_request && connectorActual.IsConnected && (is_low_charge || (is_low_tank && !ignore_Htank)))
                 {
                     undockState = false;
                 }
