@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.629B";
+        string ver = "V0.630B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -5028,6 +5028,20 @@ namespace IngameScript
             }
             if (AInav_fault && dockingStage == 2)
             {
+                if (currentSpeed > currentSpeedNotMovingThreshold)
+                {
+                    if (no_speed_dock_delay_count > 0)
+                    {
+                        no_speed_dock_delay_count = 0;                        
+                    }
+                    if(AInav_fault)
+                    {
+                        AInav_fault = false;
+                    }
+                }
+            }
+            if (AInav_fault && dockingStage == 2)
+            {
                 if (precModeLightActual != null)
                 {
                     if (precModeLightActual.Enabled)
@@ -5061,6 +5075,7 @@ namespace IngameScript
                     }
                 }
             }
+
             if (dockingStage == 2 && AInav_fault)
             {
                 if (resetLightActual != null)
@@ -5078,6 +5093,7 @@ namespace IngameScript
                 {
                     AInav_fault = false;
                 }
+
             }
             if (dockingStage == 2)
             {
