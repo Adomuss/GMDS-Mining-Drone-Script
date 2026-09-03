@@ -55,8 +55,8 @@ namespace IngameScript
         bool collisionSenseEnabled = true;
         float s_llm = 4.0f;
         float s_rlm = 4.0f;
-        float s_btlm = 3.0f;
-        float s_tlm = 4.5f;
+        float s_btlm = 5.0f;
+        float s_tlm = 3.5f;
         float s_bklm = 6.5f;
         float s_flm = 3.0f;
         //hydrogen recharge
@@ -5042,6 +5042,24 @@ namespace IngameScript
                         collisionAvoidLightActual.Enabled = true;
                     }
                 }
+                if(ai_move_actual != null)
+                {
+                    if (!ai_move_actual.CollisionAvoidance)
+                    {
+                        ai_move_actual.CollisionAvoidance = true;
+                    }
+                    if (ai_move_actual.PrecisionMode)
+                    {
+                        ai_move_actual.PrecisionMode = false;
+                    }
+                }
+                if(collisionSenseEnabled && sensorActual != null)
+                {
+                    if (!sensorActual.Enabled)
+                    {
+                        sensorActual.Enabled = true;
+                    }
+                }
             }
             if (dockingStage == 2 && AInav_fault)
             {
@@ -5592,7 +5610,7 @@ namespace IngameScript
 
             if (pinged)
             {
-                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:{22}:{23}";
+                const string baseFormat = "{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}:{8}:{9}:{10}:{11}:{12}:{13}:{14}:{15}:{16}:{17}:{18}:{19}:{20}:{21}:{22}:{23}:{24}";
                 sb.Clear().EnsureCapacity(128);
                 sb.AppendFormat(baseFormat, D_I_N,
                     droneDamageStatus, tunnelSequenceFinished, droneStatusOutput,
@@ -5602,7 +5620,7 @@ namespace IngameScript
                     drillSetLength, Math.Round(distance_current, 2), Math.Round(drillSetLength - ignoreDistance, 2),
                     Math.Round(percent_battery_power, 2), Math.Round(pcnt_gas_tank, 2), Math.Round(total_percent_cargo_used, 2),
                     gpsIndex, cargoFullAchieved, recharge_request,
-                    autoDock, dockingReady, commandRequest, ver
+                    autoDock, dockingReady, commandRequest, ver, AInav_fault
                     );
                 dataTransmissionOut = sb.ToString();
                 IGC.SendBroadcastMessage(tx_ch, dataTransmissionOut, TransmissionDistance.TransmissionDistanceMax); // Direct sb use
