@@ -56,7 +56,7 @@ namespace IngameScript
         float s_llm = 4.0f;
         float s_rlm = 4.0f;
         float s_btlm = 5.0f;
-        float s_tlm = 3.5f;
+        float s_tlm = 3.0f;
         float s_bklm = 6.5f;
         float s_flm = 7.0f;
         //hydrogen recharge
