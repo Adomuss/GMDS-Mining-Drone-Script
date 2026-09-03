@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.628B";
+        string ver = "V0.629B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
