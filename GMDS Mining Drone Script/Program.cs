@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.630B";
+        string ver = "V0.631B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1566,88 +1566,67 @@ namespace IngameScript
             {
                 string input = "";
                 /* 
-                 *        float s_llm = 4.0f;
-                    float s_rlm = 4.0f;
-                float s_btlm = 3.0f;
-                float s_tlm = 4.5f;
-                float s_bklm = 6.5f;
-                float s_flm = 3.0f;
+        float s_llm = 4.0f;
+        float s_rlm = 4.0f;
+        float s_btlm = 5.0f;
+        float s_tlm = 3.0f;
+        float s_bklm = 6.5f;
+        float s_flm = 7.0f;
                     */
                 sbtext.AppendLine("No sensor range data found, using default.");
                 _sensorInfo.Clear();
-                _sensorInfo.Set("SensorRange", "LeftExtend", s_llm);
-                _sensorInfo.Set("SensorRange", "RightExtend", s_rlm);
-                _sensorInfo.Set("SensorRange", "BottomExtend", s_btlm);
-                _sensorInfo.Set("SensorRange", "TopExtend", s_tlm);
-                _sensorInfo.Set("SensorRange", "BackExtend", s_bklm);
-                _sensorInfo.Set("SensorRange", "FrontExtend", s_flm);
+                if (_sensorInfo.TryParse(block.CustomData.ToString()))
+                {
+                    var str = "";
+                    str = _sensorInfo.Get("SensorRange", "LeftExtend").ToString();
+                    if (!float.TryParse(str, out s_llm))
+                    {
+                        s_llm = 4.0f;
+                        _sensorInfo.Set("SensorRange", "LeftExtend", s_llm);
+                    }
+                    str = _sensorInfo.Get("SensorRange", "RightExtend").ToString();
+                    if (!float.TryParse(str, out s_rlm))
+                    {
+                        s_rlm = 4.0f;
+                        _sensorInfo.Set("SensorRange", "RightExtend", s_rlm);
+                    }
+                    str = _sensorInfo.Get("SensorRange", "BottomExtend").ToString();
+                    if (!float.TryParse(str, out s_btlm))
+                    {
+                        s_btlm = 5.0f;
+                        _sensorInfo.Set("SensorRange", "BottomExtend", s_btlm);
+                    }
+                    str = _sensorInfo.Get("SensorRange", "TopExtend").ToString();
+                    if (!float.TryParse(str, out s_tlm))
+                    {
+                        s_tlm = 3.0f;
+                        _sensorInfo.Set("SensorRange", "TopExtend", s_tlm);
+                    }
+                    str = _sensorInfo.Get("SensorRange", "BackExtend").ToString();
+                    if (!float.TryParse(str, out s_bklm))
+                    {
+                        s_bklm = 6.5f;
+                        _sensorInfo.Set("SensorRange", "BackExtend", s_bklm);
+                    }
+                    str = _sensorInfo.Get("SensorRange", "FrontExtend").ToString();
+                    if (!float.TryParse(str, out s_flm))
+                    {
+                        s_flm = 7.0f;
+                        _sensorInfo.Set("SensorRange", "FrontExtend", s_flm);
+                    }
+                }
+                else
+                {
+                    _sensorInfo.Set("SensorRange", "LeftExtend", s_llm);
+                    _sensorInfo.Set("SensorRange", "RightExtend", s_rlm);
+                    _sensorInfo.Set("SensorRange", "BottomExtend", s_btlm);
+                    _sensorInfo.Set("SensorRange", "TopExtend", s_tlm);
+                    _sensorInfo.Set("SensorRange", "BackExtend", s_bklm);
+                    _sensorInfo.Set("SensorRange", "FrontExtend", s_flm);
+                }
                 input = _sensorInfo.ToString();
                 block.CustomData = input;
                 _sensorInfo.Clear();
-            }
-            if (!string.IsNullOrEmpty(block.CustomData) && !string.IsNullOrWhiteSpace(block.CustomData))
-            {
-                sbtext.AppendLine("Sensor range data found, loading settings");
-                if (_sensorInfo.TryParse(block.CustomData))
-                {
-                    _sensorInfo.TryParse(block.CustomData);
-                    string senseval;
-                    senseval = _sensorInfo.Get("SensorRange", "LeftExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_llm))
-                    {
-                        s_llm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_llm);
-                    }
-                    senseval = _sensorInfo.Get("SensorRange", "RightExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_rlm))
-                    {
-                        s_rlm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_rlm);
-                    }
-                    senseval = _sensorInfo.Get("SensorRange", "BottomExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_btlm))
-                    {
-                        s_btlm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_btlm);
-                    }
-                    senseval = _sensorInfo.Get("SensorRange", "TopExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_tlm
-                            ))
-                    {
-                        s_tlm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_tlm);
-                    }
-                    senseval = _sensorInfo.Get("SensorRange", "BackExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_bklm))
-                    {
-                        s_bklm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_bklm);
-                    }
-                    senseval = _sensorInfo.Get("SensorRange", "FrontExtend").ToString().Trim();
-                    if (!float.TryParse(senseval, out s_flm))
-                    {
-                        s_flm = 1.0f;
-                    }
-                    else
-                    {
-                        float.TryParse(senseval, out s_flm);
-                    }
-                }
             }
         }
 
