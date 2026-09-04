@@ -58,7 +58,7 @@ namespace IngameScript
         float s_btlm = 5.0f;
         float s_tlm = 3.0f;
         float s_bklm = 6.5f;
-        float s_flm = 7.0f;
+        float s_flm = 3.0f;
         //hydrogen recharge
         bool ignore_Htank = true;
         double gas_CHGhi = 100.0;
@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.631B";
+        string ver = "V0.633B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1562,7 +1562,7 @@ namespace IngameScript
         }
         public void sensorrangemanagement(IMySensorBlock block)
         {
-            if (string.IsNullOrEmpty(block.CustomData) || string.IsNullOrWhiteSpace(block.CustomData))
+            if (block != null)
             {
                 string input = "";
                 /* 
@@ -1571,11 +1571,11 @@ namespace IngameScript
         float s_btlm = 5.0f;
         float s_tlm = 3.0f;
         float s_bklm = 6.5f;
-        float s_flm = 7.0f;
+        float s_flm = 3.0f;
                     */
                 sbtext.AppendLine("No sensor range data found, using default.");
                 _sensorInfo.Clear();
-                if (_sensorInfo.TryParse(block.CustomData.ToString()))
+                if (_sensorInfo.TryParse(block.CustomData))
                 {
                     var str = "";
                     str = _sensorInfo.Get("SensorRange", "LeftExtend").ToString();
@@ -1611,7 +1611,7 @@ namespace IngameScript
                     str = _sensorInfo.Get("SensorRange", "FrontExtend").ToString();
                     if (!float.TryParse(str, out s_flm))
                     {
-                        s_flm = 7.0f;
+                        s_flm = 3.0f;
                         _sensorInfo.Set("SensorRange", "FrontExtend", s_flm);
                     }
                 }
