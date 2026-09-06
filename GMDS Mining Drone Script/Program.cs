@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.633B";
+        string ver = "V0.634B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -1892,7 +1892,7 @@ namespace IngameScript
             connector_all.Clear();
             cargo_all.Clear();
             cargo_tag.Clear();
-            cargo_sense = new List<IMyCargoContainer>();
+            cargo_sense.Clear();
             gts.GetBlocksOfType<IMyCargoContainer>(cargo_all, b => b.CubeGrid == Me.CubeGrid);
             if (cargo_all.Count > 0)
             {
