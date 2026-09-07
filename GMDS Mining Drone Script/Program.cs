@@ -5747,7 +5747,10 @@ namespace IngameScript
             }
             if (displays_tag.Count == 0)
             {
-                Echo(sbtext.ToString());
+                if (runTick % 10 == 0)
+                {
+                    Echo(sbtext.ToString());
+                }               
             }
             sbtext.Clear();
             #endregion
