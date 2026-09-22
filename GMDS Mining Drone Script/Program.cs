@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.635B";
+        string ver = "V0.636B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -3813,7 +3813,7 @@ namespace IngameScript
                     }
 
                 }
-                else if (commandRequest == 2)
+                if (commandRequest == 2)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(false);
@@ -3828,14 +3828,14 @@ namespace IngameScript
                         }
                     }
                 }
-                else if (commandRequest == 3)
+                if (commandRequest == 3)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(true);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
                 }
-                else if (commandRequest == 4)
+                if (commandRequest == 4)
                 {
                     remoteControlActual.SetCollisionAvoidance(true);
                     remoteControlActual.SetDockingMode(false);
@@ -3869,7 +3869,7 @@ namespace IngameScript
                 }
             }
 
-            else if ((mainNavSequence == 3 && navinst && commandRequest == 1) || (mainNavSequence == 3 && navinst && commandRequest == 4))
+            if ((mainNavSequence == 3 && navinst && commandRequest == 1) || (mainNavSequence == 3 && navinst && commandRequest == 4))
             {
                 remoteControlActual.ClearWaypoints();
                 mainNavSequence = 1;
@@ -3930,7 +3930,7 @@ namespace IngameScript
                         }
                     }
                 }
-                else if (commandRequest == 2)
+                if (commandRequest == 2)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(false);
@@ -3942,14 +3942,14 @@ namespace IngameScript
                         resetLightActual.Enabled = false;
                     }
                 }
-                else if (commandRequest == 3)
+                if (commandRequest == 3)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(true);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
                 }
-                else if (commandRequest == 4)
+                if (commandRequest == 4)
                 {
                     remoteControlActual.SetCollisionAvoidance(true);
                     remoteControlActual.SetDockingMode(true);
