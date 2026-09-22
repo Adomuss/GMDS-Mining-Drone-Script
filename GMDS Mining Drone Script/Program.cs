@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.634B";
+        string ver = "V0.635B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -158,7 +158,7 @@ namespace IngameScript
         int cmd_rqold = 0;
         bool mode_set = false;
         string drnst;
-        string commandCommandDataRequested = "0";
+        //string commandCommandDataRequested = "0";
         //string commandDataDistance = "10.0";
         double ignoreDistance = 0.0;
         double alignmentTargetX = 0.0;
@@ -1055,46 +1055,28 @@ namespace IngameScript
             //check ai move block and reset
             if (ai_move_actual != null)
             {
-                if (!ai_move_actual.Enabled)
-                {
                     ai_move_actual.Enabled = true;
-                }
-                if (ai_move_actual.GetValue<bool>(abr))
-                {
-                    ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
-                }
+                    ai_move_actual.ApplyAction(ab0);
             }
             //check ai task dock and undock and reset
             if (ai_task_dock_actual != null)
             {
-                if (!ai_task_dock_actual.Enabled)
-                {
-                    ai_task_dock_actual.Enabled = true;
-                }
+                ai_task_dock_actual.Enabled = true;
                 if (ai_task_dock_actual.GetValue<bool>(p1))
                 {
-                    ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
+                    ai_task_dock_actual.ApplyAction(poff);
                 }
-                if (ai_task_dock_actual.GetValue<bool>(abr))
-                {
-                    ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
-                }
+                    ai_task_dock_actual.ApplyAction(ab0);
             }
             //check ai task undock and reset
             if (ai_task_undock_actual != null)
             {
-                if (!ai_task_undock_actual.Enabled)
-                {
-                    ai_task_undock_actual.Enabled = true;
-                }
+                ai_task_undock_actual.Enabled = true;
                 if (ai_task_undock_actual.GetValue<bool>(p1))
                 {
-                    ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
+                    ai_task_undock_actual.ApplyAction(poff);
                 }
-                if (ai_task_undock_actual.GetValue<bool>(abr))
-                {
-                    ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
-                }
+                 ai_task_undock_actual.ApplyAction(ab0); 
             }
             if (collisionAvoidLightActual != null)
             {
@@ -3831,7 +3813,7 @@ namespace IngameScript
                     }
 
                 }
-                if (commandRequest == 2)
+                else if (commandRequest == 2)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(false);
@@ -3846,14 +3828,14 @@ namespace IngameScript
                         }
                     }
                 }
-                if (commandRequest == 3)
+                else if (commandRequest == 3)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(true);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
                 }
-                if (commandRequest == 4)
+                else if (commandRequest == 4)
                 {
                     remoteControlActual.SetCollisionAvoidance(true);
                     remoteControlActual.SetDockingMode(false);
@@ -3887,7 +3869,7 @@ namespace IngameScript
                 }
             }
 
-            if ((mainNavSequence == 3 && navinst && commandRequest == 1) || (mainNavSequence == 3 && navinst && commandRequest == 4))
+            else if ((mainNavSequence == 3 && navinst && commandRequest == 1) || (mainNavSequence == 3 && navinst && commandRequest == 4))
             {
                 remoteControlActual.ClearWaypoints();
                 mainNavSequence = 1;
@@ -3927,7 +3909,6 @@ namespace IngameScript
                 no_speed_count_navigation_reset_delay_count = 0;
                 navigation_reset_delay_time = Math.Round(((double)no_speed_count_navigation_reset_delay_count * (double)10 * game_tick_length) / (double)1000, 1);
             }
-
             double rc_cw_x = main_gps_coords.X;
             double rc_cw_y = main_gps_coords.Y;
             double rc_cw_z = main_gps_coords.Z;
@@ -3949,7 +3930,7 @@ namespace IngameScript
                         }
                     }
                 }
-                if (commandRequest == 2)
+                else if (commandRequest == 2)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(false);
@@ -3961,14 +3942,14 @@ namespace IngameScript
                         resetLightActual.Enabled = false;
                     }
                 }
-                if (commandRequest == 3)
+                else if (commandRequest == 3)
                 {
                     remoteControlActual.SetCollisionAvoidance(false);
                     remoteControlActual.SetDockingMode(true);
                     remoteControlActual.SetAutoPilotEnabled(!navinst);
                     droneStatus = 3;
                 }
-                if (commandRequest == 4)
+                else if (commandRequest == 4)
                 {
                     remoteControlActual.SetCollisionAvoidance(true);
                     remoteControlActual.SetDockingMode(true);
@@ -4053,7 +4034,6 @@ namespace IngameScript
                 mainNavSequence = 0;
                 
             }
-
             if ((mainNavSequence > 0 && recharge_request) || (mainNavSequence > 0 && force_request_dock) || (mainNavSequence > 0 && (connectorActual.IsConnected || connectorActual.Status == MyShipConnectorStatus.Connectable)))
             {
                 mainNavSequence = 0;
@@ -5797,7 +5777,6 @@ namespace IngameScript
         public void Thruster_Management(bool EnableOnOff)
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
-            thrusterGroup = gts.GetBlockGroupWithName(thrustGroupTag) as IMyBlockGroup;
             thrust_tag.Clear();
             gts.GetBlocksOfType<IMyThrust>(thrust_tag, b => b.CubeGrid == Me.CubeGrid);
             if (thrust_tag.Count > 0)
