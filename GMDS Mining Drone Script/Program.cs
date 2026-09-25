@@ -114,7 +114,7 @@ namespace IngameScript
 
         #endregion
 
-        string ver = "V0.636B";
+        string ver = "V0.637B";
         //drone transmission settings
         int transmit_time_limit = 5;
 
@@ -344,10 +344,10 @@ namespace IngameScript
         IMyBlockGroup undockModeGroup;
         IMyBlockGroup resetModeGroup;
         IMyBlockGroup thrusterGroup;
-        IMyGyro gyroActual;
+        //IMyGyro gyroActual;
         List<IMyGyro> gyro_all = new List<IMyGyro>();
         List<IMyGyro> gyroTag = new List<IMyGyro>();
-        IMyShipDrill drl_act;
+        //IMyShipDrill drl_act;
         IMyTextSurface visualiser;
         StringBuilder sb = new StringBuilder();
         MyIni _ini = new MyIni();
@@ -840,39 +840,35 @@ namespace IngameScript
                         if (Parked && gyroTag[j].Enabled)
                         {
                             gyroTag[j].Enabled = false;
-                        } else if (!Parked && !gyroTag[j].Enabled)
+                        } else if (!Parked && !gyroTag[j].Enabled && gyroTag[j].IsFunctional)
                         {
                             gyroTag[j].Enabled = true;
                         }
-                        gyroActual = gyroTag[j];
-                        if (gyroActual != null)
-                        {
-                            if (!gyroActual.GyroOverride && OverrideOnOff)
+                            if (!gyroTag[j].GyroOverride && OverrideOnOff && gyroTag[j].IsFunctional)
                             {
-                                gyroActual.GyroOverride = true;
+                                gyroTag[j].GyroOverride = true;
                             }
-                            else if (gyroActual.GyroOverride && !OverrideOnOff)
+                            else if (gyroTag[j].GyroOverride && !OverrideOnOff)
                             {
-                                gyroActual.GyroOverride = false;
+                                gyroTag[j].GyroOverride = false;
                             }
-                            if (gyroActual.GyroPower != Power)
+                            if (gyroTag[j].GyroPower != Power)
                             {
-                                gyroActual.GyroPower = Power;
+                                gyroTag[j].GyroPower = Power;
                             }
-                            if (gyroActual.Yaw != settings.GetDim(0))
+                            if (gyroTag[j].Yaw != settings.GetDim(0))
                             {
-                                gyroActual.Yaw = settings.GetDim(0);
+                                gyroTag[j].Yaw = settings.GetDim(0);
                             }
-                            if (gyroActual.Pitch != settings.GetDim(1))
+                            if (gyroTag[j].Pitch != settings.GetDim(1))
                             {
-                                gyroActual.Pitch = settings.GetDim(1);
+                                gyroTag[j].Pitch = settings.GetDim(1);
                             }
-                            if (gyroActual.Roll != settings.GetDim(2))
+                            if (gyroTag[j].Roll != settings.GetDim(2))
                             {
-                                gyroActual.Roll = settings.GetDim(2);
+                                gyroTag[j].Roll = settings.GetDim(2);
                             }
 
-                        }
                     }
                 }
             }
@@ -976,47 +972,43 @@ namespace IngameScript
                     }
                     if (drill_tag[i] != null)
                     {
-                        drl_act = drill_tag[i];
-                    }
-                    if (drill_tag[i] != null)
-                    {
-                        if (DrilOnOf && !drl_act.Enabled)
+                        if (DrilOnOf && !drill_tag[i].Enabled)
                         {
-                            drl_act.Enabled = true;
+                            drill_tag[i].Enabled = true;
                         }
-                        if (!DrilOnOf && drl_act.Enabled)
+                        if (!DrilOnOf && drill_tag[i].Enabled)
                         {
-                            drl_act.Enabled = false;
+                            drill_tag[i].Enabled = false;
                         }
                         if (terrainClear)
                         {
-                            if (!drl_act.TerrainClearingMode)
+                            if (!drill_tag[i].TerrainClearingMode)
                             {
-                                drl_act.TerrainClearingMode = true;
+                                drill_tag[i].TerrainClearingMode = true;
 
                             }
                         }
                         else
                         {
-                            if (drl_act.TerrainClearingMode)
+                            if (drill_tag[i].TerrainClearingMode)
                             {
-                                drl_act.TerrainClearingMode = false;
+                                drill_tag[i].TerrainClearingMode = false;
                             }
                         }
 
                         if (UConv)
                         {
-                            if (!drl_act.UseConveyorSystem)
+                            if (!drill_tag[i].UseConveyorSystem)
                             {
-                                drl_act.UseConveyorSystem = true;
+                                drill_tag[i].UseConveyorSystem = true;
                             }
 
                         }
                         else
                         {
-                            if (drl_act.UseConveyorSystem)
+                            if (drill_tag[i].UseConveyorSystem)
                             {
-                                drl_act.UseConveyorSystem = false;
+                                drill_tag[i].UseConveyorSystem = false;
                             }
 
                         }
@@ -2784,8 +2776,9 @@ namespace IngameScript
         {
 
             #region fuel_check
-            if (hydrogen_tank_tag.Count <= 0 || hydrogen_tank_tag[0] == null)
+            if (hydrogen_tank_tag.Count <= 0)
             {
+                //do nothing
             }
             ttl_GASs = 0;
             ttl_sGAS = 0;
@@ -3333,18 +3326,18 @@ namespace IngameScript
                         }
                         if (!ai_move_actual.GetValue<bool>(abr))
                         {
-                            ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                            ai_move_actual.ApplyAction(ab1);
                         }
                     }
                     if (ai_task_undock_actual != null)
                     {
                         if (!ai_task_undock_actual.GetValue<bool>(abr))
                         {
-                            ai_task_undock_actual.GetActionWithName(ab1).Apply(ai_task_undock_actual);
+                            ai_task_undock_actual.ApplyAction(ab1);
                         }
                         if (!ai_task_undock_actual.GetValue<bool>(p1))
                         {
-                            ai_task_undock_actual.GetActionWithName(pon).Apply(ai_task_undock_actual);
+                            ai_task_undock_actual.ApplyAction(pon);
                         }
                     }
                     undocking_stage = 2;
@@ -3516,29 +3509,29 @@ namespace IngameScript
                 {
                     if (ai_task_dock_actual.GetValue<bool>(p1))
                     {
-                        ai_task_dock_actual.GetActionWithName(poff).Apply(ai_task_dock_actual);
+                        ai_task_dock_actual.ApplyAction(poff);
                     }
                     if (ai_task_dock_actual.GetValue<bool>(abr))
                     {
-                        ai_task_dock_actual.GetActionWithName(ab0).Apply(ai_task_dock_actual);
+                        ai_task_dock_actual.ApplyAction(ab0);
                     }
                 }
                 if (ai_task_undock_actual != null)
                 {
                     if (ai_task_undock_actual.GetValue<bool>(p1))
                     {
-                        ai_task_undock_actual.GetActionWithName(poff).Apply(ai_task_undock_actual);
+                        ai_task_undock_actual.ApplyAction(poff);
                     }
                     if (ai_task_undock_actual.GetValue<bool>(abr))
                     {
-                        ai_task_undock_actual.GetActionWithName(ab0).Apply(ai_task_undock_actual);
+                        ai_task_undock_actual.ApplyAction(ab0);
                     }
                 }
                 if (ai_move_actual != null)
                 {
                     if (ai_move_actual.GetValue<bool>(abr))
                     {
-                        ai_move_actual.GetActionWithName(ab0).Apply(ai_move_actual);
+                        ai_move_actual.ApplyAction(ab0);
                     }
                 }
 
@@ -3665,7 +3658,7 @@ namespace IngameScript
             #endregion
         }
 
-
+        //check this
         public void drone_alignment_management()
         {
             Vector3D NavTemp;
@@ -3725,7 +3718,7 @@ namespace IngameScript
             {
                 nav_act = false;
             }
-            if (yawinst && !nav_act && !isDocked  || pitchinst && !nav_act && !isDocked  || rollinst && !nav_act && !isDocked  || resetLightActual.Enabled && !isDocking && !isDocked)
+            if ((yawinst && !nav_act && !isDocked)  || (pitchinst && !nav_act && !isDocked ) || (rollinst && !nav_act && !isDocked)  || (resetLightActual.Enabled && !isDocking && !isDocked))
             {
                 navinst = true;
                 droneStatus = 23;
@@ -4943,17 +4936,17 @@ namespace IngameScript
                             {
                                 if (!ai_move_actual.GetValue<bool>(abr))
                                 {
-                                    ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                                    ai_move_actual.ApplyAction(ab1);
                                 }
                                 if (ai_task_dock_actual != null)
                                 {
                                     if (!ai_task_dock_actual.GetValue<bool>(abr))
                                     {
-                                        ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                                        ai_task_dock_actual.ApplyAction(ab1);
                                     }
                                     if (!ai_task_dock_actual.GetValue<bool>(p1))
                                     {
-                                        ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
+                                        ai_task_dock_actual.ApplyAction(pon);
                                     }
                                 }
                                 if (collisionAvoidLightActual != null)
@@ -5098,7 +5091,7 @@ namespace IngameScript
                     }
                     if (!ai_move_actual.GetValue<bool>(abr))
                     {
-                        ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                        ai_move_actual.ApplyAction(ab1);
                     }
                 }
                 StDrlOnOff(false, cnvyrsON);
@@ -5139,18 +5132,18 @@ namespace IngameScript
                         {
                             if (!ai_move_actual.GetValue<bool>(abr))
                             {
-                                ai_move_actual.GetActionWithName(ab1).Apply(ai_move_actual);
+                                ai_move_actual.ApplyAction(ab1);
                             }
                         }
                         if (!ai_task_dock_actual.GetValue<bool>(abr))
                         {
-                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                            ai_task_dock_actual.ApplyAction(ab1);
                         }
 
                         if (!ai_task_dock_actual.GetValue<bool>(p1))
                         {
                             //ai_task_dock_actual.ApplyAction(p1);
-                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
+                            ai_task_dock_actual.ApplyAction(pon);
                         }
 
                         droneStatusOutput = "Docking";
@@ -5186,13 +5179,13 @@ namespace IngameScript
                         }
                         if (!ai_task_dock_actual.GetValue<bool>(abr))
                         {
-                            ai_task_dock_actual.GetActionWithName(ab1).Apply(ai_task_dock_actual);
+                            ai_task_dock_actual.ApplyAction(ab1);
                         }
 
                         if (!ai_task_dock_actual.GetValue<bool>(p1))
                         {
                             //ai_task_dock_actual.ApplyAction(p1);
-                            ai_task_dock_actual.GetActionWithName(pon).Apply(ai_task_dock_actual);
+                            ai_task_dock_actual.ApplyAction(pon);
                         }
 
                     }
